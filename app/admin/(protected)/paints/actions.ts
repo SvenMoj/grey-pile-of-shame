@@ -15,9 +15,7 @@ export async function createPaintAction(formData: FormData) {
     redirect(`/admin/paints/new?error=${encodeURIComponent(msg)}`);
   }
 
-  const { error } = await adminClient
-    .from("paints")
-    .insert(result.data as never);
+  const { error } = await adminClient.from("paints").insert(result.data as never);
   if (error) {
     redirect(`/admin/paints/new?error=${encodeURIComponent(error.message)}`);
   }
@@ -35,9 +33,7 @@ export async function updatePaintAction(formData: FormData) {
   const result = parsePaintForm(formData);
   if ("errors" in result) {
     const msg = Object.values(result.errors).filter(Boolean).join("; ");
-    redirect(
-      `/admin/paints/${encodeURIComponent(id)}/edit?error=${encodeURIComponent(msg)}`,
-    );
+    redirect(`/admin/paints/${encodeURIComponent(id)}/edit?error=${encodeURIComponent(msg)}`);
   }
 
   const { error } = await adminClient

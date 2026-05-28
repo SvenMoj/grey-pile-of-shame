@@ -6,8 +6,7 @@ import type { ImportResult } from "./actions";
 
 function ResultBanner({ result }: { result: ImportResult | null }) {
   if (!result) return null;
-  if (!result.success)
-    return <p className="text-red-600 text-sm">{result.error}</p>;
+  if (!result.success) return <p className="text-red-600 text-sm">{result.error}</p>;
   return (
     <div className="text-sm space-y-1">
       <p className="text-green-700 font-medium">
@@ -39,13 +38,7 @@ function CsvUploadForm({
       <h2 className="font-semibold">{label}</h2>
       <ResultBanner result={state} />
       <form action={formAction} className="space-y-3">
-        <input
-          type="file"
-          name="csv"
-          accept=".csv,text/csv"
-          required
-          className="block text-sm"
-        />
+        <input type="file" name="csv" accept=".csv,text/csv" required className="block text-sm" />
         <button
           type="submit"
           disabled={pending}
@@ -62,10 +55,7 @@ export default function ImportForms() {
   return (
     <div className="space-y-6">
       <CsvUploadForm action={importPaintsAction} label="Import paints CSV" />
-      <CsvUploadForm
-        action={importConversionsAction}
-        label="Import conversions CSV"
-      />
+      <CsvUploadForm action={importConversionsAction} label="Import conversions CSV" />
     </div>
   );
 }

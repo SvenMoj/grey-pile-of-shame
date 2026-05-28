@@ -21,9 +21,7 @@ export default async function AdminConversionsPage({
     .order("created_at", { ascending: false });
 
   if (paintFilter) {
-    query = query.or(
-      `paint_a_id.eq.${paintFilter},paint_b_id.eq.${paintFilter}`,
-    ) as typeof query;
+    query = query.or(`paint_a_id.eq.${paintFilter},paint_b_id.eq.${paintFilter}`) as typeof query;
   }
 
   const { data, error } = await query;
@@ -32,9 +30,7 @@ export default async function AdminConversionsPage({
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
-        <h1 className="text-xl font-semibold">
-          Conversions ({conversions.length})
-        </h1>
+        <h1 className="text-xl font-semibold">Conversions ({conversions.length})</h1>
         <Link
           href="/admin/conversions/new"
           className="bg-gray-900 text-white text-sm rounded px-3 py-1.5"
@@ -59,10 +55,7 @@ export default async function AdminConversionsPage({
           <tbody>
             {conversions.length === 0 && (
               <tr>
-                <td
-                  colSpan={5}
-                  className="border px-3 py-4 text-gray-400 text-center"
-                >
+                <td colSpan={5} className="border px-3 py-4 text-gray-400 text-center">
                   No conversions found.
                 </td>
               </tr>
@@ -70,25 +63,16 @@ export default async function AdminConversionsPage({
             {conversions.map((c) => (
               <tr key={c.id}>
                 <td className="border px-3 py-2">
-                  {c.paint_a
-                    ? `${c.paint_a.brand} — ${c.paint_a.name}`
-                    : c.paint_a_id}
+                  {c.paint_a ? `${c.paint_a.brand} — ${c.paint_a.name}` : c.paint_a_id}
                 </td>
                 <td className="border px-3 py-2">
-                  {c.paint_b
-                    ? `${c.paint_b.brand} — ${c.paint_b.name}`
-                    : c.paint_b_id}
+                  {c.paint_b ? `${c.paint_b.brand} — ${c.paint_b.name}` : c.paint_b_id}
                 </td>
-                <td className="border px-3 py-2">
-                  {(c.confidence * 100).toFixed(0)}%
-                </td>
+                <td className="border px-3 py-2">{(c.confidence * 100).toFixed(0)}%</td>
                 <td className="border px-3 py-2">{c.source_type}</td>
                 <td className="border px-3 py-2">
                   <div className="flex items-center gap-2">
-                    <Link
-                      href={`/admin/conversions/${c.id}/edit`}
-                      className="underline"
-                    >
+                    <Link href={`/admin/conversions/${c.id}/edit`} className="underline">
                       Edit
                     </Link>
                     <form action={deleteConversionAction}>

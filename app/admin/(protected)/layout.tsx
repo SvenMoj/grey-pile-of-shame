@@ -4,11 +4,7 @@ import Link from "next/link";
 import { getAdminUserOrRedirect } from "@/lib/admin/auth";
 import { signOutAction } from "./actions";
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   await getAdminUserOrRedirect();
 
   return (

@@ -15,15 +15,10 @@ export default async function EditConversionPage({
   const { id } = await params;
   const { error: errorMsg } = await searchParams;
 
-  const [{ data: convData, error: convErr }, { data: paintsData }] =
-    await Promise.all([
-      adminClient.from("conversions").select("*").eq("id", id).single(),
-      adminClient
-        .from("paints")
-        .select("id, brand, name")
-        .order("brand")
-        .order("name"),
-    ]);
+  const [{ data: convData, error: convErr }, { data: paintsData }] = await Promise.all([
+    adminClient.from("conversions").select("*").eq("id", id).single(),
+    adminClient.from("paints").select("id, brand, name").order("brand").order("name"),
+  ]);
 
   if (convErr || !convData) notFound();
 
@@ -33,10 +28,7 @@ export default async function EditConversionPage({
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <Link
-          href="/admin/conversions"
-          className="text-gray-500 underline text-sm"
-        >
+        <Link href="/admin/conversions" className="text-gray-500 underline text-sm">
           ← Conversions
         </Link>
         <h1 className="text-xl font-semibold">Edit conversion</h1>

@@ -1,15 +1,6 @@
 export type PaintErrors = Partial<
   Record<
-    | "id"
-    | "brand"
-    | "name"
-    | "hex"
-    | "lab_l"
-    | "lab_a"
-    | "lab_b"
-    | "size_ml"
-    | "confidence"
-    | "_",
+    "id" | "brand" | "name" | "hex" | "lab_l" | "lab_a" | "lab_b" | "size_ml" | "confidence" | "_",
     string
   >
 >;
@@ -43,15 +34,11 @@ export type ParsedConversion = {
 export function parsePaintForm(
   formData: FormData,
 ): { data: ParsedPaint } | { errors: PaintErrors } {
-  const str = (key: string) =>
-    ((formData.get(key) as string) ?? "").trim() || null;
+  const str = (key: string) => ((formData.get(key) as string) ?? "").trim() || null;
   const id = ((formData.get("id") as string) ?? "").trim().toLowerCase();
   const brand = ((formData.get("brand") as string) ?? "").trim();
   const name = ((formData.get("name") as string) ?? "").trim();
-  const hex = ((formData.get("hex") as string) ?? "")
-    .trim()
-    .toUpperCase()
-    .replace(/^#/, "");
+  const hex = ((formData.get("hex") as string) ?? "").trim().toUpperCase().replace(/^#/, "");
   const lab_l = (formData.get("lab_l") as string)?.trim();
   const lab_a = (formData.get("lab_a") as string)?.trim();
   const lab_b = (formData.get("lab_b") as string)?.trim();
@@ -66,8 +53,7 @@ export function parsePaintForm(
     errors.id = "ID must be lowercase letters, numbers, hyphens only";
   if (!brand) errors.brand = "Brand is required";
   if (!name) errors.name = "Name is required";
-  if (hex && !/^[0-9A-F]{6}$/.test(hex))
-    errors.hex = "Hex must be exactly 6 hex characters (no #)";
+  if (hex && !/^[0-9A-F]{6}$/.test(hex)) errors.hex = "Hex must be exactly 6 hex characters (no #)";
   if (lab_l && isNaN(parseFloat(lab_l))) errors.lab_l = "Must be a number";
   if (lab_a && isNaN(parseFloat(lab_a))) errors.lab_a = "Must be a number";
   if (lab_b && isNaN(parseFloat(lab_b))) errors.lab_b = "Must be a number";
@@ -116,15 +102,13 @@ export function parseConversionForm(
     errors.paint_b_id = "Paint A and Paint B must be different";
 
   const confidence = parseFloat(confidence_str);
-  if (confidence_str === "" || isNaN(confidence))
-    errors.confidence = "Confidence is required";
+  if (confidence_str === "" || isNaN(confidence)) errors.confidence = "Confidence is required";
   else if (confidence < 0 || confidence > 1)
     errors.confidence = "Confidence must be between 0 and 1";
 
   const validSourceTypes = ["official_chart", "community", "hex_derived"];
   if (!source_type) errors.source_type = "Source type is required";
-  else if (!validSourceTypes.includes(source_type))
-    errors.source_type = "Invalid source type";
+  else if (!validSourceTypes.includes(source_type)) errors.source_type = "Invalid source type";
 
   if (Object.keys(errors).length > 0) return { errors };
 

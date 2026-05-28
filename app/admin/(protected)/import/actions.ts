@@ -16,8 +16,7 @@ export async function importPaintsAction(
   await getAdminUserOrRedirect();
 
   const file = formData.get("csv") as File | null;
-  if (!file || file.size === 0)
-    return { success: false, error: "No file selected." };
+  if (!file || file.size === 0) return { success: false, error: "No file selected." };
 
   let rows: Record<string, string>[];
   try {
@@ -69,8 +68,7 @@ export async function importConversionsAction(
   await getAdminUserOrRedirect();
 
   const file = formData.get("csv") as File | null;
-  if (!file || file.size === 0)
-    return { success: false, error: "No file selected." };
+  if (!file || file.size === 0) return { success: false, error: "No file selected." };
 
   let rows: Record<string, string>[];
   try {
@@ -102,12 +100,10 @@ export async function importConversionsAction(
       error: `No valid rows. ${errors.join("; ")}`,
     };
 
-  const { error } = await adminClient
-    .from("conversions")
-    .upsert(validRows as never[], {
-      onConflict: "paint_a_id,paint_b_id",
-      ignoreDuplicates: false,
-    });
+  const { error } = await adminClient.from("conversions").upsert(validRows as never[], {
+    onConflict: "paint_a_id,paint_b_id",
+    ignoreDuplicates: false,
+  });
   if (error) return { success: false, error: error.message };
 
   revalidatePath("/admin/conversions");

@@ -18,9 +18,7 @@ export default async function proxy(request: NextRequest) {
   }
 
   if (user.email !== process.env.ADMIN_EMAIL) {
-    return NextResponse.redirect(
-      new URL("/admin/login?error=not_allowed", request.url),
-    );
+    return NextResponse.redirect(new URL("/admin/login?error=not_allowed", request.url));
   }
 
   return response;

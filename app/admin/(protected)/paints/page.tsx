@@ -10,20 +10,13 @@ export default async function AdminPaintsPage({
 }) {
   const { brand } = await searchParams;
 
-  let query = adminClient
-    .from("paints")
-    .select("*")
-    .order("brand")
-    .order("name");
+  let query = adminClient.from("paints").select("*").order("brand").order("name");
   if (brand) query = query.eq("brand", brand) as typeof query;
 
   const { data, error } = await query;
   const paints = (data ?? []) as Paint[];
 
-  const { data: allBrandsData } = await adminClient
-    .from("paints")
-    .select("brand")
-    .order("brand");
+  const { data: allBrandsData } = await adminClient.from("paints").select("brand").order("brand");
   const brands = [...new Set((allBrandsData ?? []).map((r: { brand: string }) => r.brand))];
 
   return (
@@ -104,10 +97,7 @@ export default async function AdminPaintsPage({
                 <td className="border px-3 py-2">{p.status}</td>
                 <td className="border px-3 py-2">
                   <div className="flex items-center gap-2">
-                    <Link
-                      href={`/admin/paints/${p.id}/edit`}
-                      className="underline"
-                    >
+                    <Link href={`/admin/paints/${p.id}/edit`} className="underline">
                       Edit
                     </Link>
                     {p.status === "active" && (

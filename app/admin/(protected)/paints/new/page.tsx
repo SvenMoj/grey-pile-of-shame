@@ -17,11 +17,7 @@ export default async function NewPaintPage({
         </Link>
         <h1 className="text-xl font-semibold">New paint</h1>
       </div>
-      <PaintForm
-        action={createPaintAction}
-        error={error}
-        submitLabel="Create paint"
-      />
+      <PaintForm action={createPaintAction} error={error} submitLabel="Create paint" />
     </div>
   );
 }

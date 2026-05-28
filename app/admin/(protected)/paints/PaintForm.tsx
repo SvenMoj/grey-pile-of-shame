@@ -19,33 +19,79 @@ export default function PaintForm({
       {paint && <input type="hidden" name="_id" value={paint.id} />}
       {error && <p className="text-red-600 text-sm">{error}</p>}
 
-      <Field label="ID (slug, e.g. citadel-mephiston-red)" name="id" required defaultValue={paint?.id} disabled={!!paint} />
+      <Field
+        label="ID (slug, e.g. citadel-mephiston-red)"
+        name="id"
+        required
+        defaultValue={paint?.id}
+        disabled={!!paint}
+      />
       <Field label="Brand" name="brand" required defaultValue={paint?.brand} />
       <Field label="Range" name="range" defaultValue={paint?.range ?? ""} />
       <Field label="Name" name="name" required defaultValue={paint?.name} />
       <Field label="SKU / code" name="sku_code" defaultValue={paint?.sku_code ?? ""} />
-      <Field label="Hex (6 chars, no #)" name="hex" defaultValue={paint?.hex ?? ""} placeholder="e.g. 7C0A02" maxLength={6} />
+      <Field
+        label="Hex (6 chars, no #)"
+        name="hex"
+        defaultValue={paint?.hex ?? ""}
+        placeholder="e.g. 7C0A02"
+        maxLength={6}
+      />
 
       <div className="grid grid-cols-3 gap-3">
-        <Field label="LAB L" name="lab_l" type="number" step="0.01" defaultValue={paint?.lab_l ?? ""} />
-        <Field label="LAB a" name="lab_a" type="number" step="0.01" defaultValue={paint?.lab_a ?? ""} />
-        <Field label="LAB b" name="lab_b" type="number" step="0.01" defaultValue={paint?.lab_b ?? ""} />
+        <Field
+          label="LAB L"
+          name="lab_l"
+          type="number"
+          step="0.01"
+          defaultValue={paint?.lab_l ?? ""}
+        />
+        <Field
+          label="LAB a"
+          name="lab_a"
+          type="number"
+          step="0.01"
+          defaultValue={paint?.lab_a ?? ""}
+        />
+        <Field
+          label="LAB b"
+          name="lab_b"
+          type="number"
+          step="0.01"
+          defaultValue={paint?.lab_b ?? ""}
+        />
       </div>
 
       <Field label="Size (ml)" name="size_ml" type="number" defaultValue={paint?.size_ml ?? ""} />
-      <Field label="Type" name="type" defaultValue={paint?.type ?? ""} placeholder={TYPE_SUGGESTIONS} />
+      <Field
+        label="Type"
+        name="type"
+        defaultValue={paint?.type ?? ""}
+        placeholder={TYPE_SUGGESTIONS}
+      />
 
       <div>
         <label className="block text-sm font-medium mb-1">Status</label>
-        <select name="status" defaultValue={paint?.status ?? "active"} className="border rounded px-3 py-2 text-sm">
+        <select
+          name="status"
+          defaultValue={paint?.status ?? "active"}
+          className="border rounded px-3 py-2 text-sm"
+        >
           {STATUS_OPTIONS.map((s) => (
-            <option key={s} value={s}>{s}</option>
+            <option key={s} value={s}>
+              {s}
+            </option>
           ))}
         </select>
       </div>
 
       <Field label="Version" name="version" type="number" defaultValue={paint?.version ?? 1} />
-      <Field label="Discontinued date" name="discontinued_date" type="date" defaultValue={paint?.discontinued_date ?? ""} />
+      <Field
+        label="Discontinued date"
+        name="discontinued_date"
+        type="date"
+        defaultValue={paint?.discontinued_date ?? ""}
+      />
 
       <button type="submit" className="bg-gray-900 text-white rounded px-4 py-2 text-sm">
         {submitLabel}

@@ -15,13 +15,9 @@ export async function createConversionAction(formData: FormData) {
     redirect(`/admin/conversions/new?error=${encodeURIComponent(msg)}`);
   }
 
-  const { error } = await adminClient
-    .from("conversions")
-    .insert(result.data as never);
+  const { error } = await adminClient.from("conversions").insert(result.data as never);
   if (error) {
-    redirect(
-      `/admin/conversions/new?error=${encodeURIComponent(error.message)}`,
-    );
+    redirect(`/admin/conversions/new?error=${encodeURIComponent(error.message)}`);
   }
 
   revalidatePath("/admin/conversions");
@@ -37,9 +33,7 @@ export async function updateConversionAction(formData: FormData) {
   const result = parseConversionForm(formData);
   if ("errors" in result) {
     const msg = Object.values(result.errors).filter(Boolean).join("; ");
-    redirect(
-      `/admin/conversions/${encodeURIComponent(id)}/edit?error=${encodeURIComponent(msg)}`,
-    );
+    redirect(`/admin/conversions/${encodeURIComponent(id)}/edit?error=${encodeURIComponent(msg)}`);
   }
 
   const { error } = await adminClient

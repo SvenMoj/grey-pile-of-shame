@@ -15,11 +15,7 @@ export default async function EditPaintPage({
   const { id } = await params;
   const { error: errorMsg } = await searchParams;
 
-  const { data, error } = await adminClient
-    .from("paints")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const { data, error } = await adminClient.from("paints").select("*").eq("id", id).single();
 
   if (error || !data) notFound();
 

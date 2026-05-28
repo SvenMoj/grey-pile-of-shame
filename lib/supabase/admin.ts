@@ -9,9 +9,7 @@ let _client: SupabaseClient<Database> | null = null;
 function get(): SupabaseClient<Database> {
   if (_client) return _client;
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error(
-      "SUPABASE_SERVICE_ROLE_KEY is required for admin operations",
-    );
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for admin operations");
   }
   _client = createClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

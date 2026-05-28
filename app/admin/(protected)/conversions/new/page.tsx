@@ -22,10 +22,7 @@ export default async function NewConversionPage({
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <Link
-          href="/admin/conversions"
-          className="text-gray-500 underline text-sm"
-        >
+        <Link href="/admin/conversions" className="text-gray-500 underline text-sm">
           ← Conversions
         </Link>
         <h1 className="text-xl font-semibold">New conversion</h1>

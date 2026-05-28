@@ -59,9 +59,7 @@ export default function ConversionForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">
-          Confidence * (0.0 – 1.0)
-        </label>
+        <label className="block text-sm font-medium mb-1">Confidence * (0.0 – 1.0)</label>
         <input
           type="number"
           name="confidence"
@@ -111,10 +109,7 @@ export default function ConversionForm({
         />
       </div>
 
-      <button
-        type="submit"
-        className="bg-gray-900 text-white rounded px-4 py-2 text-sm"
-      >
+      <button type="submit" className="bg-gray-900 text-white rounded px-4 py-2 text-sm">
         {submitLabel}
       </button>
     </form>

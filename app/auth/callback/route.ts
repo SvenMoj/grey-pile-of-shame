@@ -15,13 +15,9 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(new URL("/admin/paints", origin));
       }
       await supabase.auth.signOut();
-      return NextResponse.redirect(
-        new URL("/admin/login?error=not_allowed", origin),
-      );
+      return NextResponse.redirect(new URL("/admin/login?error=not_allowed", origin));
     }
   }
 
-  return NextResponse.redirect(
-    new URL("/admin/login?error=invalid_link", origin),
-  );
+  return NextResponse.redirect(new URL("/admin/login?error=invalid_link", origin));
 }
