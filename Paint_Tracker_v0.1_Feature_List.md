@@ -3,6 +3,7 @@
 Checklist-style breakdown of every discrete piece of work for the v0.1 codebase. Each item is sized to roughly one focused work session (a few hours to a day). Copy into Linear, GitHub Issues, Notion, or a plain checkbox-list — whatever your tracker is.
 
 **Priority key:**
+
 - **P0** — blocks launch; site cannot go public without it
 - **P1** — strongly recommended for launch; cut only if time-critical
 - **P2** — nice to have; reasonable to defer to v0.1.1

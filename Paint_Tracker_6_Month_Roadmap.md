@@ -57,28 +57,32 @@ These hold across all six months. Re-read them whenever a decision feels hard.
 ### Features
 
 **1.1 — Anonymous conversion lookup (public)**
-- *Scope:* Search box, pick a paint from any of the four big brands (Citadel, Vallejo, Army Painter Fanatic, Scale75), see equivalents in the other three with confidence indicators and hex/LAB values.
-- *Effort:* 1 week
-- *Dependencies:* Seeded conversion dataset (see below)
-- *Success criteria:* User can complete a lookup in under 10 seconds without signing up; result feels authoritative.
+
+- _Scope:_ Search box, pick a paint from any of the four big brands (Citadel, Vallejo, Army Painter Fanatic, Scale75), see equivalents in the other three with confidence indicators and hex/LAB values.
+- _Effort:_ 1 week
+- _Dependencies:_ Seeded conversion dataset (see below)
+- _Success criteria:_ User can complete a lookup in under 10 seconds without signing up; result feels authoritative.
 
 **1.2 — Paint catalog browse pages (SEO surface)**
-- *Scope:* Static-generated page per paint: `/paints/citadel/mephiston-red` with name, hex, LAB, conversions, hobbyist notes. Indexable in Google.
-- *Effort:* 3-4 days (template + generation pipeline)
-- *Dependencies:* Catalog seeded
-- *Success criteria:* Google indexes at least 200 paint pages by end of month; "Mephiston Red Vallejo" returns your page in top 10 within 6 weeks.
+
+- _Scope:_ Static-generated page per paint: `/paints/citadel/mephiston-red` with name, hex, LAB, conversions, hobbyist notes. Indexable in Google.
+- _Effort:_ 3-4 days (template + generation pipeline)
+- _Dependencies:_ Catalog seeded
+- _Success criteria:_ Google indexes at least 200 paint pages by end of month; "Mephiston Red Vallejo" returns your page in top 10 within 6 weeks.
 
 **1.3 — Brand & visual identity**
-- *Scope:* Name, logo, color palette, basic landing page copy, EN+DE versions. Keep it minimal but not generic — design-aware, not designer-tier.
-- *Effort:* 1 week (in parallel with code)
-- *Dependencies:* None
-- *Success criteria:* You can look at the homepage and not flinch.
+
+- _Scope:_ Name, logo, color palette, basic landing page copy, EN+DE versions. Keep it minimal but not generic — design-aware, not designer-tier.
+- _Effort:_ 1 week (in parallel with code)
+- _Dependencies:_ None
+- _Success criteria:_ You can look at the homepage and not flinch.
 
 **1.4 — DSGVO baseline**
-- *Scope:* Privacy policy, imprint (Impressum required under German law), cookie banner (only if you set non-essential cookies — try to ship without them), data export endpoint, account deletion flow even though there's no account yet.
-- *Effort:* 3-4 days (Iubenda or similar generator for policy; lawyer review later)
-- *Dependencies:* Hosting region locked
-- *Success criteria:* A DACH user could land on the site and not see a compliance red flag.
+
+- _Scope:_ Privacy policy, imprint (Impressum required under German law), cookie banner (only if you set non-essential cookies — try to ship without them), data export endpoint, account deletion flow even though there's no account yet.
+- _Effort:_ 3-4 days (Iubenda or similar generator for policy; lawyer review later)
+- _Dependencies:_ Hosting region locked
+- _Success criteria:_ A DACH user could land on the site and not see a compliance red flag.
 
 ### Community / growth activity
 
@@ -106,34 +110,39 @@ These hold across all six months. Re-read them whenever a decision feels hard.
 ### Features
 
 **2.1 — Authentication**
-- *Scope:* Magic-link email login as primary, optional Google sign-in. No password creation. Account deletion in settings.
-- *Effort:* 2-3 days (Supabase Auth handles most of this)
-- *Dependencies:* Email service live
-- *Success criteria:* Sign-in to completed session in under 30 seconds.
+
+- _Scope:_ Magic-link email login as primary, optional Google sign-in. No password creation. Account deletion in settings.
+- _Effort:_ 2-3 days (Supabase Auth handles most of this)
+- _Dependencies:_ Email service live
+- _Success criteria:_ Sign-in to completed session in under 30 seconds.
 
 **2.2 — Inventory CRUD**
-- *Scope:* Add a paint to your inventory from the catalog with one tap. Three states: owned, wishlist, running-low. Filter and sort. Multi-select.
-- *Effort:* 1 week
-- *Dependencies:* Auth, catalog
-- *Success criteria:* A new user can build an inventory of 50 paints in under 15 minutes.
+
+- _Scope:_ Add a paint to your inventory from the catalog with one tap. Three states: owned, wishlist, running-low. Filter and sort. Multi-select.
+- _Effort:_ 1 week
+- _Dependencies:_ Auth, catalog
+- _Success criteria:_ A new user can build an inventory of 50 paints in under 15 minutes.
 
 **2.3 — Custom paint add**
-- *Scope:* Big "+ Add custom paint" button accessible everywhere. Name, brand (free text or pick), hex (color picker), size, notes. Never paywalled.
-- *Effort:* 2-3 days
-- *Dependencies:* Inventory schema
-- *Success criteria:* User can add a paint not in your catalog in under 60 seconds.
+
+- _Scope:_ Big "+ Add custom paint" button accessible everywhere. Name, brand (free text or pick), hex (color picker), size, notes. Never paywalled.
+- _Effort:_ 2-3 days
+- _Dependencies:_ Inventory schema
+- _Success criteria:_ User can add a paint not in your catalog in under 60 seconds.
 
 **2.4 — Cloud sync foundation**
-- *Scope:* All inventory data lives in Supabase, fetched on login. IndexedDB caches for instant load and offline-resilience. Conflict resolution: server wins on simultaneous writes.
-- *Effort:* 1 week (the conflict logic is the hard part)
-- *Dependencies:* Auth, inventory
-- *Success criteria:* Add a paint on phone, see it on laptop within seconds.
+
+- _Scope:_ All inventory data lives in Supabase, fetched on login. IndexedDB caches for instant load and offline-resilience. Conflict resolution: server wins on simultaneous writes.
+- _Effort:_ 1 week (the conflict logic is the hard part)
+- _Dependencies:_ Auth, inventory
+- _Success criteria:_ Add a paint on phone, see it on laptop within seconds.
 
 **2.5 — Lightweight project tracker**
-- *Scope:* Create a project ("Death Guard 2000pt"), assign paints to it, mark progress (planned / in progress / complete). Don't over-build — this is opt-in for the project-tracking minority.
-- *Effort:* 4-5 days
-- *Dependencies:* Inventory
-- *Success criteria:* User can create a project and link 10 paints in under 5 minutes.
+
+- _Scope:_ Create a project ("Death Guard 2000pt"), assign paints to it, mark progress (planned / in progress / complete). Don't over-build — this is opt-in for the project-tracking minority.
+- _Effort:_ 4-5 days
+- _Dependencies:_ Inventory
+- _Success criteria:_ User can create a project and link 10 paints in under 5 minutes.
 
 ### Community / growth activity
 
@@ -161,34 +170,39 @@ These hold across all six months. Re-read them whenever a decision feels hard.
 ### Features
 
 **3.1 — User-submitted conversions**
-- *Scope:* Logged-in user can submit a conversion (Paint A in Brand X → Paint B in Brand Y) with optional photo-pair evidence. Submission enters a pending queue.
-- *Effort:* 4-5 days
-- *Dependencies:* Auth, image storage
-- *Success criteria:* A painter can submit a conversion in under 90 seconds; submission appears in queue immediately.
+
+- _Scope:_ Logged-in user can submit a conversion (Paint A in Brand X → Paint B in Brand Y) with optional photo-pair evidence. Submission enters a pending queue.
+- _Effort:_ 4-5 days
+- _Dependencies:_ Auth, image storage
+- _Success criteria:_ A painter can submit a conversion in under 90 seconds; submission appears in queue immediately.
 
 **3.2 — Voting and confidence scoring**
-- *Scope:* Conversions display a confidence score derived from: number of confirming votes, contributor reputation, photo-pair presence, age. Users can upvote/downvote on the conversion page. Three-state display: "verified" (high score), "suggested" (medium), "single submission" (low).
-- *Effort:* 1 week
-- *Dependencies:* User submissions live
-- *Success criteria:* Conversion pages clearly distinguish trusted from speculative mappings; users intuitively understand the score.
+
+- _Scope:_ Conversions display a confidence score derived from: number of confirming votes, contributor reputation, photo-pair presence, age. Users can upvote/downvote on the conversion page. Three-state display: "verified" (high score), "suggested" (medium), "single submission" (low).
+- _Effort:_ 1 week
+- _Dependencies:_ User submissions live
+- _Success criteria:_ Conversion pages clearly distinguish trusted from speculative mappings; users intuitively understand the score.
 
 **3.3 — Contributor reputation & badges**
-- *Scope:* User profile shows count of submissions, verified-rate, badge for ≥10/50/100 verified contributions. Public profile URL (`/painters/[username]`). Optional Reddit/Instagram handle for cross-link.
-- *Effort:* 3-4 days
-- *Dependencies:* Submissions, voting
-- *Success criteria:* At least 3 beta painters voluntarily share their contributor profile to a hobby community.
+
+- _Scope:_ User profile shows count of submissions, verified-rate, badge for ≥10/50/100 verified contributions. Public profile URL (`/painters/[username]`). Optional Reddit/Instagram handle for cross-link.
+- _Effort:_ 3-4 days
+- _Dependencies:_ Submissions, voting
+- _Success criteria:_ At least 3 beta painters voluntarily share their contributor profile to a hobby community.
 
 **3.4 — PWA install flow**
-- *Scope:* Service worker for offline catalog access. "Add to Home Screen" prompt shown after the user completes their 2nd successful conversion lookup (not before). Custom install UI for Android (where it shipped first) and iOS (with Safari-specific instructions).
-- *Effort:* 4-5 days
-- *Dependencies:* Stable web app
-- *Success criteria:* 20%+ of returning users install the PWA within their first week.
+
+- _Scope:_ Service worker for offline catalog access. "Add to Home Screen" prompt shown after the user completes their 2nd successful conversion lookup (not before). Custom install UI for Android (where it shipped first) and iOS (with Safari-specific instructions).
+- _Effort:_ 4-5 days
+- _Dependencies:_ Stable web app
+- _Success criteria:_ 20%+ of returning users install the PWA within their first week.
 
 **3.5 — German localization (full)**
-- *Scope:* Complete EN→DE translation of UI strings, error messages, marketing pages. Translation files in JSON, structure ready for FR/PL later. Date/number formatting locale-aware.
-- *Effort:* 1 week (parallel with development; can outsource translation review for €200-400)
-- *Dependencies:* UI mostly stable
-- *Success criteria:* A German painter can use the app end-to-end without seeing an English word.
+
+- _Scope:_ Complete EN→DE translation of UI strings, error messages, marketing pages. Translation files in JSON, structure ready for FR/PL later. Date/number formatting locale-aware.
+- _Effort:_ 1 week (parallel with development; can outsource translation review for €200-400)
+- _Dependencies:_ UI mostly stable
+- _Success criteria:_ A German painter can use the app end-to-end without seeing an English word.
 
 ### Community / growth activity
 
@@ -216,34 +230,39 @@ These hold across all six months. Re-read them whenever a decision feels hard.
 ### Features
 
 **4.1 — Camera capture flow (Web Camera API)**
-- *Scope:* "Scan" button accessible from inventory and home. Requests camera permission, shows preview, captures still image. Works in Chrome Android and Safari iOS (with known limitations).
-- *Effort:* 4-5 days
-- *Dependencies:* HTTPS (Vercel handles), modern browser
-- *Success criteria:* Camera capture works on Android Chrome and iOS Safari without dev tools tweaks.
+
+- _Scope:_ "Scan" button accessible from inventory and home. Requests camera permission, shows preview, captures still image. Works in Chrome Android and Safari iOS (with known limitations).
+- _Effort:_ 4-5 days
+- _Dependencies:_ HTTPS (Vercel handles), modern browser
+- _Success criteria:_ Camera capture works on Android Chrome and iOS Safari without dev tools tweaks.
 
 **4.2 — Barcode scanning + unknown-barcode capture loop**
-- *Scope:* User points camera at paint pot barcode → app reads barcode (using `@zxing/browser` or QuaggaJS) → if matched in DB, adds to inventory; if unmatched, prompts "We don't have this barcode yet — add the paint to help others." User picks paint from catalog, barcode is stored, contributor gets a badge.
-- *Effort:* 1 week
-- *Dependencies:* Camera flow, contribution system
-- *Success criteria:* In a beta-painter blind test, ≥80% of Citadel and Vallejo pot barcodes scan correctly on first attempt; unknown barcodes captured at ≥30%.
+
+- _Scope:_ User points camera at paint pot barcode → app reads barcode (using `@zxing/browser` or QuaggaJS) → if matched in DB, adds to inventory; if unmatched, prompts "We don't have this barcode yet — add the paint to help others." User picks paint from catalog, barcode is stored, contributor gets a badge.
+- _Effort:_ 1 week
+- _Dependencies:_ Camera flow, contribution system
+- _Success criteria:_ In a beta-painter blind test, ≥80% of Citadel and Vallejo pot barcodes scan correctly on first attempt; unknown barcodes captured at ≥30%.
 
 **4.3 — Recipe library (read-only first)**
-- *Scope:* Browse community-uploaded recipes. Each recipe = title, mini description, list of layers with paints (in any brand). Filter: "show only recipes I can paint with what I own." Image attachments. Vote and bookmark.
-- *Effort:* 1 week
-- *Dependencies:* User accounts, image storage
-- *Success criteria:* User can find a usable recipe for "Death Guard skin" filtered to their inventory in under 90 seconds.
+
+- _Scope:_ Browse community-uploaded recipes. Each recipe = title, mini description, list of layers with paints (in any brand). Filter: "show only recipes I can paint with what I own." Image attachments. Vote and bookmark.
+- _Effort:_ 1 week
+- _Dependencies:_ User accounts, image storage
+- _Success criteria:_ User can find a usable recipe for "Death Guard skin" filtered to their inventory in under 90 seconds.
 
 **4.4 — Recipe submission flow**
-- *Scope:* Users can submit their own recipes. Same submission/vote/confidence pattern as conversions.
-- *Effort:* 4-5 days
-- *Dependencies:* Recipe library
-- *Success criteria:* 5 beta painters submit a recipe in the first week it's live.
+
+- _Scope:_ Users can submit their own recipes. Same submission/vote/confidence pattern as conversions.
+- _Effort:_ 4-5 days
+- _Dependencies:_ Recipe library
+- _Success criteria:_ 5 beta painters submit a recipe in the first week it's live.
 
 **4.5 — Bulk paint add (the manual answer to "AI shelf scan")**
-- *Scope:* "Add many paints at once" flow. Type-ahead search, multi-select from results, add all in one action. Much less glamorous than AI shelf scan, but actually faster and works perfectly. The unsexy answer to a sexy problem.
-- *Effort:* 3-4 days
-- *Dependencies:* Inventory CRUD
-- *Success criteria:* User can add 30 paints to their inventory in under 5 minutes.
+
+- _Scope:_ "Add many paints at once" flow. Type-ahead search, multi-select from results, add all in one action. Much less glamorous than AI shelf scan, but actually faster and works perfectly. The unsexy answer to a sexy problem.
+- _Effort:_ 3-4 days
+- _Dependencies:_ Inventory CRUD
+- _Success criteria:_ User can add 30 paints to their inventory in under 5 minutes.
 
 ### Community / growth activity
 
@@ -271,34 +290,39 @@ These hold across all six months. Re-read them whenever a decision feels hard.
 ### Features
 
 **5.1 — Patreon integration**
-- *Scope:* "Support on Patreon" prominent on the about page and in settings. Patreon-linked contributors get a public badge on their profile, a "Supporter" tag next to their submissions, and (optional) name listed on a public supporters page. No functional gating — purely social recognition.
-- *Effort:* 2-3 days
-- *Dependencies:* Patreon account, OAuth flow
-- *Success criteria:* A user can connect Patreon and see their badge in under 60 seconds. First 5 supporters by end of month.
+
+- _Scope:_ "Support on Patreon" prominent on the about page and in settings. Patreon-linked contributors get a public badge on their profile, a "Supporter" tag next to their submissions, and (optional) name listed on a public supporters page. No functional gating — purely social recognition.
+- _Effort:_ 2-3 days
+- _Dependencies:_ Patreon account, OAuth flow
+- _Success criteria:_ A user can connect Patreon and see their badge in under 60 seconds. First 5 supporters by end of month.
 
 **5.2 — Affiliate revenue UI**
-- *Scope:* "Where to buy" buttons appear on paint pages and project shopping lists. Auto-routes EU users to Brückenkopf / Fantasywelt; UK to Element Games; everywhere else to Amazon. Affiliate links use UTM tags for attribution tracking. Transparent disclosure on every page that affiliate links exist.
-- *Effort:* 3-4 days
-- *Dependencies:* Affiliate accounts approved
-- *Success criteria:* Clicks tracked; first commission earned within 2 weeks of launch.
+
+- _Scope:_ "Where to buy" buttons appear on paint pages and project shopping lists. Auto-routes EU users to Brückenkopf / Fantasywelt; UK to Element Games; everywhere else to Amazon. Affiliate links use UTM tags for attribution tracking. Transparent disclosure on every page that affiliate links exist.
+- _Effort:_ 3-4 days
+- _Dependencies:_ Affiliate accounts approved
+- _Success criteria:_ Clicks tracked; first commission earned within 2 weeks of launch.
 
 **5.3 — Android Play Store via TWA**
-- *Scope:* Use Bubblewrap CLI to generate the Android app shell from the existing PWA. Submit to Play Store. Pay $25 dev fee. Survive review.
-- *Effort:* 3-4 days of work + 1-3 weeks of review-cycle calendar time
-- *Dependencies:* PWA stable, privacy policy ironclad
-- *Success criteria:* App appears in Play Store search for "paint tracker" within 4 weeks.
+
+- _Scope:_ Use Bubblewrap CLI to generate the Android app shell from the existing PWA. Submit to Play Store. Pay $25 dev fee. Survive review.
+- _Effort:_ 3-4 days of work + 1-3 weeks of review-cycle calendar time
+- _Dependencies:_ PWA stable, privacy policy ironclad
+- _Success criteria:_ App appears in Play Store search for "paint tracker" within 4 weeks.
 
 **5.4 — Settings, account management, polish**
-- *Scope:* Data export (DSGVO right to portability — generates a JSON of all user data), full account deletion (immediate, irreversible), notification preferences, language switcher, theme (light/dark/auto), about page with credits.
-- *Effort:* 1 week
-- *Dependencies:* Most of the app
-- *Success criteria:* Power user can manage their account without filing a support ticket.
+
+- _Scope:_ Data export (DSGVO right to portability — generates a JSON of all user data), full account deletion (immediate, irreversible), notification preferences, language switcher, theme (light/dark/auto), about page with credits.
+- _Effort:_ 1 week
+- _Dependencies:_ Most of the app
+- _Success criteria:_ Power user can manage their account without filing a support ticket.
 
 **5.5 — Performance + accessibility pass**
-- *Scope:* Lighthouse audit on every key page. Image lazy loading. Bundle size budget. Keyboard navigation. Screen reader basics. Reduced motion respect.
-- *Effort:* 1 week
-- *Dependencies:* Feature freeze
-- *Success criteria:* All key pages score ≥90 on Lighthouse Performance and Accessibility on mid-tier Android.
+
+- _Scope:_ Lighthouse audit on every key page. Image lazy loading. Bundle size budget. Keyboard navigation. Screen reader basics. Reduced motion respect.
+- _Effort:_ 1 week
+- _Dependencies:_ Feature freeze
+- _Success criteria:_ All key pages score ≥90 on Lighthouse Performance and Accessibility on mid-tier Android.
 
 ### Community / growth activity
 
@@ -327,28 +351,32 @@ These hold across all six months. Re-read them whenever a decision feels hard.
 ### Features (only what's necessary for launch readiness)
 
 **6.1 — Onboarding flow**
-- *Scope:* First-time user gets a 4-step welcome: pick your primary brand, import 10 paints to start, try a conversion lookup, optionally install PWA. Skippable but pleasant.
-- *Effort:* 4-5 days
-- *Dependencies:* Core features stable
-- *Success criteria:* 70%+ of new sign-ups complete onboarding; 40%+ install the PWA.
+
+- _Scope:_ First-time user gets a 4-step welcome: pick your primary brand, import 10 paints to start, try a conversion lookup, optionally install PWA. Skippable but pleasant.
+- _Effort:_ 4-5 days
+- _Dependencies:_ Core features stable
+- _Success criteria:_ 70%+ of new sign-ups complete onboarding; 40%+ install the PWA.
 
 **6.2 — Empty states + microcopy pass**
-- *Scope:* Every "you have no [X] yet" screen gets a useful prompt and a friendly tone. Error messages explain themselves. Loading states have personality.
-- *Effort:* 3-4 days
-- *Dependencies:* Feature freeze
-- *Success criteria:* You're proud of every screen a stranger might see.
+
+- _Scope:_ Every "you have no [X] yet" screen gets a useful prompt and a friendly tone. Error messages explain themselves. Loading states have personality.
+- _Effort:_ 3-4 days
+- _Dependencies:_ Feature freeze
+- _Success criteria:_ You're proud of every screen a stranger might see.
 
 **6.3 — Launch landing page**
-- *Scope:* Public homepage rebuild. Hero: "Find the right paint in any brand, in seconds." Sections: conversion engine demo (interactive), AI shelf scan demo (video), community proof (live count of contributions), pricing, FAQ. EN + DE.
-- *Effort:* 1 week
-- *Dependencies:* Feature set finalized
-- *Success criteria:* A first-time visitor understands what the app does within 10 seconds.
+
+- _Scope:_ Public homepage rebuild. Hero: "Find the right paint in any brand, in seconds." Sections: conversion engine demo (interactive), AI shelf scan demo (video), community proof (live count of contributions), pricing, FAQ. EN + DE.
+- _Effort:_ 1 week
+- _Dependencies:_ Feature set finalized
+- _Success criteria:_ A first-time visitor understands what the app does within 10 seconds.
 
 **6.4 — Status page / changelog public**
-- *Scope:* `/changelog` lists every notable shipment. `/status` shows current uptime (use BetterStack or similar free tier). Both publicly linked from footer. Signals trustworthiness.
-- *Effort:* 1-2 days
-- *Dependencies:* Hosting
-- *Success criteria:* Live, accurate, visited by ~5% of new users in their first session.
+
+- _Scope:_ `/changelog` lists every notable shipment. `/status` shows current uptime (use BetterStack or similar free tier). Both publicly linked from footer. Signals trustworthiness.
+- _Effort:_ 1-2 days
+- _Dependencies:_ Hosting
+- _Success criteria:_ Live, accurate, visited by ~5% of new users in their first session.
 
 ### Community / growth activity (this is the bulk of month 6)
 
@@ -382,20 +410,20 @@ These hold across all six months. Re-read them whenever a decision feels hard.
 
 ## What "launch day success" looks like
 
-| Metric | Target by end of month 6 |
-|--------|--------------------------|
-| Registered users | 1,000 — 3,000 |
-| Active users (last 7 days) | 400 — 1,000 |
-| PWA installs | 200 — 800 |
-| Play Store installs (TWA) | 300 — 1,000 |
-| Community-submitted conversions | 200 — 500 |
-| Community-submitted barcodes | 500 — 1,500 |
-| Community-submitted recipes | 30 — 100 |
-| Patreon supporters | 10 — 40 |
-| Monthly Patreon revenue | €50 — €300 |
-| Affiliate revenue (launch month) | €100 — €400 |
-| German-language users | 30 — 50% of base |
-| Community 1-star reviews | < 5% of total |
+| Metric                           | Target by end of month 6 |
+| -------------------------------- | ------------------------ |
+| Registered users                 | 1,000 — 3,000            |
+| Active users (last 7 days)       | 400 — 1,000              |
+| PWA installs                     | 200 — 800                |
+| Play Store installs (TWA)        | 300 — 1,000              |
+| Community-submitted conversions  | 200 — 500                |
+| Community-submitted barcodes     | 500 — 1,500              |
+| Community-submitted recipes      | 30 — 100                 |
+| Patreon supporters               | 10 — 40                  |
+| Monthly Patreon revenue          | €50 — €300               |
+| Affiliate revenue (launch month) | €100 — €400              |
+| German-language users            | 30 — 50% of base         |
+| Community 1-star reviews         | < 5% of total            |
 
 These ranges are deliberately wide. Hitting the bottom of every range means you have a real product with a real audience and time to improve. Hitting the top of any range means you're outperforming and should adjust month 7+ plans accordingly.
 

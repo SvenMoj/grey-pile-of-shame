@@ -1,0 +1,3 @@
+-- Supabase seed file: applied after every `supabase db reset`.
+-- Kept empty at v0.1 — production data is loaded via `pnpm seed:csv`.
+-- Add any static reference data here (e.g. admin user setup, lookup enums) if needed.
