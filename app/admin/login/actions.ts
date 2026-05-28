@@ -17,7 +17,14 @@ export async function requestMagicLinkAction(
     return { message: "Email not authorized for admin access.", success: false };
 
   const headerStore = await headers();
-  const origin = headerStore.get("origin") ?? "";
+  const origin =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    headerStore.get("origin") ||
+    (() => {
+      const proto = headerStore.get("x-forwarded-proto") ?? "https";
+      const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "";
+      return `${proto}://${host}`;
+    })();
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({
