@@ -19,20 +19,20 @@ Instructions for populating `data/paints.csv` and `data/conversions.csv`. Follow
 id,brand,range,name,sku_code,hex,lab_l,lab_a,lab_b,size_ml,type,status
 ```
 
-| Column | Required | Format | Notes |
-|--------|----------|--------|-------|
-| `id` | **yes** | kebab-case text | Primary key. Must be globally unique. Convention: `{brand-slug}-{range-slug}-{name-slug}`. See ID rules below. |
-| `brand` | **yes** | text | Human-readable brand name, e.g. `Citadel`, `Vallejo`, `Army Painter` |
-| `range` | no | text | Product line within the brand, e.g. `Base`, `Layer`, `Game Color`, `Speedpaint` |
-| `name` | **yes** | text | Official paint name exactly as printed on the pot |
-| `sku_code` | no | text | Manufacturer's product code (the number on the pot / webshop listing) |
-| `hex` | no | 6-char uppercase hex | Color value **without** the `#`. Example: `7C0A02`. Approximate is fine if no official value exists. |
-| `lab_l` | no | decimal | CIE L*a*b* lightness (0–100). Leave blank if unknown. |
-| `lab_a` | no | decimal | CIE L*a*b* green–red axis. Leave blank if unknown. |
-| `lab_b` | no | decimal | CIE L*a*b* blue–yellow axis. Leave blank if unknown. |
-| `size_ml` | no | integer | Volume in millilitres (e.g. `12`, `17`, `18`) |
-| `type` | no | text | Paint type. See valid values below. |
-| `status` | **yes** | enum | `active` or `discontinued` |
+| Column     | Required | Format               | Notes                                                                                                          |
+| ---------- | -------- | -------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `id`       | **yes**  | kebab-case text      | Primary key. Must be globally unique. Convention: `{brand-slug}-{range-slug}-{name-slug}`. See ID rules below. |
+| `brand`    | **yes**  | text                 | Human-readable brand name, e.g. `Citadel`, `Vallejo`, `Army Painter`                                           |
+| `range`    | no       | text                 | Product line within the brand, e.g. `Base`, `Layer`, `Game Color`, `Speedpaint`                                |
+| `name`     | **yes**  | text                 | Official paint name exactly as printed on the pot                                                              |
+| `sku_code` | no       | text                 | Manufacturer's product code (the number on the pot / webshop listing)                                          |
+| `hex`      | no       | 6-char uppercase hex | Color value **without** the `#`. Example: `7C0A02`. Approximate is fine if no official value exists.           |
+| `lab_l`    | no       | decimal              | CIE L*a*b\* lightness (0–100). Leave blank if unknown.                                                         |
+| `lab_a`    | no       | decimal              | CIE L*a*b\* green–red axis. Leave blank if unknown.                                                            |
+| `lab_b`    | no       | decimal              | CIE L*a*b\* blue–yellow axis. Leave blank if unknown.                                                          |
+| `size_ml`  | no       | integer              | Volume in millilitres (e.g. `12`, `17`, `18`)                                                                  |
+| `type`     | no       | text                 | Paint type. See valid values below.                                                                            |
+| `status`   | **yes**  | enum                 | `active` or `discontinued`                                                                                     |
 
 ### `id` naming rules
 
@@ -52,17 +52,17 @@ id,brand,range,name,sku_code,hex,lab_l,lab_a,lab_b,size_ml,type,status
 
 No hard enum in the DB — use these consistently:
 
-| Value | Meaning |
-|-------|---------|
-| `base` | High-pigment, opaque coverage |
-| `layer` | Semi-transparent, for layering |
-| `wash` / `shade` | Thin, flows into recesses |
-| `contrast` | One-coat shade+highlight (GW Contrast, AP Speedpaint, etc.) |
-| `dry` | Dry-brushing consistency |
-| `technical` | Special effect (texture, gloss, etc.) |
-| `air` | Airbrush-formulated |
-| `ink` | High-flow transparent ink |
-| `varnish` | Protective coat |
+| Value            | Meaning                                                     |
+| ---------------- | ----------------------------------------------------------- |
+| `base`           | High-pigment, opaque coverage                               |
+| `layer`          | Semi-transparent, for layering                              |
+| `wash` / `shade` | Thin, flows into recesses                                   |
+| `contrast`       | One-coat shade+highlight (GW Contrast, AP Speedpaint, etc.) |
+| `dry`            | Dry-brushing consistency                                    |
+| `technical`      | Special effect (texture, gloss, etc.)                       |
+| `air`            | Airbrush-formulated                                         |
+| `ink`            | High-flow transparent ink                                   |
+| `varnish`        | Protective coat                                             |
 
 ### Valid `status` values
 
@@ -77,36 +77,36 @@ No hard enum in the DB — use these consistently:
 paint_a_id,paint_b_id,confidence,source_type,source_url,notes
 ```
 
-| Column | Required | Format | Notes |
-|--------|----------|--------|-------|
-| `paint_a_id` | **yes** | text | Must match an `id` in `paints.csv` |
-| `paint_b_id` | **yes** | text | Must match an `id` in `paints.csv`. Must differ from `paint_a_id`. |
-| `confidence` | **yes** | decimal 0.0–1.0 | See confidence scale below |
-| `source_type` | **yes** | enum | `official_chart`, `community`, or `hex_derived` |
-| `source_url` | no | URL | Link to the chart, forum post, or page that backs this conversion |
-| `notes` | no | text | Any caveats — "slightly darker", "different finish", "two thin coats needed", etc. |
+| Column        | Required | Format          | Notes                                                                              |
+| ------------- | -------- | --------------- | ---------------------------------------------------------------------------------- |
+| `paint_a_id`  | **yes**  | text            | Must match an `id` in `paints.csv`                                                 |
+| `paint_b_id`  | **yes**  | text            | Must match an `id` in `paints.csv`. Must differ from `paint_a_id`.                 |
+| `confidence`  | **yes**  | decimal 0.0–1.0 | See confidence scale below                                                         |
+| `source_type` | **yes**  | enum            | `official_chart`, `community`, or `hex_derived`                                    |
+| `source_url`  | no       | URL             | Link to the chart, forum post, or page that backs this conversion                  |
+| `notes`       | no       | text            | Any caveats — "slightly darker", "different finish", "two thin coats needed", etc. |
 
 ### Confidence scale
 
-| Value | Meaning |
-|-------|---------|
-| `1.0` | Officially confirmed identical formulation (rare) |
-| `0.9` | Published official conversion chart — direct named substitute |
-| `0.8` | Official chart "close match" or well-documented community consensus |
+| Value | Meaning                                                              |
+| ----- | -------------------------------------------------------------------- |
+| `1.0` | Officially confirmed identical formulation (rare)                    |
+| `0.9` | Published official conversion chart — direct named substitute        |
+| `0.8` | Official chart "close match" or well-documented community consensus  |
 | `0.7` | Widely used community conversion, multiple independent sources agree |
-| `0.6` | Single community source, seems credible |
-| `0.5` | Hex-derived match (similar color by hex, no curated source) |
-| `0.3` | Rough approximation — same hue family, different tone/finish |
+| `0.6` | Single community source, seems credible                              |
+| `0.5` | Hex-derived match (similar color by hex, no curated source)          |
+| `0.3` | Rough approximation — same hue family, different tone/finish         |
 
 When in doubt, round down.
 
 ### Valid `source_type` values
 
-| Value | When to use |
-|-------|------------|
+| Value            | When to use                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------ |
 | `official_chart` | The brand itself published this as a direct substitute (GW transition chart, Vallejo equivalent chart, etc.) |
-| `community` | Forum post, YouTube video, Reddit thread, blog — multiple people have validated it |
-| `hex_derived` | No curated source; derived purely from hex distance calculation |
+| `community`      | Forum post, YouTube video, Reddit thread, blog — multiple people have validated it                           |
+| `hex_derived`    | No curated source; derived purely from hex distance calculation                                              |
 
 ### Conversion direction
 
@@ -145,6 +145,7 @@ Search: `"{brand} conversion chart PDF"` or `"{brand} equivalent {other brand}"`
 ### Hex-derived (use `hex_derived`, confidence 0.5)
 
 If no curated source exists for a pair, a hex distance match is still useful. Tools:
+
 - Sample the paint swatch from the brand's website product image
 - Use a color-distance calculator (ΔE CIE76 or CIEDE2000) to find the closest match in another brand
 
