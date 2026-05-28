@@ -42,6 +42,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# supabase CLI runtime files
+/supabase/.temp/
+
 # seed data (may contain emails — keep out of version control)
 /data/*.csv
 /data/*.json
