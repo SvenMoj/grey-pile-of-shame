@@ -12,29 +12,29 @@ Checklist-style breakdown of every discrete piece of work for the v0.1 codebase.
 
 ## 1. Project foundation
 
-- [ ] **P0** — Set up Next.js 15 (App Router) + TypeScript project
-- [ ] **P0** — Add Tailwind CSS configuration
-- [ ] **P0** — Set up Vercel deployment from GitHub
+- [x] **P0** — Set up Next.js 15 (App Router) + TypeScript project
+- [x] **P0** — Add Tailwind CSS configuration
+- [x] **P0** — Set up Vercel deployment from GitHub
 - [ ] **P0** — Register domain and configure DNS (point to Vercel)
-- [ ] **P0** — Configure environment variables (`.env.local`, Vercel project envs)
-- [ ] **P0** — Set up Supabase Frankfurt project (free tier)
-- [ ] **P0** — Connect Next.js to Supabase via `@supabase/supabase-js`
-- [ ] **P1** — Configure GitHub Actions or Vercel build checks for type errors and lint
-- [ ] **P2** — Set up Prettier + ESLint with sensible defaults
-- [ ] **P2** — Add a `README.md` documenting local setup (you, in three months, will thank you)
+- [x] **P0** — Configure environment variables (`.env.local`, Vercel project envs)
+- [x] **P0** — Set up Supabase Frankfurt project (free tier)
+- [x] **P0** — Connect Next.js to Supabase via `@supabase/supabase-js`
+- [x] **P1** — Configure GitHub Actions or Vercel build checks for type errors and lint
+- [x] **P2** — Set up Prettier + ESLint with sensible defaults
+- [x] **P2** — Add a `README.md` documenting local setup (you, in three months, will thank you)
 
 ---
 
 ## 2. Database schema
 
-- [ ] **P0** — `paints` table with columns: `id` (slug), `brand`, `range`, `name`, `sku_code`, `hex`, `lab_l`, `lab_a`, `lab_b`, `size_ml`, `type`, `status`, `version`, `discontinued_date`, `created_at`, `updated_at`
-- [ ] **P0** — `conversions` table: `id`, `paint_a_id`, `paint_b_id`, `confidence`, `source_type`, `source_url`, `notes`, `verified_count`, `disputed_count`, `created_at`, `updated_at`
-- [ ] **P0** — `conversion_evidence_photos` table: `id`, `conversion_id`, `photo_url`, `caption`, `created_at`
-- [ ] **P0** — `submissions` table: `id`, `paint_a_id`, `paint_b_id`, `submitter_email`, `email_verified_at`, `photo_url`, `notes`, `status` (pending/accepted/rejected), `created_at`, `reviewed_at`
-- [ ] **P0** — Database indexes on `paints.name`, `paints.brand`, `conversions.paint_a_id`, `conversions.paint_b_id`
-- [ ] **P0** — Supabase Row Level Security policies (public read for paints/conversions; admin-only write)
-- [ ] **P1** — Migration tooling decision (Supabase migrations CLI, or `drizzle-kit`, or hand-managed SQL — pick one and document it)
-- [ ] **P1** — Seed scripts that can rebuild the DB from CSV exports (for disaster recovery)
+- [x] **P0** — `paints` table with columns: `id` (slug), `brand`, `range`, `name`, `sku_code`, `hex`, `lab_l`, `lab_a`, `lab_b`, `size_ml`, `type`, `status`, `version`, `discontinued_date`, `created_at`, `updated_at`
+- [x] **P0** — `conversions` table: `id`, `paint_a_id`, `paint_b_id`, `confidence`, `source_type`, `source_url`, `notes`, `verified_count`, `disputed_count`, `created_at`, `updated_at`
+- [x] **P0** — `conversion_evidence_photos` table: `id`, `conversion_id`, `photo_url`, `caption`, `created_at`
+- [x] **P0** — `submissions` table: `id`, `paint_a_id`, `paint_b_id`, `submitter_email`, `email_verified_at`, `photo_url`, `notes`, `status` (pending/accepted/rejected), `created_at`, `reviewed_at`
+- [x] **P0** — Database indexes on `paints.name`, `paints.brand`, `conversions.paint_a_id`, `conversions.paint_b_id`
+- [x] **P0** — Supabase Row Level Security policies (public read for paints/conversions; admin-only write)
+- [x] **P1** — Migration tooling decision (Supabase migrations CLI, or `drizzle-kit`, or hand-managed SQL — pick one and document it)
+- [x] **P1** — Seed scripts that can rebuild the DB from CSV exports (for disaster recovery)
 - [ ] **P1** — Daily automated backups verified working in Supabase dashboard
 
 ---
@@ -43,16 +43,16 @@ Checklist-style breakdown of every discrete piece of work for the v0.1 codebase.
 
 This is the seeding interface — ugly is fine. You're the only user.
 
-- [ ] **P0** — Password-protected admin route (`/admin`) with a single static password from env var
-- [ ] **P0** — Admin: list all paints with filter by brand
-- [ ] **P0** — Admin: create new paint form
-- [ ] **P0** — Admin: edit paint form
-- [ ] **P0** — Admin: delete paint (soft delete preferred)
-- [ ] **P0** — Admin: list all conversions with filter by paint
-- [ ] **P0** — Admin: create new conversion form (pick paint A, pick paint B, set confidence, add source)
-- [ ] **P0** — Admin: edit conversion form
-- [ ] **P0** — Admin: bulk-import paints from CSV (paste or upload)
-- [ ] **P0** — Admin: bulk-import conversions from CSV
+- [x] **P0** — Password-protected admin route (`/admin`) with a single static password from env var
+- [x] **P0** — Admin: list all paints with filter by brand
+- [x] **P0** — Admin: create new paint form
+- [x] **P0** — Admin: edit paint form
+- [x] **P0** — Admin: delete paint (soft delete preferred)
+- [x] **P0** — Admin: list all conversions with filter by paint
+- [x] **P0** — Admin: create new conversion form (pick paint A, pick paint B, set confidence, add source)
+- [x] **P0** — Admin: edit conversion form
+- [x] **P0** — Admin: bulk-import paints from CSV (paste or upload)
+- [x] **P0** — Admin: bulk-import conversions from CSV
 - [ ] **P1** — Admin: submission review queue (approve / reject with reason)
 - [ ] **P1** — Admin: dashboard with counts (total paints, total conversions, pending submissions, recent activity)
 - [ ] **P2** — Admin: "merge two paints" tool for cleaning up duplicates from seeding
