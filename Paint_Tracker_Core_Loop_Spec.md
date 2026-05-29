@@ -1,6 +1,6 @@
 # GPoS — Core Loop Product Spec
 
-**Companion doc to** `Paint_Tracker_6_Month_Roadmap.md`. The roadmap says *what ships when*; this says *how the loop works*. Scope: the months 1-4 core. Deliberately ignores launch logistics, monetization, and marketing.
+**Companion doc to** `Paint_Tracker_6_Month_Roadmap.md`. The roadmap says _what ships when_; this says _how the loop works_. Scope: the months 1-4 core. Deliberately ignores launch logistics, monetization, and marketing.
 
 ---
 
@@ -34,7 +34,7 @@ Names are indicative; align to the existing v0.1 schema where it already exists 
 
 **PaintCatalogEntry** — the seeded, shared catalog (already exists as `paints`).
 `id (slug)`, `brand`, `range`, `name`, `sku_code`, `barcode`, `hex`, `lab_l`, `lab_a`, `lab_b`, `size_ml`, `type` (base/layer/shade/contrast/technical/primer/...), `status` (current/discontinued), `discontinued_date`, `version`.
-*LAB is computed from hex at seed time and stored — never computed at query time.*
+_LAB is computed from hex at seed time and stored — never computed at query time._
 
 **UserPaint** — a catalog entry (or custom paint) in a user's collection.
 `id`, `user_id`, `catalog_paint_id` (nullable for custom), `custom_name`, `custom_brand`, `custom_hex`, `state` (owned / wishlist / running_low), `added_at`. Custom paints get derived LAB from `custom_hex`.
@@ -53,7 +53,7 @@ Names are indicative; align to the existing v0.1 schema where it already exists 
 
 **Substitution result** (computed, not stored long-term) — for a given target paint + a user's inventory: ranked list of owned paints by ΔE, each tagged with a role-aware verdict.
 
-**Conversion** — the shared cross-brand mapping (already exists). Powers the public funnel *and* seeds substitution defaults, but substitution against a personal inventory is the live, per-user computation.
+**Conversion** — the shared cross-brand mapping (already exists). Powers the public funnel _and_ seeds substitution defaults, but substitution against a personal inventory is the live, per-user computation.
 
 ---
 
@@ -66,6 +66,7 @@ Names are indicative; align to the existing v0.1 schema where it already exists 
 **Distance metric.** CIEDE2000 (ΔE₀₀). It's the current perceptual standard and handles the blue-region and lightness quirks that ΔE76 gets wrong. Use a library (`culori`); don't hand-roll it.
 
 **Rough interpretation of ΔE₀₀** (calibrate against real swatches during seeding):
+
 - `< 1.0` — imperceptible difference
 - `1-2` — perceptible only on close inspection
 - `2-3.5` — perceptible; fine for most basecoats
@@ -74,39 +75,41 @@ Names are indicative; align to the existing v0.1 schema where it already exists 
 
 **Role-aware tolerance — the key nuance.** A step's role sets how strict the match must be. A basecoat that gets washed and highlighted over tolerates far more deviation than a final edge highlight, which is the color the eye lands on.
 
-| Role | Acceptable ΔE₀₀ ceiling (default) | Rationale |
-| --- | --- | --- |
-| basecoat / undercoat | ~5.0 | gets covered/shaded; forgiving |
-| layer | ~3.5 | visible but blended |
-| shade / wash | ~4.0 | tints, not exact; forgiving |
-| contrast | ~3.0 | one-coat color *is* the result |
-| highlight | ~2.5 | eye-catching |
-| edge highlight | ~1.5 | the sharpest visual line; strict |
-| drybrush | ~3.5 | texture-led, forgiving |
-| glaze | ~4.0 | translucent, forgiving |
+| Role                 | Acceptable ΔE₀₀ ceiling (default) | Rationale                        |
+| -------------------- | --------------------------------- | -------------------------------- |
+| basecoat / undercoat | ~5.0                              | gets covered/shaded; forgiving   |
+| layer                | ~3.5                              | visible but blended              |
+| shade / wash         | ~4.0                              | tints, not exact; forgiving      |
+| contrast             | ~3.0                              | one-coat color _is_ the result   |
+| highlight            | ~2.5                              | eye-catching                     |
+| edge highlight       | ~1.5                              | the sharpest visual line; strict |
+| drybrush             | ~3.5                              | texture-led, forgiving           |
+| glaze                | ~4.0                              | translucent, forgiving           |
 
 Expose a single "how picky are you?" control (relaxed / balanced / strict) that scales all ceilings by a factor, so a perfectionist and a tabletop-standard painter both get sensible answers. Default: balanced.
 
 **Verdict per step:**
+
 - **Have exact** — the target paint itself is in the user's inventory.
-- **Close match owned** — an owned paint is within the role's ceiling. Show "you own *X* — a 96% match" where the percent is a friendly transform of ΔE (e.g. `max(0, 100 − k·ΔE)`), but also show the raw ΔE on tap for the curious. Never over-claim.
-- **Gap** — no owned paint within ceiling. Offer the closest owned paint as "closest you have (not ideal)" *and* route the real target to the shopping list.
+- **Close match owned** — an owned paint is within the role's ceiling. Show "you own _X_ — a 96% match" where the percent is a friendly transform of ΔE (e.g. `max(0, 100 − k·ΔE)`), but also show the raw ΔE on tap for the curious. Never over-claim.
+- **Gap** — no owned paint within ceiling. Offer the closest owned paint as "closest you have (not ideal)" _and_ route the real target to the shopping list.
 
 **Honesty rule.** If the closest owned paint is borderline, say so. A wrong "96%" that looks off on the model destroys trust in the whole engine. Round conservatively; let community votes and confidence refine seed data.
 
-**Worked example.** Recipe step: *edge highlight, Citadel Fire Dragon Bright*. User owns Vallejo Game Color Hot Orange (ΔE₀₀ 1.3) and Army Painter Lava Orange (ΔE₀₀ 2.9). Edge-highlight ceiling is 1.5 → Hot Orange passes ("you own a close match"), Lava Orange fails the ceiling but is shown as "closest you have" with a caution. The Citadel paint goes on the shopping list only if the user rejects the substitute.
+**Worked example.** Recipe step: _edge highlight, Citadel Fire Dragon Bright_. User owns Vallejo Game Color Hot Orange (ΔE₀₀ 1.3) and Army Painter Lava Orange (ΔE₀₀ 2.9). Edge-highlight ceiling is 1.5 → Hot Orange passes ("you own a close match"), Lava Orange fails the ceiling but is shown as "closest you have" with a caution. The Citadel paint goes on the shopping list only if the user rejects the substitute.
 
 ---
 
 ## 4. Recipe model & the GW→your-paints translation
 
-**Brand-agnostic by construction.** A recipe is steps with *roles* and *target paints*. Because each target paint has LAB, any recipe can be re-expressed in any brand by running each step through the substitution engine — this is the "paste a Citadel recipe, get it in Vallejo" feature, which is just substitution run against a *brand* instead of an inventory.
+**Brand-agnostic by construction.** A recipe is steps with _roles_ and _target paints_. Because each target paint has LAB, any recipe can be re-expressed in any brand by running each step through the substitution engine — this is the "paste a Citadel recipe, get it in Vallejo" feature, which is just substitution run against a _brand_ instead of an inventory.
 
 **Two translation modes:**
+
 - **Against a brand:** "show this recipe in Vallejo" → for each step, nearest Vallejo paint by ΔE (+ confidence).
 - **Against your inventory:** "show this recipe in what I own" → the loop's node D.
 
-**Authoring must tolerate mess.** Roles are *optional but encouraged*. A freeform "I used these paints, roughly in this order" recipe must save, or painters won't enter anything. Structure can be added later (progressive enrichment, same philosophy as onboarding).
+**Authoring must tolerate mess.** Roles are _optional but encouraged_. A freeform "I used these paints, roughly in this order" recipe must save, or painters won't enter anything. Structure can be added later (progressive enrichment, same philosophy as onboarding).
 
 **Resilience to discontinuation.** Store `target_hex` denormalized on each step so a recipe still renders and still substitutes even if the referenced paint is later discontinued.
 
@@ -117,11 +120,12 @@ Expose a single "how picky are you?" control (relaxed / balanced / strict) that 
 Given a user's owned paints + their pile, surface a model + recipe completable today with zero purchases.
 
 Algorithm sketch:
+
 1. Candidate recipes = recipes the user has saved/favorited + public recipes matching their pile's factions/schemes.
 2. For each candidate, run node D against owned paints at the user's pickiness setting.
-3. A recipe is "fully paintable now" if every step resolves to *have exact* or *close match owned*.
+3. A recipe is "fully paintable now" if every step resolves to _have exact_ or _close match owned_.
 4. Rank fully-paintable recipes by (a) how many pile models they fit, (b) average match quality, (c) recency/popularity.
-5. Surface the top one on the home screen with a one-tap "start this." Always answer the question with at least the *closest* option if nothing is fully paintable ("you're one paint away from…").
+5. Surface the top one on the home screen with a one-tap "start this." Always answer the question with at least the _closest_ option if nothing is fully paintable ("you're one paint away from…").
 
 This is the home screen's reason to exist and the single most delightful payoff of having all three data types (pile + paints + recipes) in one place.
 
@@ -130,12 +134,13 @@ This is the home screen's reason to exist and the single most delightful payoff 
 ## 6. Smart consolidated shopping list
 
 Across **all** of a user's planned RecipeApplications:
-1. Collect every step that resolves to a *gap*.
-2. Apply substitution *within the shopping list itself*: if two different planned recipes each need a slightly different red and one paint covers both within tolerance, recommend the one paint, not two.
+
+1. Collect every step that resolves to a _gap_.
+2. Apply substitution _within the shopping list itself_: if two different planned recipes each need a slightly different red and one paint covers both within tolerance, recommend the one paint, not two.
 3. Dedup by catalog paint.
 4. Present the genuine minimum to buy, grouped by retailer, with affiliate routing and transparent disclosure.
 
-The counterintuitive promise — *the list is usually shorter than the naive sum* — is the trust-builder. Helping people buy less is the brand.
+The counterintuitive promise — _the list is usually shorter than the naive sum_ — is the trust-builder. Helping people buy less is the brand.
 
 ---
 
@@ -146,6 +151,7 @@ The counterintuitive promise — *the list is usually shorter than the naive sum
 **Batch reality:** a MiniatureItem can represent a unit of N identical minis. Progress can be partial ("6 of 10 painted") so batch painting — the norm — is first-class.
 
 **The payoff surfaces (month 4):**
+
 - Painted-vs-unpainted ratio, as a literally shrinking pile visual.
 - "Painted this month" count and streak.
 - Painted-points (sum of `point_value` for painted models) — Warhammer players track this competitively for events.
@@ -181,6 +187,7 @@ Build order mirrors the roadmap: catalog → auth → inventory → pile → rec
 ## 10. Explicitly NOT in the core loop (deferred)
 
 Kept out so the loop stays sharp:
+
 - **YouTube tutorial pipeline** — month 8. (timestamp/recipe extraction)
 - **AI photo shelf-scan** and **photo-of-mini → recipe** — year-two experiments.
 - **Social graph** (follow, like, comment) — post-launch.
