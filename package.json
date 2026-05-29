@@ -12,7 +12,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:types": "supabase gen types typescript --linked > lib/supabase/database.types.ts",
-    "seed:csv": "tsx scripts/seed-from-csv.ts"
+    "seed:csv": "tsx scripts/seed-from-csv.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
@@ -36,6 +38,8 @@
     "tailwindcss": "^4",
     "tsx": "^4.22.3",
     "typescript": "^5",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.7",
     "ws": "^8.21.0"
   }
 }
