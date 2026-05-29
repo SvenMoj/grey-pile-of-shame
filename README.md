@@ -64,4 +64,4 @@ pnpm db:types
 - **Hosting:** Vercel
 - **Email:** Resend
 - **Analytics:** Plausible (cookieless)
-- **Storage:** Cloudflare R2
+- **Storage:** Supabase Storage
