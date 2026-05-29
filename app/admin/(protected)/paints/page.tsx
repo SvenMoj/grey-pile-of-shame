@@ -3,27 +3,44 @@ import { adminClient } from "@/lib/supabase/admin";
 import type { Paint } from "@/lib/admin/types";
 import { softDeletePaintAction } from "./actions";
 
+const PAGE_SIZE = 50;
+
+function pageHref(page: number, brand?: string) {
+  const params = new URLSearchParams({ ...(brand ? { brand } : {}), page: String(page) });
+  return `/admin/paints?${params}`;
+}
+
 export default async function AdminPaintsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ brand?: string }>;
+  searchParams: Promise<{ brand?: string; page?: string }>;
 }) {
-  // TODO: pagination for paints
-  const { brand } = await searchParams;
+  const { brand, page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
 
-  let query = adminClient.from("paints").select("*").order("brand").order("name");
+  let query = adminClient
+    .from("paints")
+    .select("*", { count: "exact" })
+    .order("brand")
+    .order("name")
+    .range(from, to);
   if (brand) query = query.eq("brand", brand) as typeof query;
 
-  const { data, error } = await query;
+  const { data, error, count } = await query;
   const paints = (data ?? []) as Paint[];
+  const totalCount = count ?? 0;
+  const hasNextPage = from + paints.length < totalCount;
 
-  const { data: allBrandsData } = await adminClient.from("paints").select("brand").order("brand");
-  const brands = [...new Set((allBrandsData ?? []).map((r: { brand: string }) => r.brand))];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: brandsData } = await (adminClient.rpc as any)("paint_brands");
+  const brands = (brandsData ?? []) as string[];
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
-        <h1 className="text-xl font-semibold">Paints ({paints.length})</h1>
+        <h1 className="text-xl font-semibold">Paints ({totalCount})</h1>
         <Link
           href="/admin/paints/new"
           className="bg-gray-900 text-white text-sm rounded px-3 py-1.5"
@@ -41,9 +58,6 @@ export default async function AdminPaintsPage({
           className="border rounded px-2 py-1 text-sm"
         >
           <option value="">All brands</option>
-          {/* TODO: pulling data does not get all brands because only 1000 rows are returned at a time 
-          so create a separate query for distinct brands
-          */}
           {brands.map((b) => (
             <option key={b} value={b}>
               {b}
@@ -119,6 +133,28 @@ export default async function AdminPaintsPage({
           </tbody>
         </table>
       </div>
+
+      {(page > 1 || hasNextPage) && (
+        <div className="flex items-center gap-3 text-sm">
+          {page > 1 ? (
+            <Link href={pageHref(page - 1, brand)} className="border rounded px-3 py-1">
+              ← Prev
+            </Link>
+          ) : (
+            <span className="border rounded px-3 py-1 text-gray-300">← Prev</span>
+          )}
+          <span className="text-gray-500">
+            Page {page} · {from + 1}–{from + paints.length} of {totalCount}
+          </span>
+          {hasNextPage ? (
+            <Link href={pageHref(page + 1, brand)} className="border rounded px-3 py-1">
+              Next →
+            </Link>
+          ) : (
+            <span className="border rounded px-3 py-1 text-gray-300">Next →</span>
+          )}
+        </div>
+      )}
     </div>
   );
 }
