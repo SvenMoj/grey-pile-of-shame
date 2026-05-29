@@ -40,6 +40,9 @@ export default async function AdminPaintsPage({
           className="border rounded px-2 py-1 text-sm"
         >
           <option value="">All brands</option>
+          {/* TODO: pulling data does not get all brands because only 1000 rows are returned at a time 
+          so create a separate query for distinct brands
+          */}
           {brands.map((b) => (
             <option key={b} value={b}>
               {b}
