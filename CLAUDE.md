@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# pigmento
+# grey-pile-of-shame
 
 Cross-brand miniature paint conversion lookup — Next.js 16 App Router, TypeScript, Tailwind v4, Supabase (Postgres), Vercel.
 

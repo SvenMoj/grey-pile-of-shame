@@ -1,4 +1,4 @@
-# pigmento
+# grey-pile-of-shame
 
 Cross-brand miniature paint conversion lookup. Find equivalents for any paint across Citadel, Vallejo, Army Painter, Scale75, and more — with confidence scores and photo evidence.
 

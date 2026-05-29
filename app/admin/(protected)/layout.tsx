@@ -10,7 +10,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen flex flex-col">
       <nav className="flex items-center gap-4 px-6 py-3 border-b bg-gray-50 text-sm">
-        <span className="font-semibold mr-2">pigmento admin</span>
+        <span className="font-semibold mr-2">grey-pile-of-shame admin</span>
         <Link href="/admin/paints" className="hover:underline">
           Paints
         </Link>
