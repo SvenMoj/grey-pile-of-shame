@@ -8,6 +8,7 @@ export default async function AdminPaintsPage({
 }: {
   searchParams: Promise<{ brand?: string }>;
 }) {
+  // TODO: pagination for paints
   const { brand } = await searchParams;
 
   let query = adminClient.from("paints").select("*").order("brand").order("name");
