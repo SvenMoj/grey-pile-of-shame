@@ -1,346 +1,248 @@
-# Paint Tracker — 6-Month Roadmap to Public Launch
+# GPoS — Grey Pile of Shame Companion · 6-Month Roadmap to Public Launch
 
 **Owner:** Sven · **Horizon:** Month 0 → Month 6 public launch · **Audience:** EU-first, EN + DE
 
-> **Read this with the v0.1 plan.** This document is the broader 6-month picture. The focused, week-by-week plan for the conversion-engine MVP (months 1-3) lives in `Paint_Tracker_v0.1_MVP_Plan.md`. Use that for the immediate-term execution; use this for the post-MVP shape.
+> **This is the reframed roadmap (v2).** The original conversion-engine-first plan is preserved at `Paint_Tracker_6_Month_Roadmap_v1_conversion-first_backup.md`. The build-task breakdown for the already-started codebase lives in `Paint_Tracker_v0.1_Feature_List.md`. The detailed product spec for the core loop lives in `Paint_Tracker_Core_Loop_Spec.md` — read that for *how* the loop works; read this for *what ships when*.
 
 ---
 
 ## The bet, in one paragraph
 
-The Warhammer/miniature paint tracking category has roughly fifteen apps and one structural problem: every existing player has stale data and no real cross-brand conversion engine. The wedge is a trustworthy conversion lookup, seeded with manually curated data and grown by community contributions in the spirit of long-lived hobby archives like the Golden Demon Compendium — community-first, sustainable for a decade, with revenue as a quiet byproduct rather than the center of gravity. Ship it as a PWA on web (with an Android TWA wrapper for Play Store presence), launch EN+DE EU-first, fund hosting via Patreon, layer on retailer affiliate revenue, and reach defensibility through database curation rather than features. Six months from day zero to a public launch beyond the conversion-engine MVP — but the real horizon is five-to-ten years of patient compounding, not a sprint.
+Every miniature painter has a **grey pile of shame** — unbuilt, unprimed, half-painted models that pile up faster than they get finished — and a drawer of paints they can never quite map to a tutorial. The category has roughly fifteen apps, and they all treat paint inventory as a spreadsheet and the pile as an afterthought. The wedge is a companion that closes one tight loop: **pick a model from your pile → attach a recipe (yours, imported, or from a tutorial) → the app checks it against the paints you already own → fills the gaps with close matches you have rather than telling you to buy more → you paint it → log it → the pile shrinks.** The trustworthy cross-brand color data that powers the substitution is the moat; the loop is the product; the shrinking pile is the feeling people come back for. Ship it as a PWA on web (with an Android TWA wrapper for Play Store presence), EN+DE EU-first, fund hosting via Patreon, layer on retailer affiliate revenue, and reach defensibility through data curation rather than features. Six months to a public launch — but the real horizon is five-to-ten years of patient compounding.
+
+## What changed from v1 (and why)
+
+The v1 roadmap made the **conversion engine** the hero because it's account-less and SEO-friendly — a great way to *acquire* but a weak reason to *return* (you look up a conversion twice a year). The grey pile of shame is the opposite: it's the hobbyist's daily identity and quiet anxiety, which means accounts, retention, and word-of-mouth come for free.
+
+So the conversion engine isn't thrown away — it's **demoted to the funnel and the data backbone.** The work already done on the v0.1 codebase (paint catalog with hex/LAB values, conversion data, admin seeding tools) is exactly the color foundation the substitution engine needs. The companion loop the old plan deferred to "v0.5" is now the center of gravity, and conversion lookups become a public, indexable, account-less surface that feeds people into it.
 
 ## Operating principles
 
 These hold across all six months. Re-read them whenever a decision feels hard.
 
-**The database is the product.** Features are easy and replaceable. A trustworthy, fresh, multi-brand paint catalog with crowd-verified conversions is the moat. Whenever an investment trade-off appears, choose the data-curation side.
+**The loop is the product.** Model → recipe → check against owned paints → substitute → paint → log → pile shrinks. If a feature isn't on that loop or making it faster, it's a later-than-month-6 problem. Protect the loop ruthlessly.
 
-**Community first, revenue second.** The Compendium maintainer has thirteen Patreon supporters after ten years of dedicated work and is one of the most respected hobby archivists in the community. That's the model. Treat affiliate income and any future premium tier as the cherry on top of a project that exists to serve painters. The moment monetization compromises the community gift, you've lost the long game.
+**The data is the moat.** Features are replaceable. A trustworthy, fresh, multi-brand paint catalog with accurate color values and crowd-verified conversions — plus a growing library of structured recipes — is what a competitor can't clone in a weekend. When a trade-off appears, choose the data-curation side.
 
-**Build it like you'll still be here in 2036.** This is a decade-arc project, not a six-month sprint. Decisions that feel correct under that timeline (slow, careful, durable) will sometimes feel wrong under a six-month one. Trust the decade.
+**Don't make them buy twice.** The substitution intelligence ("you already own a 96% match — use that instead of buying the Citadel one") is the single most-loved promise. It's counterintuitive that helping people *buy less* is good business, but trust compounds and affiliate revenue still flows from the genuine gaps.
 
-**Ship something every week.** Even in months heavy on infrastructure, push at least one visible improvement weekly. Painters need to see the project moving. A silent month kills trust.
+**Onboarding is priority one.** A companion that requires an afternoon of data entry before it's useful is dead on arrival. Every feature is judged partly on how fast a stranger reaches their first satisfying moment. Never make someone type what they can tap.
 
-**Talk to five painters every two weeks.** You're already in the community — use that. DACH hobby Discords, Tabletopwelt, local clubs, Spiel Essen. Ask three concrete questions and listen. Without this, you'll build the wrong product confidently.
+**Community first, revenue second.** The model is the long-lived hobby archive: respected, sustainable, revenue as a quiet byproduct. Affiliate income and any future premium tier are the cherry on top of a project that exists to serve painters.
 
-**Privacy-first by default.** EU launch means DSGVO is non-negotiable. Data export, deletion flow, EU hosting, minimal third-party trackers, transparent privacy policy from day one. Treat it as a feature, not a compliance cost.
+**Build it like you'll still be here in 2036.** Decade-arc project, not a six-month sprint. Decisions that feel correct under that timeline (slow, careful, durable) will sometimes feel wrong under a six-month one. Trust the decade.
 
-**Don't build for native until you have to.** PWA + Android TWA covers ~70% of EU mobile. iOS native is a year-three problem at the earliest.
+**Ship something every week.** Even in infrastructure-heavy months, push one visible improvement weekly. A silent month kills trust.
 
-**Be wary of AI for AI's sake.** Cross-brand conversion does not need AI. Inventory does not need AI. Recipes do not need AI. If an AI feature genuinely earns its place (photo-of-mini-to-paint-suggestion is the closest candidate), ship it as an experiment in year two — not as a launch feature. The wedge holds without AI varnish.
+**Talk to five painters every two weeks.** DACH hobby Discords, Tabletopwelt, local clubs, Spiel Essen. Three concrete questions, then listen. Without this you'll build the wrong product confidently.
 
----
+**Privacy-first by default.** EU launch means DSGVO is non-negotiable: data export, deletion flow, EU hosting, minimal third-party trackers, transparent policy from day one. A feature, not a compliance cost.
 
-## Tech stack (decisions to lock in week 1)
+**Don't build native until you have to.** PWA + Android TWA covers ~70% of EU mobile. iOS native is a year-three problem at the earliest.
 
-- **Frontend / app:** Next.js 15 (App Router) + TypeScript + Tailwind, hosted on Vercel. PWA via `next-pwa` or `@serwist/next`.
-- **Backend / data:** Supabase Frankfurt region (Postgres + Auth + Storage + Realtime). Stays in the EU for DSGVO.
-- **Storage for images:** Cloudflare R2 (cheap egress, EU-hosted).
-- **Email:** Resend (transactional) or SendGrid. EU residency check before signing.
-- **Analytics:** Plausible (EU-hosted, cookieless, DSGVO-friendly out of the box).
-- **Error tracking:** Sentry (self-hosted or EU instance).
-- **Payments:** Stripe (subscription + one-time products). Handles EU VAT via Stripe Tax.
-- **AI features:** Anthropic Claude (vision for shelf scan and color extraction). Cap usage on free tier.
-- **Android app:** Bubblewrap CLI to wrap the PWA as a TWA, submit to Play Store. No native code.
-- **Repo / CI:** GitHub + Vercel auto-deploys. Branch previews for every PR.
-- **Domain:** Pick early. Something pronounceable in both EN and DE. Avoid "Paint" + "Track" / "Rack" since those are taken.
+**Be wary of AI for AI's sake.** The loop holds without AI. Substitution is math (color distance), not a model. Recipes are structured data. The one AI candidate that genuinely earns its place — photo-of-shelf-to-inventory, or photo-of-mini-to-recipe — ships as a year-two experiment, never as a launch crutch.
 
 ---
 
-## Month 1 — Foundation & the public conversion engine
+## Tech stack (mostly already locked in the v0.1 codebase)
 
-**Theme:** Get a free, useful, public web tool live. No accounts, no inventory yet — just the conversion engine, working, on a domain.
+- **Frontend / app:** Next.js 15 (App Router) + TypeScript + Tailwind, on Vercel. PWA via `@serwist/next`.
+- **Backend / data:** Supabase Frankfurt (Postgres + Auth + Storage + Realtime). Stays in the EU for DSGVO.
+- **Image storage:** Cloudflare R2 (cheap egress, EU-hosted) or Supabase Storage.
+- **Color math:** `culori` (or equivalent) for sRGB→LAB and CIEDE2000 ΔE, computed at seed time and cached on each paint row. The substitution engine is a database query, not a service.
+- **Email:** Resend (EU residency confirmed before launch).
+- **Analytics:** Plausible (EU-hosted, cookieless).
+- **Error tracking:** Sentry (EU instance).
+- **Payments:** Stripe (deferred; wired but dormant until/unless a premium tier lands).
+- **Android app:** Bubblewrap CLI to wrap the PWA as a TWA.
+- **Repo / CI:** GitHub + Vercel auto-deploys, branch previews per PR.
+- **Domain:** Pronounceable in EN and DE. Avoid "Paint" + "Track"/"Rack" (taken).
 
-**Why this first:** It's the lowest-friction proof of value. It establishes the brand and SEO surface area before you ask anyone to sign up. Every conversion page is an indexable landing page that pulls organic traffic for years.
+---
+
+## Start now — the first two weeks
+
+Because the priority is momentum, the things to do *this week* regardless of month boundaries:
+
+1. **Finish the paint catalog seed with accurate LAB values for the four big brands** (Citadel, Vallejo, Army Painter Fanatic, Scale75). This is the critical path — the substitution engine, recipes, and conversion all depend on it. Compute LAB from hex at seed time and store it. Aim for 400+ paints with verified color values.
+2. **Lock the domain and name.** Don't agonize past two weeks.
+3. **Stand up magic-link auth** (Supabase handles most of it). The companion is personal, so accounts come in early — unlike v1.
+4. **Build the thinnest end-to-end slice of the loop** for yourself only: add one model, attach a three-step recipe, see which steps you can cover from a hardcoded inventory, see one substitution suggestion. Ugly is fine. The point is to feel the loop before polishing any node of it.
+
+---
+
+## Month 1 — The core loop, rough but real
+
+**Theme:** Get the whole loop working end-to-end for yourself and a tiny circle of trusted painters. Every node can be ugly; the loop must be complete.
+
+**Why this first:** A complete-but-rough loop teaches you more than any one polished feature. It also de-risks the hardest integration — substitution against a real inventory against a real recipe — before you've built UX around assumptions.
 
 ### Features
 
-**1.1 — Anonymous conversion lookup (public)**
+**1.1 — Magic-link auth + account shell** · _2-3 days_ · Supabase Auth, no passwords, account deletion stub in settings. _Success:_ sign-in under 30s.
 
-- _Scope:_ Search box, pick a paint from any of the four big brands (Citadel, Vallejo, Army Painter Fanatic, Scale75), see equivalents in the other three with confidence indicators and hex/LAB values.
-- _Effort:_ 1 week
-- _Dependencies:_ Seeded conversion dataset (see below)
-- _Success criteria:_ User can complete a lookup in under 10 seconds without signing up; result feels authoritative.
+**1.2 — Paint inventory** · _1 week_ · Add a paint from the catalog with one tap; states: owned / wishlist / running-low; custom paint add (never paywalled, free text + color picker). _Success:_ build a 50-paint inventory in under 15 min.
 
-**1.2 — Paint catalog browse pages (SEO surface)**
+**1.3 — Pile of shame: model tracking** · _1 week_ · Add models with progress states (unbuilt → built → primed → in progress → painted), a count or per-model entry, optional faction/game tag. _Success:_ a painter can capture their whole pile in under 10 minutes (see onboarding design below).
 
-- _Scope:_ Static-generated page per paint: `/paints/citadel/mephiston-red` with name, hex, LAB, conversions, hobbyist notes. Indexable in Google.
-- _Effort:_ 3-4 days (template + generation pipeline)
-- _Dependencies:_ Catalog seeded
-- _Success criteria:_ Google indexes at least 200 paint pages by end of month; "Mephiston Red Vallejo" returns your page in top 10 within 6 weeks.
+**1.4 — Structured recipe model** · _4-5 days_ · A recipe is an ordered list of steps; each step has a role (basecoat / shade / layer / highlight / edge / drybrush / contrast / wash / glaze / technical), a referenced paint, a technique note. Brand-agnostic by design. _Success:_ you can author a 6-step recipe in under 3 minutes.
 
-**1.3 — Brand & visual identity**
+**1.5 — Substitution engine v1** · _1 week_ · Given a recipe step's target paint, find the closest paints **in the user's inventory** by CIEDE2000 ΔE, with role-aware tolerance (a basecoat tolerates more deviation than a final highlight). Display "you own X — a 96% match." _Success:_ for a typical recipe, the app correctly tells you which steps you can already cover.
 
-- _Scope:_ Name, logo, color palette, basic landing page copy, EN+DE versions. Keep it minimal but not generic — design-aware, not designer-tier.
-- _Effort:_ 1 week (in parallel with code)
-- _Dependencies:_ None
-- _Success criteria:_ You can look at the homepage and not flinch.
+**1.6 — Close the loop** · _3-4 days_ · Attach a recipe to a model; the model view shows, per step, "you have it / close match you own / you'd need to buy." Mark the model painted; the pile count updates. _Success:_ you complete one real model start-to-log using only the app.
 
-**1.4 — DSGVO baseline**
-
-- _Scope:_ Privacy policy, imprint (Impressum required under German law), cookie banner (only if you set non-essential cookies — try to ship without them), data export endpoint, account deletion flow even though there's no account yet.
-- _Effort:_ 3-4 days (Iubenda or similar generator for policy; lawyer review later)
-- _Dependencies:_ Hosting region locked
-- _Success criteria:_ A DACH user could land on the site and not see a compliance red flag.
-
-### Community / growth activity
-
-- **Seed 400 high-quality conversions manually.** This is the unsexy core of month 1. Cross-reference: the Citadel Colour App, Vallejo's official conversion chart, Army Painter's Warpaints app, community Google Sheets (Goonhammer, Tale of Painters), and side-by-side photo evidence from Reddit threads. Two to three weeks of evening work. Don't skip this. An empty database kills the launch.
-- Set up a public changelog page (`/changelog`). Post weekly even if minor.
-- Reserve handles on Reddit, Bluesky, Instagram, Mastodon. Don't post yet.
+### Data / curation
+- Finish the 400+ paint seed with LAB. **This is non-negotiable and the gating dependency for everything.**
+- Seed 20-30 of your own real recipes so the recipe surfaces aren't empty when beta painters arrive.
 
 ### Monetization status
+- None. Personal/closed use.
 
-- Not active yet. The site is free and account-less.
-- Decide on pricing in principle (recommended: €4.99/mo or €39/yr subscription, €19 one-time unlock for users who refuse subs) so all later UX assumes it.
-
-### Key decisions to make this month
-
-- **Name and domain.** Don't agonize past two weeks. Pick something, register it, move on.
-- **EN-only or EN+DE at launch?** Recommend EN+DE from day one — translation overhead is modest if you architect for it; retrofit is painful.
-- **Open source or proprietary?** Recommend proprietary core, but open-source the paint database itself (or at least the conversion mappings) under a permissive license. This builds community goodwill and protects against a competitor scraping your data anyway.
+### Key decisions
+- **Per-model vs. per-unit granularity.** Recommend supporting both: a "model" can be a single mini or a unit of N identical minis (batch painting is the norm). The recipe attaches to the unit.
+- **How much recipe structure to enforce.** Recommend roles are optional but encouraged — a freeform "I used these paints" recipe must still work, or people won't enter anything.
 
 ---
 
-## Month 2 — Accounts, inventory, closed beta
+## Month 2 — Onboarding that doesn't suck + closed beta
 
-**Theme:** Turn the public tool into a product that remembers you. Invite 20-30 painters to private beta.
+**Theme:** Make capturing your pile and your paints fast enough that a stranger will actually do it. Invite 20-30 painters.
+
+**Why now:** The loop exists but is worthless if nobody can populate it. Onboarding is the make-or-break, so it gets a dedicated month rather than a launch-week scramble.
+
+### The onboarding design (the "think of something" answer)
+
+A single rigid flow fails because painters arrive in different states. The design is **progressive and multi-on-ramp**, built on one rule: *value before completeness.* They should reach a satisfying moment in under 60 seconds and keep enriching their collection over weeks, never hitting a wall of data entry.
+
+**Step 0 — Two taps of context (15 seconds).** "What do you mainly paint?" (game/faction picker) and "Which brands do you use?" (multi-select). This seeds smart defaults for everything that follows.
+
+**The pile of shame — three on-ramps, pick what fits:**
+- **Quick-count (the emotional hook, ~20 seconds):** steppers per state — "roughly how many unbuilt / built / primed / started?" Instantly visualize the pile. No naming required; refine into individual models later. Most people start here.
+- **Faction templates:** "You play Death Guard — tap the units you own" from a seeded unit list. Turns naming into tapping.
+- **Box-barcode scan (lands month 4):** scan the box, it resolves to the kit. Designed for now, shipped later.
+
+**The paint range — also multi-on-ramp:**
+- **Add-by-set (fastest):** tap the boxed sets you bought (a Citadel mega set, a Vallejo Game Color box) → every contained paint is added at once.
+- **Visual brand grid:** tap pots from a swatch grid of your brand's range. Recognition beats recall.
+- **Bulk type-ahead:** search-and-multi-select for the long tail.
+- **Pot-barcode scan (lands month 4):** at the desk or in the store.
+- **Photo shelf-scan (year-two AI experiment):** the dream; explicitly deferred. Bulk add gets ~90% of the value today.
+
+The data model is designed now so barcode and photo on-ramps slot in later without rework.
 
 ### Features
 
-**2.1 — Authentication**
+**2.1 — Onboarding flows** · _1 week_ · Step 0 + quick-count + faction templates + add-by-set + visual grid + bulk type-ahead. _Success:_ a new painter captures a representative pile and paint collection in under 10 minutes total.
 
-- _Scope:_ Magic-link email login as primary, optional Google sign-in. No password creation. Account deletion in settings.
-- _Effort:_ 2-3 days (Supabase Auth handles most of this)
-- _Dependencies:_ Email service live
-- _Success criteria:_ Sign-in to completed session in under 30 seconds.
+**2.2 — Cloud sync + offline** · _1 week_ · All data in Supabase, IndexedDB cache for instant load and desk-side offline resilience (phone propped up, weak wifi). Server-wins conflict resolution. _Success:_ add on phone, see on laptop in seconds; works with wifi off.
 
-**2.2 — Inventory CRUD**
+**2.3 — "What can I paint right now?" v1** · _4-5 days_ · Given owned paints + the pile, surface a model + recipe completable today with zero purchases. _Success:_ the home screen can always answer "what now?" with at least one real suggestion.
 
-- _Scope:_ Add a paint to your inventory from the catalog with one tap. Three states: owned, wishlist, running-low. Filter and sort. Multi-select.
-- _Effort:_ 1 week
-- _Dependencies:_ Auth, catalog
-- _Success criteria:_ A new user can build an inventory of 50 paints in under 15 minutes.
+**2.4 — Loop polish from daily use** · _ongoing_ · You're now using it daily — fix the ten things that annoy you most.
 
-**2.3 — Custom paint add**
-
-- _Scope:_ Big "+ Add custom paint" button accessible everywhere. Name, brand (free text or pick), hex (color picker), size, notes. Never paywalled.
-- _Effort:_ 2-3 days
-- _Dependencies:_ Inventory schema
-- _Success criteria:_ User can add a paint not in your catalog in under 60 seconds.
-
-**2.4 — Cloud sync foundation**
-
-- _Scope:_ All inventory data lives in Supabase, fetched on login. IndexedDB caches for instant load and offline-resilience. Conflict resolution: server wins on simultaneous writes.
-- _Effort:_ 1 week (the conflict logic is the hard part)
-- _Dependencies:_ Auth, inventory
-- _Success criteria:_ Add a paint on phone, see it on laptop within seconds.
-
-**2.5 — Lightweight project tracker**
-
-- _Scope:_ Create a project ("Death Guard 2000pt"), assign paints to it, mark progress (planned / in progress / complete). Don't over-build — this is opt-in for the project-tracking minority.
-- _Effort:_ 4-5 days
-- _Dependencies:_ Inventory
-- _Success criteria:_ User can create a project and link 10 paints in under 5 minutes.
-
-### Community / growth activity
-
-- **Recruit 20-30 beta painters.** Mix: 10 from r/minipainting (DM users who post collection photos), 5-10 from DACH hobby Discords (Tabletopwelt Discord, Brückenkopf, Spielmaterial), 5 from non-Citadel painters specifically (Vallejo and AP heavies — they care most about conversion).
-- Private feedback channel: a Discord server, locked to beta painters, daily presence from you.
-- Weekly office-hours-style call (optional, recorded with permission). Three painters showing up is fine.
-- Begin documenting "verbatim painter quotes" for the eventual launch landing page.
+### Community / growth
+- Recruit 20-30 beta painters: ~10 from r/minipainting (DM collection-photo posters), 5-10 from DACH Discords (Tabletopwelt, Brückenkopf, Spielmaterial), 5 non-Citadel painters specifically (Vallejo/AP heavies care most about substitution).
+- Private beta Discord, daily presence.
+- Start collecting verbatim painter quotes for the eventual landing page.
 
 ### Monetization status
+- Still free, no payment integration. Track repeatedly-requested features — those are the premium-tier signals for later.
 
-- Still free. No payment integration yet.
-- Track which features users ask for repeatedly — these become the premium tier signals.
-
-### Key decisions to make this month
-
-- **What's free forever vs. premium?** Recommended split: free = inventory up to 200 paints, single device sync, basic project tracker, all conversion lookups, single project; premium = unlimited paints, unlimited devices, AI shelf scan, unlimited projects, recipe library, CSV export, retailer price alerts.
-- **Closed beta NDA or open?** Recommend "soft beta" with no NDA — painters will share screenshots regardless, and the buzz benefits you.
+### Key decisions
+- **Free forever vs. eventual premium.** Recommended split (decide now so UX assumes it): free = full loop, pile tracking, inventory to a generous cap, all conversions, basic recipes; eventual premium (year two, if at all) = unlimited everything, photo shelf-scan, advanced batch tools, price alerts.
+- **Soft beta, no NDA.** Painters share screenshots regardless; the buzz helps.
 
 ---
 
-## Month 3 — Community-driven content & PWA polish
+## Month 3 — Recipes as a shareable object + community keeps the data alive
 
-**Theme:** Turn the database from "Sven's manual curation" into "the community keeps it alive." Make the PWA feel like a real app on Android.
+**Theme:** Make recipes something people want to use *and* share, and turn the conversion/recipe data from "Sven's manual curation" into "the community grows it." Light the public funnel.
 
 ### Features
 
-**3.1 — User-submitted conversions**
+**3.1 — Recipe library + "I can paint this" filter** · _1 week_ · Browse community recipes; filter to "recipes I can fully paint with what I own" (with close-match substitution inline). _Success:_ find a usable, ownable recipe for a given scheme in under 90 seconds.
 
-- _Scope:_ Logged-in user can submit a conversion (Paint A in Brand X → Paint B in Brand Y) with optional photo-pair evidence. Submission enters a pending queue.
-- _Effort:_ 4-5 days
-- _Dependencies:_ Auth, image storage
-- _Success criteria:_ A painter can submit a conversion in under 90 seconds; submission appears in queue immediately.
+**3.2 — Recipe submission + the GW-recipe→your-paints verb** · _1 week_ · Submit a recipe; paste/enter a recipe in one brand and get it translated to the brands you own, substitutions and confidence flagged. Same submit/vote/confidence pattern as conversions. _Success:_ 5 beta painters submit a recipe in week one; the translate feature feels like magic.
 
-**3.2 — Voting and confidence scoring**
+**3.3 — User-submitted conversions + voting/confidence** · _1 week_ · Logged-in users submit conversions (optional photo-pair evidence) into a pending queue; confidence score from confirming votes, contributor reputation, photo evidence, age; three-state display (verified / suggested / single submission). _Success:_ pages clearly distinguish trusted from speculative mappings.
 
-- _Scope:_ Conversions display a confidence score derived from: number of confirming votes, contributor reputation, photo-pair presence, age. Users can upvote/downvote on the conversion page. Three-state display: "verified" (high score), "suggested" (medium), "single submission" (low).
-- _Effort:_ 1 week
-- _Dependencies:_ User submissions live
-- _Success criteria:_ Conversion pages clearly distinguish trusted from speculative mappings; users intuitively understand the score.
+**3.4 — Contributor reputation & badges** · _3-4 days_ · Profile shows submission count, verified-rate, badges; public profile URL. _Success:_ ≥3 beta painters voluntarily share their profile to a community.
 
-**3.3 — Contributor reputation & badges**
+**3.5 — Public conversion + catalog SEO pages (the funnel goes live)** · _4-5 days_ · The already-built account-less conversion lookup and per-paint catalog pages go public and indexable. These pull organic search traffic and funnel into the companion. _Success:_ Google indexes 200+ paint pages this month.
 
-- _Scope:_ User profile shows count of submissions, verified-rate, badge for ≥10/50/100 verified contributions. Public profile URL (`/painters/[username]`). Optional Reddit/Instagram handle for cross-link.
-- _Effort:_ 3-4 days
-- _Dependencies:_ Submissions, voting
-- _Success criteria:_ At least 3 beta painters voluntarily share their contributor profile to a hobby community.
+**3.6 — German localization (full)** · _1 week_ · Complete EN→DE for UI, errors, marketing; JSON files structured for FR/PL later; locale-aware formatting. _Success:_ a German painter never sees an English word.
 
-**3.4 — PWA install flow**
-
-- _Scope:_ Service worker for offline catalog access. "Add to Home Screen" prompt shown after the user completes their 2nd successful conversion lookup (not before). Custom install UI for Android (where it shipped first) and iOS (with Safari-specific instructions).
-- _Effort:_ 4-5 days
-- _Dependencies:_ Stable web app
-- _Success criteria:_ 20%+ of returning users install the PWA within their first week.
-
-**3.5 — German localization (full)**
-
-- _Scope:_ Complete EN→DE translation of UI strings, error messages, marketing pages. Translation files in JSON, structure ready for FR/PL later. Date/number formatting locale-aware.
-- _Effort:_ 1 week (parallel with development; can outsource translation review for €200-400)
-- _Dependencies:_ UI mostly stable
-- _Success criteria:_ A German painter can use the app end-to-end without seeing an English word.
-
-### Community / growth activity
-
-- Open beta. Move from 30 → 200 painters. Post in r/minipainting ("I built a paint conversion tool, looking for testers") and Tabletopwelt forum. Don't over-promise.
-- Start a weekly newsletter (3 paragraphs max): what shipped, what's coming, one community spotlight. Resend free tier handles 3,000 contacts.
-- First **r/minipainting weekly thread participation** — answer conversion questions with the app as proof.
-- DM 5 mid-tier YouTube creators (50-200k subs, German channels prioritized: Modellbahn-Berni, Brückenkopf, plus EN: Tabletop Minions, Ninjon). Offer free premium for life if they review honestly. No expectations.
+### Community / growth
+- Open beta: 30 → 200. Post in r/minipainting and Tabletopwelt ("I built a pile-of-shame + paint companion, looking for testers").
+- Weekly newsletter (3 paragraphs: shipped / coming / one community spotlight).
+- DM 5 mid-tier YouTube creators (DE prioritized: Modellbahn-Berni, Brückenkopf; EN: Tabletop Minions, Ninjon). Offer lifetime premium for an honest review. No expectations.
 
 ### Monetization status
+- Wire Stripe but keep purchases off. Set up Brückenkopf-Online, Fantasywelt, Amazon DE affiliate accounts.
 
-- Build the Stripe integration this month, but don't enable purchases yet. Premium features exist but say "coming soon."
-- Set up Brückenkopf-Online affiliate account, Fantasywelt, Amazon Associates (DE program).
-
-### Key decisions to make this month
-
-- **Submission quality control:** how strict on the first submission? Recommend: photo-pair required for "verified" status, but plain text submissions allowed for "suggested" tier. Lowers barrier without lowering trust.
-- **Public profiles default to private or public?** Recommend public-by-default with easy toggle. Hobbyists like being seen.
+### Key decisions
+- **Submission quality bar.** Recommend photo-pair required for "verified," plain text allowed for "suggested." Lowers barrier without lowering trust.
+- **Profiles public-by-default** with an easy toggle. Hobbyists like being seen.
 
 ---
 
-## Month 4 — Barcodes, recipes, the in-store moment
+## Month 4 — Barcodes, the in-store moment, batch & shopping
 
-**Theme:** Ship the boring features that actually drive daily use. Barcode scan for fast inventory addition and the in-store "did I already buy this?" check. Recipe library filtered by paints you own. No AI; the wedge holds without it.
+**Theme:** Ship the unglamorous features that drive daily use and the "did I already buy this?" in-store moment.
 
 ### Features
 
-**4.1 — Camera capture flow (Web Camera API)**
+**4.1 — Camera + barcode scan (pots and boxes)** · _1 week_ · Scan a paint pot → add to inventory (or capture an unknown barcode for credit); scan a model box → add the kit to your pile. `@zxing/browser`. _Success:_ ≥80% of Citadel/Vallejo pot barcodes scan first try; unknown barcodes captured at ≥30%.
 
-- _Scope:_ "Scan" button accessible from inventory and home. Requests camera permission, shows preview, captures still image. Works in Chrome Android and Safari iOS (with known limitations).
-- _Effort:_ 4-5 days
-- _Dependencies:_ HTTPS (Vercel handles), modern browser
-- _Success criteria:_ Camera capture works on Android Chrome and iOS Safari without dev tools tweaks.
+**4.2 — Smart consolidated shopping list** · _4-5 days_ · Across *all* planned projects, dedup needs and apply close-match substitution so it shows the genuine minimum to buy — and routes purchases to affiliate retailers. The honest version of monetization: it actively helps you buy less. _Success:_ for a multi-project user, the list is shorter than the naive sum and the substitutions are trusted.
 
-**4.2 — Barcode scanning + unknown-barcode capture loop**
+**4.3 — Batch / unit recipe consistency** · _4-5 days_ · Save a recipe to a unit and re-apply it months later ("what did I use on the first 10 Plague Marines?"). _Success:_ a painter can repaint a squad identically without guesswork.
 
-- _Scope:_ User points camera at paint pot barcode → app reads barcode (using `@zxing/browser` or QuaggaJS) → if matched in DB, adds to inventory; if unmatched, prompts "We don't have this barcode yet — add the paint to help others." User picks paint from catalog, barcode is stored, contributor gets a badge.
-- _Effort:_ 1 week
-- _Dependencies:_ Camera flow, contribution system
-- _Success criteria:_ In a beta-painter blind test, ≥80% of Citadel and Vallejo pot barcodes scan correctly on first attempt; unknown barcodes captured at ≥30%.
+**4.4 — WIP photo log per model** · _3-4 days_ · Attach before/during/after photos to a model. Doubles as shareable social proof. _Success:_ beta painters voluntarily attach photos.
 
-**4.3 — Recipe library (read-only first)**
+**4.5 — Pile-shrinking payoff** · _3-4 days_ · Painted-vs-unpainted ratio, "painted this month," painted-points (Warhammer players track these), a satisfying shrink visualization. The emotional dopamine that drives daily return. _Success:_ the progress view is something painters screenshot and share.
 
-- _Scope:_ Browse community-uploaded recipes. Each recipe = title, mini description, list of layers with paints (in any brand). Filter: "show only recipes I can paint with what I own." Image attachments. Vote and bookmark.
-- _Effort:_ 1 week
-- _Dependencies:_ User accounts, image storage
-- _Success criteria:_ User can find a usable recipe for "Death Guard skin" filtered to their inventory in under 90 seconds.
-
-**4.4 — Recipe submission flow**
-
-- _Scope:_ Users can submit their own recipes. Same submission/vote/confidence pattern as conversions.
-- _Effort:_ 4-5 days
-- _Dependencies:_ Recipe library
-- _Success criteria:_ 5 beta painters submit a recipe in the first week it's live.
-
-**4.5 — Bulk paint add (the manual answer to "AI shelf scan")**
-
-- _Scope:_ "Add many paints at once" flow. Type-ahead search, multi-select from results, add all in one action. Much less glamorous than AI shelf scan, but actually faster and works perfectly. The unsexy answer to a sexy problem.
-- _Effort:_ 3-4 days
-- _Dependencies:_ Inventory CRUD
-- _Success criteria:_ User can add 30 paints to their inventory in under 5 minutes.
-
-### Community / growth activity
-
-- The shareable moment this month is the **recipe filter** — "the app shows me recipes I can paint with paints I already own" — which is genuinely novel. Pre-record a 60-second demo. Post to r/minipainting and Tabletopwelt the day it ships.
-- Beta painter count target: 500.
-- First media outreach: pitch Goonhammer, Tale of Painters, and Brückenkopf for a "tool spotlight" piece. Lead with the conversion engine demo plus the recipe filter.
+### Community / growth
+- The shareable moment this month is the **shopping-list-that-tells-you-not-to-buy** and the **painted-points tracker**. Pre-record 60-second demos; post the day they ship.
+- Beta target: 500. First media outreach: Goonhammer, Tale of Painters, Brückenkopf "tool spotlight."
 
 ### Monetization status
+- Affiliate links go live in the shopping list and on paint pages (transparent disclosure). Patreon page goes live, framed as cost-coverage (€100/mo = hosting; €300/mo = a dedicated weekend day; €1,000/mo = convention attendance).
+- No premium tier yet — defer to month 9-10 at earliest.
 
-- Affiliate links go live in the UI ("Buy these paints: [Brückenkopf] [Fantasywelt] [Amazon DE]") on wishlist and project pages. Transparent disclosure in the about page.
-- Patreon page goes live, framed as cost-coverage (hosting + database tooling). Public goals: €100/mo = hosting covered, €300/mo = "I can dedicate a full weekend day to this every week," €1,000/mo = "convention attendance funded."
-- No premium subscription tier yet — defer until month 9-10 if at all.
-
-### Key decisions to make this month
-
-- **Patreon-first or freemium-first?** Recommend Patreon-first to start. It signals "community gift, support if you can" rather than "freemium upsell" — much more aligned with the Compendium-style sensibility. A modest premium tier can be added in year two if Patreon doesn't cover costs.
-- **Recipe sharing scope:** allow YouTube/Instagram link embedding from day one. Painters already share recipes via video — meet them where they are rather than asking them to retype tutorials.
+### Key decisions
+- **Patreon-first, not freemium-first.** Signals "community gift, support if you can," which fits the long-game sensibility.
+- **Allow YouTube/Instagram links on recipes from day one** — meet painters where they already share.
 
 ---
 
-## Month 5 — Patreon, Android Play Store, polish
+## Month 5 — Patreon, Play Store, polish
 
-**Theme:** Activate the Patreon revenue line. Get on the Play Store. Fix everything painful before public launch.
+**Theme:** Activate Patreon. Get on the Play Store. Fix everything painful before public launch.
 
 ### Features
 
-**5.1 — Patreon integration**
+**5.1 — Patreon integration** · _2-3 days_ · "Support on Patreon" on about + settings; linked supporters get a badge + supporter tag (purely social, no functional gating). _Success:_ connect in under 60s; first 5 supporters by month end.
 
-- _Scope:_ "Support on Patreon" prominent on the about page and in settings. Patreon-linked contributors get a public badge on their profile, a "Supporter" tag next to their submissions, and (optional) name listed on a public supporters page. No functional gating — purely social recognition.
-- _Effort:_ 2-3 days
-- _Dependencies:_ Patreon account, OAuth flow
-- _Success criteria:_ A user can connect Patreon and see their badge in under 60 seconds. First 5 supporters by end of month.
+**5.2 — Affiliate revenue UI** · _3-4 days_ · "Where to buy" routing (EU → Brückenkopf/Fantasywelt, UK → Element Games, else Amazon) with UTM attribution and transparent disclosure. _Success:_ clicks tracked; first commission within 2 weeks.
 
-**5.2 — Affiliate revenue UI**
+**5.3 — Android Play Store via TWA** · _3-4 days build + 1-3 weeks review_ · Bubblewrap the PWA, submit, survive review. _Success:_ appears in Play Store search for "paint tracker" within 4 weeks.
 
-- _Scope:_ "Where to buy" buttons appear on paint pages and project shopping lists. Auto-routes EU users to Brückenkopf / Fantasywelt; UK to Element Games; everywhere else to Amazon. Affiliate links use UTM tags for attribution tracking. Transparent disclosure on every page that affiliate links exist.
-- _Effort:_ 3-4 days
-- _Dependencies:_ Affiliate accounts approved
-- _Success criteria:_ Clicks tracked; first commission earned within 2 weeks of launch.
+**5.4 — Settings, account management, polish** · _1 week_ · DSGVO data export (JSON of all user data), immediate full deletion, notification prefs, language switcher, theme, about/credits. _Success:_ power users self-serve without a support ticket.
 
-**5.3 — Android Play Store via TWA**
+**5.5 — Performance + accessibility pass** · _1 week_ · Lighthouse on every key page, lazy loading, bundle budget, keyboard nav, screen-reader basics, reduced-motion. _Success:_ ≥90 Performance and Accessibility on mid-tier Android.
 
-- _Scope:_ Use Bubblewrap CLI to generate the Android app shell from the existing PWA. Submit to Play Store. Pay $25 dev fee. Survive review.
-- _Effort:_ 3-4 days of work + 1-3 weeks of review-cycle calendar time
-- _Dependencies:_ PWA stable, privacy policy ironclad
-- _Success criteria:_ App appears in Play Store search for "paint tracker" within 4 weeks.
-
-**5.4 — Settings, account management, polish**
-
-- _Scope:_ Data export (DSGVO right to portability — generates a JSON of all user data), full account deletion (immediate, irreversible), notification preferences, language switcher, theme (light/dark/auto), about page with credits.
-- _Effort:_ 1 week
-- _Dependencies:_ Most of the app
-- _Success criteria:_ Power user can manage their account without filing a support ticket.
-
-**5.5 — Performance + accessibility pass**
-
-- _Scope:_ Lighthouse audit on every key page. Image lazy loading. Bundle size budget. Keyboard navigation. Screen reader basics. Reduced motion respect.
-- _Effort:_ 1 week
-- _Dependencies:_ Feature freeze
-- _Success criteria:_ All key pages score ≥90 on Lighthouse Performance and Accessibility on mid-tier Android.
-
-### Community / growth activity
-
-- Beta painter count target: 1,500.
-- **Spiel Essen prep** (October every year — check if it falls in your window): print 500 stickers and a small banner. Whether or not you have a booth, attend, hand out stickers in the painting hall, demo the app to anyone curious. Direct face-time with high-value users is irreplaceable, especially given you're already in the DACH community.
-- Recruit 3-5 "ambassador" painters: one per major language community (DE, FR, EN-DACH, EN-UK). Give them visible "founding contributor" status in exchange for sustained promotion. No premium gating to offer because there isn't one — but visibility on the project itself is the reward.
-- Pre-launch press: send the actual launch announcement embargoed to Goonhammer, Tale of Painters, Spikey Bits, Brückenkopf, with a 1-week notice.
+### Community / growth
+- Beta target: 1,500. **Spiel Essen prep** (October — check the window): 500 stickers, small banner, demo in the painting hall.
+- Recruit 3-5 ambassador painters (one per language community) with visible "founding contributor" status.
+- Pre-launch press embargoed to Goonhammer, Tale of Painters, Spikey Bits, Brückenkopf with one week's notice.
 
 ### Monetization status
+- Patreon active (realistic month-5: 5-15 patrons, €30-150/mo). Affiliate starting (€30-100/mo). No premium yet; revisit at month 9-10.
 
-- Patreon active. Initial goal: cover hosting. Realistic month-5 trajectory: 5-15 patrons, €30-150/month.
-- Affiliate revenue starts showing. Realistic: €30-100/month in the first month it's live.
-- No premium subscription yet. Revisit the question at month 9-10 based on whether Patreon + affiliate is covering costs + a modest take-home, or whether a freemium tier is needed to bridge the gap.
-
-### Key decisions to make this month
-
-- **Patreon tier structure.** Recommend simple: €3/mo (badge + name on supporters page), €10/mo (badge + name + early access to changelog + voting on what to build next), €25/mo (everything above + your sincere personal thanks). Don't over-engineer tiers — the Compendium has effectively one tier and it works.
-- **App Store iOS — still no?** Confirm the decision. If a TWA on Play Store gets you EU Android coverage and PWA covers EU iOS, you're done. Revisit in month 12.
+### Key decisions
+- **Patreon tiers, kept simple:** €3 (badge + name), €10 (+ early changelog + vote on what's next), €25 (+ personal thanks). Don't over-engineer.
+- **iOS App Store — still no.** TWA covers EU Android; Safari add-to-home-screen covers EU iOS. Revisit month 12.
 
 ---
 
@@ -348,116 +250,92 @@ These hold across all six months. Re-read them whenever a decision feels hard.
 
 **Theme:** Open the doors. Maximize first-month momentum. Survive launch week.
 
-### Features (only what's necessary for launch readiness)
+### Features (launch-readiness only)
 
-**6.1 — Onboarding flow**
+**6.1 — Onboarding flow polish** · _4-5 days_ · The month-2 flows, hardened: 4-step welcome (pick brand/faction, quick-capture your pile, attach a recipe, optionally install PWA). _Success:_ 70%+ complete onboarding; 40%+ install the PWA.
 
-- _Scope:_ First-time user gets a 4-step welcome: pick your primary brand, import 10 paints to start, try a conversion lookup, optionally install PWA. Skippable but pleasant.
-- _Effort:_ 4-5 days
-- _Dependencies:_ Core features stable
-- _Success criteria:_ 70%+ of new sign-ups complete onboarding; 40%+ install the PWA.
+**6.2 — Empty states + microcopy** · _3-4 days_ · Every "nothing here yet" screen gets a useful prompt and friendly tone. _Success:_ you're proud of every screen a stranger sees.
 
-**6.2 — Empty states + microcopy pass**
+**6.3 — Launch landing page** · _1 week_ · Hero leads with the pile-of-shame promise and "use the paints you already own." Sections: the loop demo (interactive), pile-shrink visual, "don't buy twice" substitution demo, community proof (live contribution count), pricing/Patreon, FAQ. EN + DE. _Success:_ a first-time visitor gets it within 10 seconds.
 
-- _Scope:_ Every "you have no [X] yet" screen gets a useful prompt and a friendly tone. Error messages explain themselves. Loading states have personality.
-- _Effort:_ 3-4 days
-- _Dependencies:_ Feature freeze
-- _Success criteria:_ You're proud of every screen a stranger might see.
+**6.4 — Public changelog + status** · _1-2 days_ · `/changelog` and `/status` (BetterStack free tier), footer-linked. Signals trustworthiness.
 
-**6.3 — Launch landing page**
+### Community / growth (the bulk of month 6)
 
-- _Scope:_ Public homepage rebuild. Hero: "Find the right paint in any brand, in seconds." Sections: conversion engine demo (interactive), AI shelf scan demo (video), community proof (live count of contributions), pricing, FAQ. EN + DE.
-- _Effort:_ 1 week
-- _Dependencies:_ Feature set finalized
-- _Success criteria:_ A first-time visitor understands what the app does within 10 seconds.
+**Launch week — calendared a month ahead:**
+- **Day 0 (Mon):** soft launch to beta painters. "Public Friday. Code FOUNDER for 30% off lifetime if a future premium tier lands."
+- **Day 3 (Thu):** embargoed DACH press live (Brückenkopf, Tabletopwelt).
+- **Day 4 (Fri — launch):** r/minipainting post timed for EU morning. Lead with the pile-of-shame loop and "use paints you already own," *not* AI.
+- **Day 4:** Show HN (long shot; tag "EU", "indie", "no AI hype").
+- **Day 5 (Sat):** Instagram Reel + Bluesky thread with the loop demo.
+- **Day 7 (Mon):** Goonhammer / Tale of Painters / Spikey Bits articles (pre-arranged).
+- **Day 14:** "What's next, based on your feedback" follow-up. Shows you're listening.
 
-**6.4 — Status page / changelog public**
-
-- _Scope:_ `/changelog` lists every notable shipment. `/status` shows current uptime (use BetterStack or similar free tier). Both publicly linked from footer. Signals trustworthiness.
-- _Effort:_ 1-2 days
-- _Dependencies:_ Hosting
-- _Success criteria:_ Live, accurate, visited by ~5% of new users in their first session.
-
-### Community / growth activity (this is the bulk of month 6)
-
-**Launch week — pre-scheduled, calendared a month ahead:**
-
-- **Day 0 (Monday):** Soft launch to existing beta painters. Email blast: "We're public on Friday. Use code FOUNDER for 30% off lifetime if you've been here from the start."
-- **Day 3 (Thursday):** Embargoed press goes live in DACH (Brückenkopf, Tabletopwelt forum post).
-- **Day 4 (Friday — launch day):** r/minipainting launch post, timed for European morning (peak engagement in EU + US East Coast). Title: "After 6 months I'm launching a paint tracker that does cross-brand conversion with AI shelf scan — free to try." Link in comments per sub rules.
-- **Day 4 + same day:** Hacker News Show HN post (long shot but cheap to try; tag with "EU", "indie", "no AI hype").
-- **Day 5 (Saturday):** Instagram Reel + Bluesky thread with the AI shelf scan demo.
-- **Day 7 (Monday after):** Goonhammer / Tale of Painters / Spikey Bits articles go live (pre-arranged).
-- **Day 14:** Follow-up post in r/minipainting: "What's next, based on your feedback this week." Shows you're listening.
-
-**Throughout the month:**
-
-- Daily presence on r/minipainting and Tabletopwelt. Answer every paint-related question with the tool as proof, not a sales pitch.
-- Reply personally to every signup in the first week (use Resend automation but keep the tone human).
-- Update changelog twice this month with visible quality-of-life improvements based on feedback.
+**Throughout:** daily presence on r/minipainting and Tabletopwelt (answer with the tool as proof, not a pitch); reply personally to every first-week signup; two changelog updates with visible quality-of-life wins.
 
 ### Monetization status
+- Public pricing/Patreon live. Affiliate should show first meaningful numbers (target €100-300 in launch month from organic shopping-list usage).
 
-- Public pricing live. Conversion-to-paid target: 3-5% in launch month.
-- Affiliate revenue should show first meaningful numbers — target €100-300 in launch month from organic shopping list usage.
-
-### Key decisions to make this month
-
-- **Press exclusivity:** giving Goonhammer first dibs in EN and Brückenkopf first dibs in DE is more valuable than spreading across many small outlets. Don't dilute.
-- **Burnout protection:** schedule a full week off in the second half of month 7. You'll need it. Tell beta painters now.
+### Key decisions
+- **Press exclusivity:** Goonhammer first in EN, Brückenkopf first in DE, beats spreading thin.
+- **Burnout protection:** schedule a full week off in the second half of month 7. Tell beta painters now.
 
 ---
 
 ## What "launch day success" looks like
 
-| Metric                           | Target by end of month 6 |
-| -------------------------------- | ------------------------ |
-| Registered users                 | 1,000 — 3,000            |
-| Active users (last 7 days)       | 400 — 1,000              |
-| PWA installs                     | 200 — 800                |
-| Play Store installs (TWA)        | 300 — 1,000              |
-| Community-submitted conversions  | 200 — 500                |
-| Community-submitted barcodes     | 500 — 1,500              |
-| Community-submitted recipes      | 30 — 100                 |
-| Patreon supporters               | 10 — 40                  |
-| Monthly Patreon revenue          | €50 — €300               |
-| Affiliate revenue (launch month) | €100 — €400              |
-| German-language users            | 30 — 50% of base         |
-| Community 1-star reviews         | < 5% of total            |
+| Metric                                  | Target by end of month 6 |
+| --------------------------------------- | ------------------------ |
+| Registered users                        | 1,000 — 3,000            |
+| Active users (last 7 days)              | 400 — 1,000              |
+| Models added to piles (total)           | 10,000 — 40,000          |
+| Models marked painted (total)           | 1,000 — 4,000            |
+| Recipes created/imported                | 300 — 1,000              |
+| Substitution suggestions accepted       | 2,000 — 8,000            |
+| PWA installs                            | 200 — 800                |
+| Play Store installs (TWA)               | 300 — 1,000              |
+| Community-submitted conversions         | 200 — 500                |
+| Community-submitted barcodes            | 500 — 1,500              |
+| Patreon supporters                      | 10 — 40                  |
+| Monthly Patreon revenue                 | €50 — €300               |
+| Affiliate revenue (launch month)        | €100 — €400              |
+| German-language users                   | 30 — 50% of base         |
 
-These ranges are deliberately wide. Hitting the bottom of every range means you have a real product with a real audience and time to improve. Hitting the top of any range means you're outperforming and should adjust month 7+ plans accordingly.
+Ranges are deliberately wide. The bottom of every range still means a real product with a real audience. The new engagement metrics (models, painted count, substitutions accepted) matter more than the funnel metrics — they tell you whether the loop is actually being lived.
 
 ---
 
 ## Cross-cutting risks & contingencies
 
-**Risk: Solo dev burnout.** The default failure mode for community-archive projects. The Compendium maintainer has shipped for ten years; you're aiming for similar longevity. Protect weekends starting month 1. If you find yourself coding for the third weekend in a row, scope down something — usually month 4's recipe submission flow is the right cut. The project belongs to the community, but you belong to yourself first.
+**Solo-dev burnout.** The default failure mode for community-archive projects. Protect weekends from month 1. If you're coding a third weekend running, cut scope — usually month 4's WIP photo log or month 3's contributor badges are the right cut. The project belongs to the community; you belong to yourself first.
 
-**Risk: Community contributions don't materialize.** The most common cause of category abandonment. Mitigation: seed aggressively in months 1 and 2 so the database is useful even with zero community input. Make submission so easy that even a 1% participation rate compounds. Reward contributors visibly with badges, profile credit, and on-page attribution.
+**Onboarding friction kills it before the loop can.** The biggest product risk in the reframe. Mitigation: the month-2 multi-on-ramp design, tested on real strangers (not friends, who are too forgiving), with a stopwatch. If a new painter can't capture a usable pile + collection in 10 minutes, nothing downstream matters.
 
-**Risk: DSGVO surprise.** Engage a DPO consultation in month 3 (around €200-500 for a 1-hour review). Better to fix structural problems before launch than after a complaint. Especially important if going EN+DE from day one.
+**Community contributions don't materialize.** Mitigation: seed aggressively (paints + your own recipes) so the app is useful with zero community input; make submission trivially easy; reward visibly.
 
-**Risk: GW or Army Painter ships the killer feature.** Genuinely possible but unlikely on the timescale. If GW opens Citadel Colour to all brands tomorrow, your wedge weakens but doesn't disappear — they'll never crowdsource conversions or barcodes, and they'll never integrate retailer affiliate (cannibalizes their own sales). Reposition around community + multi-brand recipes if it happens.
+**Bad or thin color data undermines substitution.** The substitution promise dies if a "96% match" looks wrong on the shelf. Mitigation: verify LAB values against real swatches where possible; let confidence and community votes correct the seed; never over-claim a match — round honestly and show the ΔE.
 
-**Risk: Apple App Store FOMO.** You'll be tempted in month 4 or 5. Resist. The TWA on Play Store handles 70% of EU mobile. Safari add-to-home-screen handles iOS adequately. iOS native is a year-three problem after you've validated the model.
+**DSGVO surprise.** Book a DPO consultation in month 3 (€200-500). Fix structural issues before launch, especially going EN+DE.
 
-**Risk: Patreon doesn't cover costs.** Realistic. The Compendium has ~13 patrons after 10 years; you likely won't exceed that in your first year. Mitigation: keep operating costs low (you can run the conversion engine and inventory on the free tiers of Vercel/Supabase for ~10k MAU); supplement with affiliate revenue rather than depending on patrons; revisit a modest premium tier in year two if needed.
+**GW or Army Painter ships the killer feature.** Unlikely on this timescale. Even if Citadel opened its app to all brands, they'll never crowdsource conversions/recipes or integrate retailer affiliate (it cannibalizes their sales). Reposition around community + the pile loop if it happens.
+
+**iOS App Store FOMO.** Resist through year two. TWA + Safari add-to-home-screen covers EU.
+
+**Patreon doesn't cover costs.** Realistic. Keep operating costs near-zero on free tiers; lean on affiliate; revisit a modest premium tier in year two if needed.
 
 ---
 
 ## Beyond month 6 — preview of months 7-12
 
-Sketched lightly so the month-6 launch leaves room to grow into them:
-
-- **Month 7:** post-launch quality and infrastructure. Pay down tech debt. Build the analytics dashboards you wished you had during launch week. Take that week off.
-- **Month 8:** French and Polish localization (the two next-biggest EU painter markets after DACH).
-- **Month 9:** Recipe sharing as a social object — "follow" specific painters whose recipes you like, recipe-of-the-week, featured creator partnerships. Quietly evaluate whether a modest €3.99/mo premium tier makes sense given Patreon trajectory.
-- **Month 10:** Retailer integrations beyond affiliate — live stock/price data from Brückenkopf, Fantasywelt, Element Games. Negotiate paid feeds.
-- **Month 11:** Brand partnership pilot — Pro Acryl, Two Thin Coats, or Kimera sponsored featured-range placement, anonymized market data sale (e.g. "what's the most-owned Vallejo paint in DACH?").
-- **Month 12:** First experimental AI feature, scoped narrowly. Recommended candidate: "photo of a finished mini → suggested paint recipe from community-submitted recipes that match the dominant colors." Use Claude vision or similar. Frame as a beta experiment, not a flagship feature. Re-evaluate iOS native at the same time — by now you'll know whether the iOS conversion gap is costing real engagement.
+- **Month 7:** post-launch quality + tech debt; analytics dashboards you wished you had during launch; **take that week off.**
+- **Month 8:** the **YouTube tutorial pipeline** — paste a tutorial link → pull chapters/timestamps → parse listed paints → draft a recipe → translate to your owned paints → favorite it, with steps linked to the moment in the video. Genuinely novel and very sticky; the natural next killer feature once the loop is solid.
+- **Month 9:** French and Polish localization (next-biggest EU markets after DACH). Recipes as a social object — follow painters, recipe-of-the-week. Quietly evaluate a modest €3.99/mo premium tier against Patreon trajectory.
+- **Month 10:** retailer integrations beyond affiliate — live stock/price from Brückenkopf, Fantasywelt, Element Games.
+- **Month 11:** brand partnership pilot (Pro Acryl, Two Thin Coats, Kimera) and anonymized market data ("most-owned Vallejo paint in DACH?").
+- **Month 12:** first narrow AI experiment — photo-of-shelf → inventory, or photo-of-mini → matching community recipe. Frame as beta. Re-evaluate iOS native.
 
 ---
 
 ## Final note
 
-The roadmap above is precise about features and fuzzy about feelings. The features are tradable; the feelings aren't. By month 6, painters should be able to say one true sentence about the app to a friend, in their own words, that sounds nothing like marketing. Whatever that sentence ends up being is the actual product. The features just get you to it.
+The roadmap is precise about features and fuzzy about feelings. The features are tradable; the feelings aren't. By month 6, a painter should be able to say one true sentence about the app to a friend — something like "it tells me what I can paint tonight with the paints I already have, and my pile is finally shrinking." Whatever that sentence turns out to be is the actual product. The features just get you to it.
