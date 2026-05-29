@@ -13,13 +13,16 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
+import type { WebSocketLikeConstructor } from "@supabase/supabase-js";
 import { parse } from "csv-parse/sync";
+import { config } from "dotenv";
 import { readFileSync } from "fs";
 import { resolve } from "path";
+import ws from "ws";
 import type { Database } from "../lib/supabase/database.types";
 
-// Load .env.local so this script works without manual env exports.
-import "dotenv/config";
+// Load .env.local (Next.js convention) so this script works without manual env exports.
+config({ path: resolve(process.cwd(), ".env.local") });
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -31,6 +34,7 @@ if (!url || !key) {
 
 const supabase = createClient<Database>(url, key, {
   auth: { autoRefreshToken: false, persistSession: false },
+  realtime: { transport: ws as WebSocketLikeConstructor },
 });
 
 function readCsv(filename: string): Record<string, string>[] {
@@ -39,8 +43,30 @@ function readCsv(filename: string): Record<string, string>[] {
   return parse(content, { columns: true, skip_empty_lines: true, trim: true });
 }
 
+function sanitizeRow(
+  row: Record<string, string>,
+  numericKeys: string[] = [],
+  integerKeys: string[] = [],
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(row)) {
+    if (value === "") {
+      out[key] = null;
+    } else if (integerKeys.includes(key)) {
+      out[key] = parseInt(value, 10);
+    } else if (numericKeys.includes(key)) {
+      out[key] = parseFloat(value);
+    } else {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
 async function seedPaints() {
-  const rows = readCsv("paints.csv");
+  const rows = readCsv("paints.csv").map((row) =>
+    sanitizeRow(row, ["lab_l", "lab_a", "lab_b"], ["size_ml"]),
+  );
   const { error } = await supabase.from("paints").upsert(rows as never[], {
     onConflict: "id",
   });
@@ -49,7 +75,9 @@ async function seedPaints() {
 }
 
 async function seedConversions() {
-  const rows = readCsv("conversions.csv");
+  const rows = readCsv("conversions.csv").map((row) =>
+    sanitizeRow(row, ["confidence"], ["verified_count", "disputed_count"]),
+  );
   const { error } = await supabase.from("conversions").upsert(rows as never[], {
     onConflict: "paint_a_id,paint_b_id",
     ignoreDuplicates: false,
