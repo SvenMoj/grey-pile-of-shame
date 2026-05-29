@@ -8,13 +8,19 @@
 
 ## The bet, in one paragraph
 
-Every miniature painter has a **grey pile of shame** — unbuilt, unprimed, half-painted models that pile up faster than they get finished — and a drawer of paints they can never quite map to a tutorial. The category has roughly fifteen apps, and they all treat paint inventory as a spreadsheet and the pile as an afterthought. The wedge is a companion that closes one tight loop: **pick a model from your pile → attach a recipe (yours, imported, or from a tutorial) → the app checks it against the paints you already own → fills the gaps with close matches you have rather than telling you to buy more → you paint it → log it → the pile shrinks.** The trustworthy cross-brand color data that powers the substitution is the moat; the loop is the product; the shrinking pile is the feeling people come back for. Ship it as a PWA on web (with an Android TWA wrapper for Play Store presence), EN+DE EU-first, fund hosting via Patreon, layer on retailer affiliate revenue, and reach defensibility through data curation rather than features. Six months to a public launch — but the real horizon is five-to-ten years of patient compounding.
+Every miniature painter has a **grey pile of shame** — unbuilt, unprimed, half-painted models that pile up faster than they get finished — and no tool that makes finishing feel like winning. The category has roughly fifteen apps, and they all treat paint inventory as a spreadsheet and the pile as an afterthought. The wedge is a companion that **gamifies the hobby journey**: open it without an account, capture your pile in under two minutes, set a challenge (paint one model this weekend, finish a unit this month), mark a mini done, and watch the pile shrink. Paint substitution and cross-brand color data are a depth layer — smart and defensible — but the reason people open the app daily is the challenge streak and the pile counter. Accounts are optional; data lives locally until a painter decides they want to save and sync, at which point one magic link moves everything to the cloud. Ship it as a PWA on web (with an Android TWA wrapper for Play Store presence), EN+DE EU-first, fund hosting via Patreon, layer on retailer affiliate revenue, and reach defensibility through data curation and a growing challenge community. Six months to a public launch — but the real horizon is five-to-ten years of patient compounding.
 
-## What changed from v1 (and why)
+## What changed from v1 (and why this is v3)
 
-The v1 roadmap made the **conversion engine** the hero because it's account-less and SEO-friendly — a great way to _acquire_ but a weak reason to _return_ (you look up a conversion twice a year). The grey pile of shame is the opposite: it's the hobbyist's daily identity and quiet anxiety, which means accounts, retention, and word-of-mouth come for free.
+The v1 roadmap made the **conversion engine** the hero — account-less, SEO-friendly, great for acquisition but a weak reason to return (you look up a conversion twice a year). The v2 roadmap corrected this by centering the companion loop, but still made the **color engine** (`culori`, LAB, CIEDE2000) a month-1 gating dependency: nothing user-facing shipped until 400+ paints had verified LAB values. For a product whose real retention mechanic is the pile shrinking and challenge streaks, that ordering was still backwards.
 
-So the conversion engine isn't thrown away — it's **demoted to the funnel and the data backbone.** The work already done on the v0.1 codebase (paint catalog with hex/LAB values, conversion data, admin seeding tools) is exactly the color foundation the substitution engine needs. The companion loop the old plan deferred to "v0.5" is now the center of gravity, and conversion lookups become a public, indexable, account-less surface that feeds people into it.
+This v3 reframe makes two changes:
+
+1. **The pile and challenges come first.** Color math is demoted to a Phase-4 depth layer. The loop closes without it — painters track their pile, set challenges, and feel the dopamine of a shrinking counter. Substitution intelligence makes the loop smarter later; it doesn't gate the loop today.
+
+2. **Local-first, try-before-account.** A stranger opens the app, captures their pile in under two minutes, and sets a challenge — all without creating an account. Their data lives in browser localStorage. When they decide they want to save and sync, a magic link moves everything to Supabase. This removes the friction wall that kills most hobby apps before the loop ever runs.
+
+The conversion engine isn't thrown away — it's **the public funnel and the data backbone** for Phase 4 paint substitution. The work already done (paint catalog with LAB columns, conversion data, admin seeding tools) is exactly the foundation the substitution engine needs when it arrives.
 
 ## Operating principles
 
@@ -38,6 +44,8 @@ These hold across all six months. Re-read them whenever a decision feels hard.
 
 **Privacy-first by default.** EU launch means DSGVO is non-negotiable: data export, deletion flow, EU hosting, minimal third-party trackers, transparent policy from day one. A feature, not a compliance cost.
 
+**This is a hobby platform, never a Warhammer app.** Games Workshop and other IP holders are protective of their trademarks and lore. The platform must always be generic — it tracks miniatures, paints, and hobby progress across all games and manufacturers. No first-party content may reference specific game systems, faction names, or proprietary unit names. Any such content that appears in the app (faction templates, unit lists, challenge presets referencing specific armies) must be **user-generated data**, even if we are the "users" who seed it via a launch script running under a regular user account. The distinction matters legally: we provide the platform and tools; the community creates the content. This principle applies to every layer — UI copy, seed data, onboarding templates, example recipes, and challenge presets. When in doubt, use generic terms ("army", "unit", "faction", "model") over any trademarked equivalent.
+
 **Don't build native until you have to.** PWA + Android TWA covers ~70% of EU mobile. iOS native is a year-three problem at the earliest.
 
 **Be wary of AI for AI's sake.** The loop holds without AI. Substitution is math (color distance), not a model. Recipes are structured data. The one AI candidate that genuinely earns its place — photo-of-shelf-to-inventory, or photo-of-mini-to-recipe — ships as a year-two experiment, never as a launch crutch.
@@ -46,10 +54,11 @@ These hold across all six months. Re-read them whenever a decision feels hard.
 
 ## Tech stack (mostly already locked in the v0.1 codebase)
 
-- **Frontend / app:** Next.js 15 (App Router) + TypeScript + Tailwind, on Vercel. PWA via `@serwist/next`.
+- **Frontend / app:** Next.js 16 (App Router) + TypeScript + Tailwind v4, on Vercel. PWA via `@serwist/next`.
 - **Backend / data:** Supabase Frankfurt (Postgres + Auth + Storage + Realtime). Stays in the EU for DSGVO.
+- **Local-first storage:** browser localStorage (versioned JSON key), migrated to Supabase on account creation.
 - **Image storage:** Cloudflare R2 (cheap egress, EU-hosted) or Supabase Storage.
-- **Color math:** `culori` (or equivalent) for sRGB→LAB and CIEDE2000 ΔE, computed at seed time and cached on each paint row. The substitution engine is a database query, not a service.
+- **Color math:** `culori` for sRGB→LAB and CIEDE2000 ΔE — **Phase 4 only**, not installed or used until the substitution engine ships. LAB columns already exist in the DB; values will be populated when the engine arrives.
 - **Email:** Resend (EU residency confirmed before launch).
 - **Analytics:** Plausible (EU-hosted, cookieless).
 - **Error tracking:** Sentry (EU instance).
@@ -64,37 +73,39 @@ These hold across all six months. Re-read them whenever a decision feels hard.
 
 Because the priority is momentum, the things to do _this week_ regardless of month boundaries:
 
-1. **Finish the paint catalog seed with accurate LAB values for the four big brands** (Citadel, Vallejo, Army Painter Fanatic, Scale75). This is the critical path — the substitution engine, recipes, and conversion all depend on it. Compute LAB from hex at seed time and store it. Aim for 400+ paints with verified color values.
+1. **Ship the pile tracker, usable without login.** Local-first storage abstraction (localStorage), pile dashboard grouped by state, quick-count onboarding ("how many unbuilt? built?"), one-tap state progression. A stranger should be able to capture their pile in under 2 minutes on the first visit.
 2. **Lock the domain and name.** Don't agonize past two weeks.
-3. **Stand up magic-link auth** (Supabase handles most of it). The companion is personal, so accounts come in early — unlike v1.
-4. **Build the thinnest end-to-end slice of the loop** for yourself only: add one model, attach a three-step recipe, see which steps you can cover from a hardcoded inventory, see one substitution suggestion. Ugly is fine. The point is to feel the loop before polishing any node of it.
+3. **Generalize magic-link auth** (Supabase handles most of it). The user-facing app is open to any email; `/admin` stays gated by `ADMIN_EMAIL`. On signup, migrate local pile data to Supabase in one batched insert.
+4. **Build the first challenge preset** (_Weekend Warrior_ or _Pledge to Paint_) so the pile tracker immediately has a goal layer. Ugly is fine — the point is to feel the loop before polishing any node of it.
+
+**The LAB catalog seed is no longer on the critical path for these two weeks.** It will matter in Phase 4 when the substitution engine arrives; it does not gate the pile, challenges, or onboarding.
 
 ---
 
-## Month 1 — The core loop, rough but real
+## Month 1 — The pile, usable without login
 
-**Theme:** Get the whole loop working end-to-end for yourself and a tiny circle of trusted painters. Every node can be ugly; the loop must be complete.
+**Theme:** A stranger opens the app, captures their pile in 2 minutes, and immediately sees it grouped by state. No account required. Every node can be ugly; the pile must work.
 
-**Why this first:** A complete-but-rough loop teaches you more than any one polished feature. It also de-risks the hardest integration — substitution against a real inventory against a real recipe — before you've built UX around assumptions.
+**Why this first:** The pile is the daily identity and quiet anxiety of every miniature painter. It's the reason to open the app before any substitution logic exists. Local-first removes the friction wall that kills most hobby apps — you don't ask for an email before showing value.
 
 ### Features
 
-**1.1 — Magic-link auth + account shell** · _2-3 days_ · Supabase Auth, no passwords, account deletion stub in settings. _Success:_ sign-in under 30s.
+**1.1 — Local-first pile storage** · _2-3 days_ · `PileStore` interface with two backends: `localPileStore` (localStorage, versioned JSON, SSR-safe fallback) and `supabasePileStore` (RLS browser client, used once authed). `usePile()` hook picks the backend by session state. _Success:_ pile data survives a page refresh without an account.
 
-**1.2 — Paint inventory** · _1 week_ · Add a paint from the catalog with one tap; states: owned / wishlist / running-low; custom paint add (never paywalled, free text + color picker). _Success:_ build a 50-paint inventory in under 15 min.
+**1.2 — Quick-count onboarding** · _1-2 days_ · `/onboarding`: one stepper per state → `expandQuickCount` → `usePile().addMany` → `/pile`. No naming, no login. _Success:_ a new visitor captures their whole pile in under 2 minutes.
 
-**1.3 — Pile of shame: model tracking** · _1 week_ · Add models with progress states (unbuilt → built → primed → in progress → painted), a count or per-model entry, optional faction/game tag. _Success:_ a painter can capture their whole pile in under 10 minutes (see onboarding design below).
+**1.3 — Pile dashboard** · _1 week_ · `/pile`: five sections in `PILE_STATES` order with counts (the "pile shrinks" surface). Per-item one-tap **Advance** button; hidden at `painted`. Quick-add form (single vs batch, optional game/faction). Empty pile → CTA to onboarding. _Success:_ advancing a mini one step takes one tap.
 
-**1.4 — Structured recipe model** · _4-5 days_ · A recipe is an ordered list of steps; each step has a role (basecoat / shade / layer / highlight / edge / drybrush / contrast / wash / glaze / technical), a referenced paint, a technique note. Brand-agnostic by design. _Success:_ you can author a 6-step recipe in under 3 minutes.
+**1.4 — Generalized magic-link auth + migrate-on-signup** · _2-3 days_ · New `/login` route (no `ADMIN_EMAIL` check). Callback stops signing out non-admins: admin email → `/admin/paints`, else → `/pile`. On first authed load with non-empty local pile: push all local rows to Supabase, clear local store, set idempotency flag. _Success:_ sign-up under 30s; local pile appears in the cloud immediately; opening a second browser logged in shows the same pile.
 
-**1.5 — Substitution engine v1** · _1 week_ · Given a recipe step's target paint, find the closest paints **in the user's inventory** by CIEDE2000 ΔE, with role-aware tolerance (a basecoat tolerates more deviation than a final highlight). Display "you own X — a 96% match." _Success:_ for a typical recipe, the app correctly tells you which steps you can already cover.
+**1.5 — Soft contextual save banner** · _1 day_ · Shown when `session == null && localPileCount > 0`. "Create a free account to save your pile & sync across devices." Dismissible per session. _Success:_ appears naturally after meaningful work, never before.
 
-**1.6 — Close the loop** · _3-4 days_ · Attach a recipe to a model; the model view shows, per step, "you have it / close match you own / you'd need to buy." Mark the model painted; the pile count updates. _Success:_ you complete one real model start-to-log using only the app.
+**1.6 — Account settings + DSGVO deletion stub** · _1-2 days_ · `/settings` (authed only): show email, sign out, "Delete my account" → writes `deletion_requested_at` to `profiles`, signs out, redirects with confirmation. Hard-delete is a later cron job; cascade FKs already wired. _Success:_ a user can initiate deletion without a support ticket.
 
 ### Data / curation
 
-- Finish the 400+ paint seed with LAB. **This is non-negotiable and the gating dependency for everything.**
-- Seed 20-30 of your own real recipes so the recipe surfaces aren't empty when beta painters arrive.
+- No paint catalog work required this month. The `miniature_items` table and RLS are already migrated.
+- Only migration needed: `profiles` (auto-created on signup, DSGVO deletion stub).
 
 ### Monetization status
 
@@ -102,54 +113,36 @@ Because the priority is momentum, the things to do _this week_ regardless of mon
 
 ### Key decisions
 
-- **Per-model vs. per-unit granularity.** Recommend supporting both: a "model" can be a single mini or a unit of N identical minis (batch painting is the norm). The recipe attaches to the unit.
-- **How much recipe structure to enforce.** Recommend roles are optional but encouraged — a freeform "I used these paints" recipe must still work, or people won't enter anything.
+- **Per-model vs. per-unit.** `unit_size > 1` covers batch painting from day one. The quick-count onboarding creates skeletal items (one per state × count entered); painters name and enrich them later.
+- **localStorage vs. IndexedDB.** Start with localStorage — small data, zero complexity. IndexedDB is a contained upgrade if the pile grows large.
+- **Never `adminClient` in the user app.** Per-user isolation is entirely RLS-based.
 
 ---
 
-## Month 2 — Onboarding that doesn't suck + closed beta
+## Month 2 — Challenges + closed beta
 
-**Theme:** Make capturing your pile and your paints fast enough that a stranger will actually do it. Invite 20-30 painters.
+**Theme:** Add challenges as the goal layer on top of the pile. Invite 20-30 painters to test both together.
 
-**Why now:** The loop exists but is worthless if nobody can populate it. Onboarding is the make-or-break, so it gets a dedicated month rather than a launch-week scramble.
-
-### The onboarding design (the "think of something" answer)
-
-A single rigid flow fails because painters arrive in different states. The design is **progressive and multi-on-ramp**, built on one rule: _value before completeness._ They should reach a satisfying moment in under 60 seconds and keep enriching their collection over weeks, never hitting a wall of data entry.
-
-**Step 0 — Two taps of context (15 seconds).** "What do you mainly paint?" (game/faction picker) and "Which brands do you use?" (multi-select). This seeds smart defaults for everything that follows.
-
-**The pile of shame — three on-ramps, pick what fits:**
-
-- **Quick-count (the emotional hook, ~20 seconds):** steppers per state — "roughly how many unbuilt / built / primed / started?" Instantly visualize the pile. No naming required; refine into individual models later. Most people start here.
-- **Faction templates:** "You play Death Guard — tap the units you own" from a seeded unit list. Turns naming into tapping.
-- **Box-barcode scan (lands month 4):** scan the box, it resolves to the kit. Designed for now, shipped later.
-
-**The paint range — also multi-on-ramp:**
-
-- **Add-by-set (fastest):** tap the boxed sets you bought (a Citadel mega set, a Vallejo Game Color box) → every contained paint is added at once.
-- **Visual brand grid:** tap pots from a swatch grid of your brand's range. Recognition beats recall.
-- **Bulk type-ahead:** search-and-multi-select for the long tail.
-- **Pot-barcode scan (lands month 4):** at the desk or in the store.
-- **Photo shelf-scan (year-two AI experiment):** the dream; explicitly deferred. Bulk add gets ~90% of the value today.
-
-The data model is designed now so barcode and photo on-ramps slot in later without rework.
+**Why now:** A pile tracker without a goal is a list. Challenges turn "I have 47 unbuilt minis" into "I'm going to paint 5 of them this month" — that's the retention mechanic. Beta painters validate whether the challenge presets feel right before you build more of them.
 
 ### Features
 
-**2.1 — Onboarding flows** · _1 week_ · Step 0 + quick-count + faction templates + add-by-set + visual grid + bulk type-ahead. _Success:_ a new painter captures a representative pile and paint collection in under 10 minutes total.
+**2.1 — Challenge presets** · _1 week_ · _Weekend Warrior_ (paint 1 model before Sunday), _Month of Shame_ (reduce pile by N), _Unit Finisher_ (complete every model in a tagged unit), _Pledge to Paint_ (commit to a named model + deadline). Progress is auto-derived from pile state changes. _Success:_ a painter sets a challenge and sees it tick forward when they advance a mini to `painted`.
 
-**2.2 — Cloud sync + offline** · _1 week_ · All data in Supabase, IndexedDB cache for instant load and desk-side offline resilience (phone propped up, weak wifi). Server-wins conflict resolution. _Success:_ add on phone, see on laptop in seconds; works with wifi off.
+**2.2 — Custom challenge creation** · _2-3 days_ · User-defined title, target count, optional deadline. _Success:_ any goal a painter can describe can be tracked.
 
-**2.3 — "What can I paint right now?" v1** · _4-5 days_ · Given owned paints + the pile, surface a model + recipe completable today with zero purchases. _Success:_ the home screen can always answer "what now?" with at least one real suggestion.
+**2.3 — Completion celebration** · _1-2 days_ · Badge moment + completion timestamp on the challenge. Streaks ("painted X sessions in a row") as a secondary mechanic. _Success:_ completing a challenge feels like winning.
 
-**2.4 — Loop polish from daily use** · _ongoing_ · You're now using it daily — fix the ten things that annoy you most.
+**2.4 — Faction/game onboarding template** · _1 week_ · "You play Death Guard — tap the units you own" from a seeded unit list. Turns pile entry into tapping. _Success:_ a painter with a known faction can add 10+ minis without typing a single name.
+
+**2.5 — Loop polish from daily use** · _ongoing_ · You're using it daily — fix the ten things that annoy you most.
 
 ### Community / growth
 
-- Recruit 20-30 beta painters: ~10 from r/minipainting (DM collection-photo posters), 5-10 from DACH Discords (Tabletopwelt, Brückenkopf, Spielmaterial), 5 non-Citadel painters specifically (Vallejo/AP heavies care most about substitution).
+- Recruit 20-30 beta painters: ~10 from r/minipainting, 5-10 from DACH Discords (Tabletopwelt, Brückenkopf), 5 specifically non-Citadel painters.
 - Private beta Discord, daily presence.
 - Start collecting verbatim painter quotes for the eventual landing page.
+- The shareable moment this month: the pile stats after completing a challenge. Pre-record a 60-second demo the day it ships.
 
 ### Monetization status
 
@@ -157,75 +150,74 @@ The data model is designed now so barcode and photo on-ramps slot in later witho
 
 ### Key decisions
 
-- **Free forever vs. eventual premium.** Recommended split (decide now so UX assumes it): free = full loop, pile tracking, inventory to a generous cap, all conversions, basic recipes; eventual premium (year two, if at all) = unlimited everything, photo shelf-scan, advanced batch tools, price alerts.
+- **Challenge visibility.** Challenges default to private. The `visibility` column is already in the schema; community/public challenges are a Phase 4 unlock.
 - **Soft beta, no NDA.** Painters share screenshots regardless; the buzz helps.
 
 ---
 
-## Month 3 — Recipes as a shareable object + community keeps the data alive
+## Month 3 — Paint inventory onboarding + public funnel
 
-**Theme:** Make recipes something people want to use _and_ share, and turn the conversion/recipe data from "Sven's manual curation" into "the community grows it." Light the public funnel.
+**Theme:** Make adding your paints as fast as adding your pile was. Light the public funnel so organic traffic starts building.
 
 ### Features
 
-**3.1 — Recipe library + "I can paint this" filter** · _1 week_ · Browse community recipes; filter to "recipes I can fully paint with what I own" (with close-match substitution inline). _Success:_ find a usable, ownable recipe for a given scheme in under 90 seconds.
+**3.1 — Visual brand grid** · _1 week_ · Tap pots from a swatch grid of your brand's range (recognition beats recall). _Success:_ add 30 owned paints in under 5 minutes without typing a name.
 
-**3.2 — Recipe submission + the GW-recipe→your-paints verb** · _1 week_ · Submit a recipe; paste/enter a recipe in one brand and get it translated to the brands you own, substitutions and confidence flagged. Same submit/vote/confidence pattern as conversions. _Success:_ 5 beta painters submit a recipe in week one; the translate feature feels like magic.
+**3.2 — Add-by-set** · _2-3 days_ · Tap the boxed sets you bought (Citadel Starter, Vallejo Game Color box) → every contained paint added at once. _Success:_ one tap adds 20+ paints.
 
-**3.3 — User-submitted conversions + voting/confidence** · _1 week_ · Logged-in users submit conversions (optional photo-pair evidence) into a pending queue; confidence score from confirming votes, contributor reputation, photo evidence, age; three-state display (verified / suggested / single submission). _Success:_ pages clearly distinguish trusted from speculative mappings.
+**3.3 — "Which paints did you use?" on a finished mini** · _2-3 days_ · Simple attach-a-paint-list to a painted model — no recipe structure required to start. _Success:_ a painter can log what they used in under 60 seconds.
 
-**3.4 — Contributor reputation & badges** · _3-4 days_ · Profile shows submission count, verified-rate, badges; public profile URL. _Success:_ ≥3 beta painters voluntarily share their profile to a community.
+**3.4 — Public conversion + catalog SEO pages (funnel goes live)** · _4-5 days_ · The account-less conversion lookup and per-paint catalog pages go public and indexable. Pull organic search traffic and funnel into the companion. _Success:_ Google indexes 200+ paint pages this month.
 
-**3.5 — Public conversion + catalog SEO pages (the funnel goes live)** · _4-5 days_ · The already-built account-less conversion lookup and per-paint catalog pages go public and indexable. These pull organic search traffic and funnel into the companion. _Success:_ Google indexes 200+ paint pages this month.
+**3.5 — User-submitted conversions + voting/confidence** · _1 week_ · Logged-in users submit conversions (optional photo evidence) into a pending queue; confidence from votes + photo evidence; three-state display (verified / suggested / single submission). _Success:_ pages clearly distinguish trusted from speculative mappings.
 
-**3.6 — German localization (full)** · _1 week_ · Complete EN→DE for UI, errors, marketing; JSON files structured for FR/PL later; locale-aware formatting. _Success:_ a German painter never sees an English word.
+**3.6 — German localization (full)** · _1 week_ · Complete EN→DE; JSON files structured for FR/PL later. _Success:_ a German painter never sees an English word.
 
 ### Community / growth
 
-- Open beta: 30 → 200. Post in r/minipainting and Tabletopwelt ("I built a pile-of-shame + paint companion, looking for testers").
+- Open beta: 30 → 200. Post in r/minipainting and Tabletopwelt.
 - Weekly newsletter (3 paragraphs: shipped / coming / one community spotlight).
-- DM 5 mid-tier YouTube creators (DE prioritized: Modellbahn-Berni, Brückenkopf; EN: Tabletop Minions, Ninjon). Offer lifetime premium for an honest review. No expectations.
+- DM 5 mid-tier YouTube creators (DE prioritized).
 
 ### Monetization status
 
-- Wire Stripe but keep purchases off. Set up Brückenkopf-Online, Fantasywelt, Amazon DE affiliate accounts.
+- Wire Stripe but keep purchases off. Set up affiliate accounts (Brückenkopf-Online, Fantasywelt, Amazon DE).
 
 ### Key decisions
 
-- **Submission quality bar.** Recommend photo-pair required for "verified," plain text allowed for "suggested." Lowers barrier without lowering trust.
-- **Profiles public-by-default** with an easy toggle. Hobbyists like being seen.
+- **Add-by-set vs. full paint catalog seed.** The add-by-set approach gives painters value without requiring the full 400-paint LAB-verified catalog. Expand the catalog incrementally alongside community demand, not ahead of it.
 
 ---
 
-## Month 4 — Barcodes, the in-store moment, batch & shopping
+## Month 4 — Barcodes, pile payoff, community challenges
 
-**Theme:** Ship the unglamorous features that drive daily use and the "did I already buy this?" in-store moment.
+**Theme:** Ship the unglamorous features that drive daily use and the "did I already buy this?" in-store moment. Open challenges to the community.
 
 ### Features
 
-**4.1 — Camera + barcode scan (pots and boxes)** · _1 week_ · Scan a paint pot → add to inventory (or capture an unknown barcode for credit); scan a model box → add the kit to your pile. `@zxing/browser`. _Success:_ ≥80% of Citadel/Vallejo pot barcodes scan first try; unknown barcodes captured at ≥30%.
+**4.1 — Camera + barcode scan (pots and boxes)** · _1 week_ · Scan a paint pot → add to inventory; scan a model box → add the kit to the pile. `@zxing/browser`. _Success:_ ≥80% of Citadel/Vallejo pot barcodes scan first try.
 
-**4.2 — Smart consolidated shopping list** · _4-5 days_ · Across _all_ planned projects, dedup needs and apply close-match substitution so it shows the genuine minimum to buy — and routes purchases to affiliate retailers. The honest version of monetization: it actively helps you buy less. _Success:_ for a multi-project user, the list is shorter than the naive sum and the substitutions are trusted.
+**4.2 — Pile-shrinking payoff dashboard** · _3-4 days_ · Painted-vs-unpainted ratio visualization, "painted this month" count, painted-points (Warhammer players track these for events), streak counter. The view worth screenshotting. _Success:_ painters voluntarily share their pile stats.
 
-**4.3 — Batch / unit recipe consistency** · _4-5 days_ · Save a recipe to a unit and re-apply it months later ("what did I use on the first 10 Plague Marines?"). _Success:_ a painter can repaint a squad identically without guesswork.
+**4.3 — WIP photo log per model** · _3-4 days_ · Attach before/during/after photos. Doubles as shareable social proof. _Success:_ beta painters voluntarily attach photos.
 
-**4.4 — WIP photo log per model** · _3-4 days_ · Attach before/during/after photos to a model. Doubles as shareable social proof. _Success:_ beta painters voluntarily attach photos.
+**4.4 — Community/joinable challenges** · _1 week_ · Admin-created public challenges (e.g. "community Pledge to Paint — finish one mini in May"). Painters join and see a shared leaderboard. The schema is already prepared (visibility + nullable user*id). \_Success:* ≥10 painters join a shared challenge in the first week.
 
-**4.5 — Pile-shrinking payoff** · _3-4 days_ · Painted-vs-unpainted ratio, "painted this month," painted-points (Warhammer players track these), a satisfying shrink visualization. The emotional dopamine that drives daily return. _Success:_ the progress view is something painters screenshot and share.
+**4.5 — Recipe authoring v1** · _4-5 days_ · Full structured recipe (ordered steps with roles, technique notes, paint refs). Builds on the "which paints did you use?" foundation from month 3. _Success:_ a 6-step recipe authored in under 3 minutes.
 
 ### Community / growth
 
-- The shareable moment this month is the **shopping-list-that-tells-you-not-to-buy** and the **painted-points tracker**. Pre-record 60-second demos; post the day they ship.
+- The shareable moment: the **pile-shrinking payoff dashboard** and the **community challenge leaderboard**. Pre-record demos; post the day they ship.
 - Beta target: 500. First media outreach: Goonhammer, Tale of Painters, Brückenkopf "tool spotlight."
 
 ### Monetization status
 
-- Affiliate links go live in the shopping list and on paint pages (transparent disclosure). Patreon page goes live, framed as cost-coverage (€100/mo = hosting; €300/mo = a dedicated weekend day; €1,000/mo = convention attendance).
+- Affiliate links live on paint pages and the (future) shopping list. Patreon page goes live, framed as cost-coverage (€100/mo = hosting; €300/mo = a dedicated weekend day; €1,000/mo = convention attendance).
 - No premium tier yet — defer to month 9-10 at earliest.
 
 ### Key decisions
 
-- **Patreon-first, not freemium-first.** Signals "community gift, support if you can," which fits the long-game sensibility.
+- **Patreon-first, not freemium-first.** Signals "community gift, support if you can."
 - **Allow YouTube/Instagram links on recipes from day one** — meet painters where they already share.
 
 ---

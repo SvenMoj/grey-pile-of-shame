@@ -1,6 +1,8 @@
 # GPoS — Core Loop Product Spec
 
-**Companion doc to** `Paint_Tracker_6_Month_Roadmap.md`. The roadmap says _what ships when_; this says _how the loop works_. Scope: the months 1-4 core. Deliberately ignores launch logistics, monetization, and marketing.
+**Companion doc to** `Paint_Tracker_6_Month_Roadmap.md`. The roadmap says _what ships when_; this says _how the loop works_.
+
+> **Reframed (v2).** The launch core is the **pile loop** — no color math required to close it. The substitution/recipe engine described in §3-6 is a **Phase-4 depth layer**, not a Phase-1 gating dependency. The app is fully usable without an account (local browser storage); account creation is the "save & sync" step.
 
 ---
 
@@ -8,191 +10,179 @@
 
 Everything in the product serves one loop. If a feature isn't a node on it or making a node faster, it's out of scope for the core.
 
-```mermaid
-flowchart LR
-    A[Pile of Shame<br/>your models] --> B[Pick a model]
-    B --> C[Attach a recipe<br/>yours / imported / community]
-    C --> D{Check against<br/>your paints}
-    D -->|have it| E[Step covered]
-    D -->|close match owned| F[Substitute<br/>'you own a 96% match']
-    D -->|gap| G[Add to shopping list]
-    E --> H[Paint it]
-    F --> H
-    G --> H
-    H --> I[Log it]
-    I --> J[Pile shrinks 🎉]
-    J --> A
+```
+Pile of Shame → Pick a model → (optionally) note paints used → Paint it → Mark painted → Pile shrinks 🎉 → Challenge progresses → Loop
 ```
 
-The emotional payoff is the last edge: the pile shrinks. The intelligence that makes it feel magic is node D — substitution against what you already own.
+The emotional payoffs are: the pile shrinking and the challenge ticking forward. The intelligence layer (paint substitution, recipe translation) comes later and makes the loop smarter — but the loop closes without it.
+
+**The launch core loop:**
+
+```mermaid
+flowchart LR
+    A[Pile of Shame\nyour models] --> B[Pick a model]
+    B --> C[Paint it\nwith what you own]
+    C --> D[Mark painted\none tap]
+    D --> E[Pile shrinks 🎉]
+    E --> F{Active challenge?}
+    F -->|yes| G[Challenge progresses]
+    F -->|no| A
+    G --> A
+```
+
+**The Phase-4 depth layer (added when the loop is solid):**
+
+```mermaid
+flowchart LR
+    B[Pick a model] --> R[Attach a recipe\nyours / imported / community]
+    R --> S{Check against\nyour paints}
+    S -->|have it| E[Step covered]
+    S -->|close match owned| F[Substitute\n'you own a 96% match']
+    S -->|gap| G[Add to shopping list]
+```
 
 ---
 
 ## 2. Core entities (data model)
 
-Names are indicative; align to the existing v0.1 schema where it already exists (the `paints` and `conversions` tables are built).
+All user-domain tables are already migrated. Names and columns are exact — see migrations.
 
-**PaintCatalogEntry** — the seeded, shared catalog (already exists as `paints`).
-`id (slug)`, `brand`, `range`, `name`, `sku_code`, `barcode`, `hex`, `lab_l`, `lab_a`, `lab_b`, `size_ml`, `type` (base/layer/shade/contrast/technical/primer/...), `status` (current/discontinued), `discontinued_date`, `version`.
-_LAB is computed from hex at seed time and stored — never computed at query time._
+**MiniatureItem** — the pile entry. `id`, `user_id`, `display_name`, `game`, `faction`, `unit_size` (1 for single, N for batch), `state` (`unbuilt / built / primed / in_progress / painted`), `painted_at` (set by the app on transition into `painted`, not a trigger), `point_value`. Kit catalog FK (`kit_id`) nullable.
 
-**UserPaint** — a catalog entry (or custom paint) in a user's collection.
-`id`, `user_id`, `catalog_paint_id` (nullable for custom), `custom_name`, `custom_brand`, `custom_hex`, `state` (owned / wishlist / running_low), `added_at`. Custom paints get derived LAB from `custom_hex`.
+**UserPaint** — a paint in a user's collection. `catalog_paint_id` (nullable) or custom (`custom_name`, `custom_hex`). `state`: owned / wishlist / running_low.
 
-**MiniatureItem** — an entry in the pile of shame.
-`id`, `user_id`, `kit_id` (nullable, links to seeded kit catalog when known), `display_name`, `game`, `faction`, `unit_size` (1 for single, N for a batch unit), `state` (unbuilt / built / primed / in_progress / painted), `created_at`, `painted_at`, `point_value` (optional, for painted-points).
+**Profile** — one row per user, auto-created on signup. `display_name`, `deletion_requested_at` (DSGVO stub; hard-delete is a later admin/cron job).
 
-**Recipe** — a reusable, brand-agnostic scheme.
-`id`, `author_user_id`, `title`, `description`, `visibility` (private/public), `source_type` (original / imported / tutorial), `source_url`, `created_at`. Has many `RecipeStep`.
+**Challenge** — a personal goal. `type` (preset or custom), `title`, `target` (count or date), `deadline`, `status` (active / completed / abandoned), `visibility` (private / public — community ready, UI personal-only at launch).
 
-**RecipeStep** — one ordered step.
-`recipe_id`, `order`, `role` (basecoat / shade / wash / layer / highlight / edge / drybrush / contrast / glaze / technical / other), `target_paint_id` (catalog ref), `target_hex` (denormalized for resilience if a paint is discontinued), `technique_note`, `area_note` (e.g. "armour plates").
+**ChallengeProgress** — snapshots as the pile changes; drives the challenge progress display.
 
-**RecipeApplication** — a recipe attached to a model/unit (the join that closes the loop).
-`id`, `user_id`, `miniature_item_id`, `recipe_id`, `status` (planned / in_progress / done), `per_step_resolution` (cached: for each step — have_exact / have_substitute(user_paint_id, ΔE) / gap), `applied_at`.
+**Recipe** — Phase 4. An ordered list of steps; each step has a `role` and a `target_paint_id`. Brand-agnostic by construction so any recipe can be re-expressed in any brand by running each step through the substitution engine.
 
-**Substitution result** (computed, not stored long-term) — for a given target paint + a user's inventory: ranked list of owned paints by ΔE, each tagged with a role-aware verdict.
+**RecipeApplication** — Phase 4. A recipe attached to a model; caches per-step resolution (have_exact / have_substitute / gap).
 
-**Conversion** — the shared cross-brand mapping (already exists). Powers the public funnel _and_ seeds substitution defaults, but substitution against a personal inventory is the live, per-user computation.
+**PaintCatalogEntry** — the shared, seeded catalog (`paints` table). LAB columns exist and are used by the Phase-4 substitution engine. Not a dependency for Phase 1-3.
 
 ---
 
-## 3. The substitution engine (node D — the magic)
+## 3. Local-first storage (Phase 1 foundation)
 
-**Problem it solves:** "This recipe calls for Citadel Mephiston Red. Do I own something close enough that I don't need to buy it?"
+The app opens without requiring login. Data lives in browser localStorage under a versioned key. On account creation, local rows are pushed into Supabase under the new `user_id` (idempotent — a migration flag prevents double-insert on refresh).
 
-**Color space.** Compare in CIE LAB, not hex/RGB. RGB distance does not match perceived difference; LAB does. Store `lab_l/a/b` per paint at seed time (sRGB → XYZ → LAB, D65).
+**One `PileStore` interface, two backends:**
 
-**Distance metric.** CIEDE2000 (ΔE₀₀). It's the current perceptual standard and handles the blue-region and lightness quirks that ΔE76 gets wrong. Use a library (`culori`); don't hand-roll it.
+- `localPileStore` — localStorage, versioned JSON, corrupt-data fallback to `[]`, SSR-safe.
+- `supabasePileStore` — RLS browser client (`lib/supabase/client.ts`, never `adminClient`). `user_id` set explicitly on every insert so the RLS `with check` passes.
+- `usePile()` hook picks the backend from session state.
 
-**Rough interpretation of ΔE₀₀** (calibrate against real swatches during seeding):
-
-- `< 1.0` — imperceptible difference
-- `1-2` — perceptible only on close inspection
-- `2-3.5` — perceptible; fine for most basecoats
-- `3.5-5` — noticeable; acceptable for undercoats/areas that get shaded over
-- `> 5` — clearly different; only acceptable as a deliberate alternative
-
-**Role-aware tolerance — the key nuance.** A step's role sets how strict the match must be. A basecoat that gets washed and highlighted over tolerates far more deviation than a final edge highlight, which is the color the eye lands on.
-
-| Role                 | Acceptable ΔE₀₀ ceiling (default) | Rationale                        |
-| -------------------- | --------------------------------- | -------------------------------- |
-| basecoat / undercoat | ~5.0                              | gets covered/shaded; forgiving   |
-| layer                | ~3.5                              | visible but blended              |
-| shade / wash         | ~4.0                              | tints, not exact; forgiving      |
-| contrast             | ~3.0                              | one-coat color _is_ the result   |
-| highlight            | ~2.5                              | eye-catching                     |
-| edge highlight       | ~1.5                              | the sharpest visual line; strict |
-| drybrush             | ~3.5                              | texture-led, forgiving           |
-| glaze                | ~4.0                              | translucent, forgiving           |
-
-Expose a single "how picky are you?" control (relaxed / balanced / strict) that scales all ceilings by a factor, so a perfectionist and a tabletop-standard painter both get sensible answers. Default: balanced.
-
-**Verdict per step:**
-
-- **Have exact** — the target paint itself is in the user's inventory.
-- **Close match owned** — an owned paint is within the role's ceiling. Show "you own _X_ — a 96% match" where the percent is a friendly transform of ΔE (e.g. `max(0, 100 − k·ΔE)`), but also show the raw ΔE on tap for the curious. Never over-claim.
-- **Gap** — no owned paint within ceiling. Offer the closest owned paint as "closest you have (not ideal)" _and_ route the real target to the shopping list.
-
-**Honesty rule.** If the closest owned paint is borderline, say so. A wrong "96%" that looks off on the model destroys trust in the whole engine. Round conservatively; let community votes and confidence refine seed data.
-
-**Worked example.** Recipe step: _edge highlight, Citadel Fire Dragon Bright_. User owns Vallejo Game Color Hot Orange (ΔE₀₀ 1.3) and Army Painter Lava Orange (ΔE₀₀ 2.9). Edge-highlight ceiling is 1.5 → Hot Orange passes ("you own a close match"), Lava Orange fails the ceiling but is shown as "closest you have" with a caution. The Citadel paint goes on the shopping list only if the user rejects the substitute.
+This is the architecture's key decision: pile UI is **client components** driving the store, not server actions (anonymous users have no session for RLS to key off). The admin area stays server-action-first — unchanged.
 
 ---
 
-## 4. Recipe model & the GW→your-paints translation
+## 4. Challenges (Phase 2 — center of gravity)
 
-**Brand-agnostic by construction.** A recipe is steps with _roles_ and _target paints_. Because each target paint has LAB, any recipe can be re-expressed in any brand by running each step through the substitution engine — this is the "paste a Citadel recipe, get it in Vallejo" feature, which is just substitution run against a _brand_ instead of an inventory.
+**Preset templates:**
 
-**Two translation modes:**
+- _Weekend Warrior_ — paint 1 model before the weekend ends.
+- _Month of Shame_ — reduce pile by N models this month.
+- _Unit Finisher_ — complete every model in a named unit (game + faction tag).
+- _Pledge to Paint_ — commit to a specific model + deadline.
 
-- **Against a brand:** "show this recipe in Vallejo" → for each step, nearest Vallejo paint by ΔE (+ confidence).
-- **Against your inventory:** "show this recipe in what I own" → the loop's node D.
+Progress is auto-derived from pile state changes — no manual input required. A challenge "completes" when its target condition is met; a completion moment (badge, animation) is the dopamine payoff. Streaks ("painted X sessions in a row") are a secondary mechanic.
 
-**Authoring must tolerate mess.** Roles are _optional but encouraged_. A freeform "I used these paints, roughly in this order" recipe must save, or painters won't enter anything. Structure can be added later (progressive enrichment, same philosophy as onboarding).
-
-**Resilience to discontinuation.** Store `target_hex` denormalized on each step so a recipe still renders and still substitutes even if the referenced paint is later discontinued.
-
----
-
-## 5. "What can I paint right now?" (the synthesis feature)
-
-Given a user's owned paints + their pile, surface a model + recipe completable today with zero purchases.
-
-Algorithm sketch:
-
-1. Candidate recipes = recipes the user has saved/favorited + public recipes matching their pile's factions/schemes.
-2. For each candidate, run node D against owned paints at the user's pickiness setting.
-3. A recipe is "fully paintable now" if every step resolves to _have exact_ or _close match owned_.
-4. Rank fully-paintable recipes by (a) how many pile models they fit, (b) average match quality, (c) recency/popularity.
-5. Surface the top one on the home screen with a one-tap "start this." Always answer the question with at least the _closest_ option if nothing is fully paintable ("you're one paint away from…").
-
-This is the home screen's reason to exist and the single most delightful payoff of having all three data types (pile + paints + recipes) in one place.
+The schema is community-ready (`visibility`, nullable `user_id` for admin-created challenges) but the UI ships personal-only.
 
 ---
 
-## 6. Smart consolidated shopping list
+## 5. The substitution engine (Phase 4 — the depth layer)
 
-Across **all** of a user's planned RecipeApplications:
+> **This section describes a future depth feature. It is not required to close the launch core loop.**
 
-1. Collect every step that resolves to a _gap_.
-2. Apply substitution _within the shopping list itself_: if two different planned recipes each need a slightly different red and one paint covers both within tolerance, recommend the one paint, not two.
-3. Dedup by catalog paint.
-4. Present the genuine minimum to buy, grouped by retailer, with affiliate routing and transparent disclosure.
+**Color space.** Compare in CIE LAB, not hex/RGB. Store `lab_l/a/b` per paint at seed time (sRGB → XYZ → LAB, D65).
 
-The counterintuitive promise — _the list is usually shorter than the naive sum_ — is the trust-builder. Helping people buy less is the brand.
+**Distance metric.** CIEDE2000 (ΔE₀₀). Use `culori` — don't hand-roll it.
+
+**Role-aware tolerance.** A recipe step's role sets how strict the match must be. Edge highlights are strict (ΔE < 1.5); basecoats are forgiving (ΔE < 5.0). A "how picky are you?" control (relaxed / balanced / strict) scales all ceilings.
+
+**Verdict per step:** Have exact / Close match owned ("you own X — a 96% match") / Gap (routes to shopping list).
+
+**Honesty rule.** If the closest owned paint is borderline, say so. A wrong "96%" that looks off on the model destroys trust in the whole engine. Never over-claim.
 
 ---
 
-## 7. Pile of shame: states, progress, payoff
+## 6. "What can I paint right now?" (Phase 4)
 
-**States:** unbuilt → built → primed → in_progress → painted. Linear but skippable (you can jump straight to painted when logging a backlog).
+Given owned paints + the pile + favorited recipes, surface a model + recipe completable today with zero purchases. Requires the substitution engine (Phase 4). The Phase-1 version of this feature is simpler: "here's a model from your pile you could start on" based purely on pile state, no paint check.
 
-**Batch reality:** a MiniatureItem can represent a unit of N identical minis. Progress can be partial ("6 of 10 painted") so batch painting — the norm — is first-class.
+---
 
-**The payoff surfaces (month 4):**
+## 7. Smart consolidated shopping list (Phase 4)
 
-- Painted-vs-unpainted ratio, as a literally shrinking pile visual.
+Across all planned recipe applications: collect gaps, apply cross-recipe substitution (one paint can cover two recipes' needs), dedup, present the genuine minimum to buy with affiliate routing. The counterintuitive promise — the list is shorter than the naive sum — is the trust-builder.
+
+---
+
+## 8. Pile of shame: states and payoff
+
+**States:** unbuilt → built → primed → in_progress → painted. Linear but skippable.
+
+**Batch reality:** `unit_size > 1` lets a MiniatureItem represent a unit of N identical minis. The quick-count onboarding uses skeletal items (one per state × count entered) that are named and enriched later.
+
+**The payoff surfaces (Phase 1):**
+
+- Painted-vs-unpainted ratio grouped by state (the "pile shrinks" view).
+- Challenges dashboard showing active pledges and progress.
+
+**The payoff surfaces (Phase 2+):**
+
 - "Painted this month" count and streak.
-- Painted-points (sum of `point_value` for painted models) — Warhammer players track this competitively for events.
-- A view worth screenshotting and sharing = organic growth.
+- Painted-points (sum of `point_value` for painted models — Warhammer players track this for events).
+- A view worth screenshotting = organic growth.
 
 ---
 
-## 8. Onboarding — the data-capture flows
+## 9. Onboarding — the data-capture flows
 
-Detailed in the roadmap's month-2 section; the data-model requirements:
+One rule: **value before completeness**. They get a satisfying pile view in under 2 minutes and enrich over weeks, never hitting a wall of data entry. No login required.
 
-- **Quick-count** writes N skeletal MiniatureItems per state (or one item with a count), nameable later. Zero friction is the point.
-- **Faction templates** require a seeded kit/unit catalog keyed by game + faction. Start with the most-played factions of the most-played systems; expand via community.
-- **Add-by-set** for paints requires a seeded "boxed set → contained paints" mapping. High-leverage: one tap can add 20+ paints.
-- **Visual brand grid** requires swatch rendering from stored hex — already available from the catalog.
-- **Barcode** (month 4) requires `barcode` populated on catalog entries and box SKUs on kits; the unknown-barcode capture loop fills gaps via community.
+**Quick-count (Phase 1):** one stepper per state — "roughly how many unbuilt / built / primed / started?" Instantly visualize the pile. No naming required; refine into individual models later.
 
-Rule for all flows: **never make them type what they can tap**, and **value before completeness** — they get a working loop in under 60 seconds and enrich over weeks.
+**Faction templates (Phase 2):** "You play Death Guard — tap the units you own" from a seeded unit list.
 
----
+**Box-barcode scan (Phase 4):** scan the box → resolves to the kit.
 
-## 9. Critical-path dependencies
+**Paint range (Phase 3):**
 
-1. **Paint catalog with verified LAB** — gates substitution, recipes, conversion, visual grid. Everything waits on this. (Largely built; finish and verify color values.)
-2. **Substitution engine** — gates the loop, "what can I paint now," shopping list, recipe translation. Build once, reuse everywhere.
-3. **Recipe model** — gates the loop and the library.
-4. **Pile model + onboarding** — gates adoption.
-
-Build order mirrors the roadmap: catalog → auth → inventory → pile → recipe → substitution → close the loop → onboarding → community/shareable surfaces.
+- Visual brand grid: tap pots from a swatch grid of your brand's range.
+- Add-by-set: tap the boxed sets you bought → every contained paint added at once.
+- Pot-barcode scan (Phase 4).
 
 ---
 
-## 10. Explicitly NOT in the core loop (deferred)
+## 10. Critical-path dependencies (reframed)
 
-Kept out so the loop stays sharp:
+**Phase 1 (the true critical path):**
 
-- **YouTube tutorial pipeline** — month 8. (timestamp/recipe extraction)
-- **AI photo shelf-scan** and **photo-of-mini → recipe** — year-two experiments.
+1. Local-first storage abstraction (pile works without login).
+2. Pile state machine + quick-count onboarding.
+3. Generalized magic-link auth + migrate-on-signup.
+4. Challenges (personal, preset first).
+
+**Phase 4 (color depth, unlocked after the loop is solid):**
+
+1. Paint catalog with verified LAB values — gates substitution.
+2. Substitution engine (`culori`, CIEDE2000).
+3. Recipe model — gates the recipe library.
+
+---
+
+## 11. Explicitly NOT in the core loop (deferred)
+
+- **Substitution engine / `culori` / LAB** — Phase 4.
+- **Recipe authoring** — Phase 4 (Phase 3 ships "which paints did you use?" as a simple list).
+- **YouTube tutorial pipeline** — Month 8.
+- **AI photo shelf-scan / photo-of-mini → recipe** — Year 2.
 - **Social graph** (follow, like, comment) — post-launch.
-- **Premium tier / paywalled features** — year two at earliest; loop is free.
-- **Live retailer stock/price feeds** — month 10.
-- **Push notifications**, **iOS native** — later.
-
-If a proposed feature isn't on the loop in §1, it goes on this list — not into the core.
+- **Premium tier / paywalled features** — Year 2 at earliest.
+- **Live retailer stock/price feeds** — Month 10.
+- **Push notifications, iOS native** — later.
