@@ -50,6 +50,13 @@ export function EditItemForm({
 
       <div className="grid grid-cols-2 gap-3">
         <Field
+          label="Unit size"
+          name="unit_size"
+          type="number"
+          min={1}
+          defaultValue={item.unit_size}
+        />
+        <Field
           label="Points"
           name="point_value"
           type="number"

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/app/_components/SiteHeader";
 import { usePile } from "@/lib/hooks/use-pile";
 import { PILE_STATES } from "@/lib/pile/states";
@@ -19,8 +20,14 @@ const STATE_LABELS: Record<(typeof PILE_STATES)[number], string> = {
 export default function PilePage() {
   const { items, loaded, session, add, addMany, advance, update, remove } = usePile();
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const router = useRouter();
 
-  if (!loaded) {
+  // Logged-in users get the full hierarchy view instead.
+  useEffect(() => {
+    if (loaded && session) router.replace("/collection");
+  }, [loaded, session, router]);
+
+  if (!loaded || session) {
     return (
       <>
         <SiteHeader />

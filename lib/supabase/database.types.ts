@@ -33,6 +33,33 @@ export type Database = {
   };
   public: {
     Tables: {
+      armies: {
+        Row: {
+          created_at: string;
+          game: string | null;
+          id: string;
+          name: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          game?: string | null;
+          id?: string;
+          name: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          game?: string | null;
+          id?: string;
+          name?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       conversion_evidence_photos: {
         Row: {
           caption: string | null;
@@ -133,6 +160,7 @@ export type Database = {
           painted_at: string | null;
           point_value: number | null;
           state: string;
+          unit_id: string | null;
           unit_size: number;
           updated_at: string;
           user_id: string;
@@ -147,6 +175,7 @@ export type Database = {
           painted_at?: string | null;
           point_value?: number | null;
           state?: string;
+          unit_id?: string | null;
           unit_size?: number;
           updated_at?: string;
           user_id: string;
@@ -161,11 +190,20 @@ export type Database = {
           painted_at?: string | null;
           point_value?: number | null;
           state?: string;
+          unit_id?: string | null;
           unit_size?: number;
           updated_at?: string;
           user_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "miniature_items_unit_id_fkey";
+            columns: ["unit_id"];
+            isOneToOne: false;
+            referencedRelation: "units";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       paints: {
         Row: {
@@ -439,6 +477,62 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      units: {
+        Row: {
+          army_id: string | null;
+          created_at: string;
+          id: string;
+          name: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          army_id?: string | null;
+          created_at?: string;
+          id?: string;
+          name: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          army_id?: string | null;
+          created_at?: string;
+          id?: string;
+          name?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "units_army_id_fkey";
+            columns: ["army_id"];
+            isOneToOne: false;
+            referencedRelation: "armies";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      user_achievements: {
+        Row: {
+          achievement_id: string;
+          id: string;
+          unlocked_at: string;
+          user_id: string;
+        };
+        Insert: {
+          achievement_id: string;
+          id?: string;
+          unlocked_at?: string;
+          user_id: string;
+        };
+        Update: {
+          achievement_id?: string;
+          id?: string;
+          unlocked_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
       };
       user_paints: {
         Row: {

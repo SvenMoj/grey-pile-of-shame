@@ -27,6 +27,7 @@ export function createPileItem(input: NewPileItem, deps: FactoryDeps = {}): Pile
     game: input.game ?? null,
     faction: input.faction ?? null,
     unit_size: input.unit_size ?? 1,
+    unit_id: input.unit_id ?? null,
     state,
     point_value: input.point_value ?? null,
     created_at: now,
