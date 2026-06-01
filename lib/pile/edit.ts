@@ -37,6 +37,8 @@ export function applyEdit(
       "display_name" in patch ? (patch.display_name ?? item.display_name) : item.display_name,
     game: "game" in patch ? (patch.game ?? null) : item.game,
     faction: "faction" in patch ? (patch.faction ?? null) : item.faction,
+    unit_size: "unit_size" in patch ? (patch.unit_size ?? item.unit_size) : item.unit_size,
+    unit_id: "unit_id" in patch ? (patch.unit_id ?? null) : item.unit_id,
     point_value: "point_value" in patch ? (patch.point_value ?? null) : item.point_value,
     state: newState,
     painted_at,

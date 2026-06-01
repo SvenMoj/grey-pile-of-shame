@@ -14,6 +14,7 @@ function makeItem(overrides: Partial<PileItem> = {}): PileItem {
     game: null,
     faction: null,
     unit_size: 1,
+    unit_id: null,
     state: "unbuilt",
     point_value: null,
     created_at: "2026-01-01T00:00:00.000Z",

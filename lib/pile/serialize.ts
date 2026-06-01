@@ -59,5 +59,11 @@ export function parsePile(raw: string | null | undefined): PileItem[] {
   if (envelope.version !== 1) return [];
   if (!Array.isArray(envelope.items)) return [];
 
-  return envelope.items.filter(isValidPileItem);
+  // Normalize items: backfill fields added after the initial schema so that
+  // items serialized before those fields exist still deserialize correctly.
+  return envelope.items.filter(isValidPileItem).map((item) => {
+    const raw = item as unknown as Record<string, unknown>;
+    const unit_id = typeof raw.unit_id === "string" ? raw.unit_id : null;
+    return { ...item, unit_id };
+  });
 }

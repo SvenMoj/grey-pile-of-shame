@@ -10,6 +10,7 @@ function makeItem(overrides: Partial<PileItem> = {}): PileItem {
     game: null,
     faction: null,
     unit_size: 1,
+    unit_id: null,
     state: "unbuilt",
     point_value: null,
     created_at: "2026-01-01T00:00:00.000Z",
@@ -94,16 +95,44 @@ describe("applyEdit — partial patch", () => {
     expect(result.point_value).toBe(120);
   });
 
-  it("does not touch kit_id, unit_size, or created_at", () => {
+  it("does not touch kit_id or created_at when absent from patch", () => {
     const item = makeItem({
       kit_id: "kit-1",
-      unit_size: 3,
       created_at: "2025-01-01T00:00:00.000Z",
     });
     const result = applyEdit(item, { display_name: "New name" }, now);
     expect(result.kit_id).toBe("kit-1");
-    expect(result.unit_size).toBe(3);
     expect(result.created_at).toBe("2025-01-01T00:00:00.000Z");
+  });
+
+  it("preserves unit_size when absent from patch", () => {
+    const item = makeItem({ unit_size: 5 });
+    const result = applyEdit(item, { display_name: "New name" }, now);
+    expect(result.unit_size).toBe(5);
+  });
+
+  it("updates unit_size when present in patch", () => {
+    const item = makeItem({ unit_size: 1 });
+    const result = applyEdit(item, { unit_size: 10 }, now);
+    expect(result.unit_size).toBe(10);
+  });
+
+  it("assigns unit_id when present in patch", () => {
+    const item = makeItem({ unit_id: null });
+    const result = applyEdit(item, { unit_id: "unit-abc" }, now);
+    expect(result.unit_id).toBe("unit-abc");
+  });
+
+  it("clears unit_id with explicit null", () => {
+    const item = makeItem({ unit_id: "unit-abc" });
+    const result = applyEdit(item, { unit_id: null }, now);
+    expect(result.unit_id).toBeNull();
+  });
+
+  it("preserves unit_id when absent from patch", () => {
+    const item = makeItem({ unit_id: "unit-abc" });
+    const result = applyEdit(item, { display_name: "New name" }, now);
+    expect(result.unit_id).toBe("unit-abc");
   });
 });
 

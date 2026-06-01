@@ -36,6 +36,18 @@ export function parseEditItem(formData: FormData): ParseEditItemResult {
     }
   }
 
+  // --- unit_size (optional, positive integer) ---
+  const rawUnitSize = ((formData.get("unit_size") as string | null) ?? "").trim();
+  let unit_size: number | undefined = undefined;
+  if (rawUnitSize !== "") {
+    const n = Number(rawUnitSize);
+    if (isNaN(n) || !Number.isInteger(n) || n < 1) {
+      errors.unit_size = "Unit size must be a whole number of at least 1";
+    } else {
+      unit_size = n;
+    }
+  }
+
   // --- state (required, must be a valid PileState) ---
   const rawState = ((formData.get("state") as string | null) ?? "").trim();
   if (!rawState || !PILE_STATES.includes(rawState as PileState)) {
@@ -52,6 +64,7 @@ export function parseEditItem(formData: FormData): ParseEditItemResult {
       display_name: displayName,
       game,
       faction,
+      ...(unit_size !== undefined && { unit_size }),
       point_value,
       state,
     },

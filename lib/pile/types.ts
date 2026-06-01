@@ -7,7 +7,8 @@ export interface PileItem {
   display_name: string;
   game: string | null;
   faction: string | null;
-  unit_size: number; // always 1 in this client; batch = multiple rows
+  unit_size: number; // 1 for a single model; >1 for a cosmetic squad-count badge
+  unit_id: string | null; // optional grouping: which unit this model belongs to
   state: PileState;
   point_value: number | null;
   created_at: string; // ISO string
@@ -27,7 +28,10 @@ export type NewPileItem = Partial<Omit<PileItem, "id" | "created_at" | "updated_
  * Only keys present in the patch are merged; absent keys leave fields unchanged.
  */
 export type EditPileItem = Partial<
-  Pick<PileItem, "display_name" | "game" | "faction" | "point_value" | "state">
+  Pick<
+    PileItem,
+    "display_name" | "game" | "faction" | "unit_size" | "unit_id" | "point_value" | "state"
+  >
 >;
 
 /**
@@ -44,3 +48,31 @@ export interface PileStore {
   update(id: string, patch: EditPileItem): Promise<PileItem | null>;
   remove(id: string): Promise<void>;
 }
+
+// ---------------------------------------------------------------------------
+// Army & Unit domain types
+// ---------------------------------------------------------------------------
+
+/** A top-level grouping (project / army / force). Units belong to an army. */
+export interface Army {
+  id: string;
+  name: string;
+  game: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type NewArmy = Pick<Army, "name"> & Partial<Pick<Army, "game">>;
+export type EditArmy = Partial<Pick<Army, "name" | "game">>;
+
+/** A mid-level grouping (squad / unit / warband). Models belong to a unit. */
+export interface Unit {
+  id: string;
+  army_id: string | null; // null = loose unit (no army)
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type NewUnit = Pick<Unit, "name"> & Partial<Pick<Unit, "army_id">>;
+export type EditUnit = Partial<Pick<Unit, "name" | "army_id">>;

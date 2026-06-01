@@ -100,6 +100,28 @@ describe("parseEditItem", () => {
     });
   });
 
+  describe("unit_size", () => {
+    it("parses unit_size as a positive integer", () => {
+      const result = parseEditItem(fd(validFields({ unit_size: "5" })));
+      expect(result).toMatchObject({ data: { unit_size: 5 } });
+    });
+
+    it("errors when unit_size is zero", () => {
+      const result = parseEditItem(fd(validFields({ unit_size: "0" })));
+      expect(result).toMatchObject({ errors: { unit_size: expect.any(String) } });
+    });
+
+    it("errors when unit_size is negative", () => {
+      const result = parseEditItem(fd(validFields({ unit_size: "-1" })));
+      expect(result).toMatchObject({ errors: { unit_size: expect.any(String) } });
+    });
+
+    it("errors when unit_size is not an integer", () => {
+      const result = parseEditItem(fd(validFields({ unit_size: "2.5" })));
+      expect(result).toMatchObject({ errors: { unit_size: expect.any(String) } });
+    });
+  });
+
   describe("happy path", () => {
     it("returns all fields correctly on a fully valid form", () => {
       const result = parseEditItem(
@@ -124,7 +146,7 @@ describe("parseEditItem", () => {
       });
     });
 
-    it("does not include unit_size or batch expansion (single-item only)", () => {
+    it("omits unit_size when absent from form data", () => {
       const result = parseEditItem(fd(validFields()));
       expect("data" in result && !("unit_size" in result.data)).toBe(true);
     });
