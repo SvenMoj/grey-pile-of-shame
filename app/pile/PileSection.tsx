@@ -54,10 +54,7 @@ export function PileSection({
                 item={item}
                 advance={
                   !isTerminal(state) ? (
-                    <StageStepper
-                      state={item.state}
-                      onAdvance={() => void onAdvance(item.id)}
-                    />
+                    <StageStepper state={item.state} onAdvance={() => void onAdvance(item.id)} />
                   ) : undefined
                 }
                 actions={

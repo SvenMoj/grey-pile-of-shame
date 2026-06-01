@@ -12,7 +12,11 @@ export function ModelItemRow({
   advance?: React.ReactNode;
   actions: React.ReactNode;
 }) {
-  const metadata = [item.game, item.faction, item.point_value !== null ? `${item.point_value}pts` : null]
+  const metadata = [
+    item.game,
+    item.faction,
+    item.point_value !== null ? `${item.point_value}pts` : null,
+  ]
     .filter(Boolean)
     .join(" · ");
 

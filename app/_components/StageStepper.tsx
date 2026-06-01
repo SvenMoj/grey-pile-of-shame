@@ -9,13 +9,7 @@ import { STATE_LABELS, STATE_STYLES } from "@/lib/pile/display";
 import type { PileState } from "@/lib/pile/types";
 
 /** Single action to advance a model one painting stage forward. */
-export function StageStepper({
-  state,
-  onAdvance,
-}: {
-  state: PileState;
-  onAdvance: () => void;
-}) {
+export function StageStepper({ state, onAdvance }: { state: PileState; onAdvance: () => void }) {
   const next = nextState(state);
   if (!next) return null;
 
