@@ -33,18 +33,40 @@ export function usePile() {
 
   useEffect(() => {
     const supabase = createClient();
+    let subscription: { unsubscribe: () => void } | null = null;
+
+    async function handleAuthStateChange(newSession: Session | null) {
+      try {
+        setSession(newSession);
+
+        if (newSession) {
+          const newStore = createSupabasePileStore(supabase);
+          await migrateLocalToSupabase(localPileStore, newStore);
+          storeRef.current = newStore;
+        } else {
+          storeRef.current = localPileStore;
+        }
+
+        const refreshed = await storeRef.current.list();
+        setItems(refreshed);
+      } catch {
+        storeRef.current = localPileStore;
+        setSession(null);
+        setItems(await localPileStore.list());
+      }
+    }
 
     async function init() {
       try {
-        // 1. Check for an existing session (e.g. returning visitor already signed in)
         const {
           data: { session: existingSession },
         } = await supabase.auth.getSession();
         setSession(existingSession);
         if (existingSession) {
-          storeRef.current = createSupabasePileStore(supabase);
+          const remoteStore = createSupabasePileStore(supabase);
+          await migrateLocalToSupabase(localPileStore, remoteStore);
+          storeRef.current = remoteStore;
         }
-        // 2. Load the pile from whichever backend is current
         const initialItems = await storeRef.current.list();
         setItems(initialItems);
       } catch {
@@ -58,40 +80,25 @@ export function usePile() {
           setItems([]);
         }
       } finally {
-        // Always unblock the UI, regardless of what happened above.
         setLoaded(true);
       }
     }
 
-    void init();
+    async function setup() {
+      await init();
+      // Subscribe after init so getSession() is not blocked by concurrent Supabase
+      // calls inside onAuthStateChange (known supabase-js deadlock).
+      const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
+        setTimeout(() => {
+          void handleAuthStateChange(newSession);
+        }, 0);
+      });
+      subscription = data.subscription;
+    }
 
-    // 3. Listen for sign-in / sign-out events
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
-      try {
-        setSession(newSession);
+    void setup();
 
-        if (newSession) {
-          const newStore = createSupabasePileStore(supabase);
-          // Run migration before switching — idempotent, safe to call on every sign-in
-          await migrateLocalToSupabase(localPileStore, newStore);
-          storeRef.current = newStore;
-        } else {
-          storeRef.current = localPileStore;
-        }
-
-        const refreshed = await storeRef.current.list();
-        setItems(refreshed);
-      } catch {
-        // Auth state change failed — fall back to local store
-        storeRef.current = localPileStore;
-        setSession(null);
-        setItems(await localPileStore.list());
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    return () => subscription?.unsubscribe();
   }, []);
 
   const refresh = useCallback(async () => {
