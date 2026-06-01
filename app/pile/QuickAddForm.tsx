@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { parseQuickAdd } from "@/lib/pile/parse-quick-add";
 import { PILE_STATES } from "@/lib/pile/states";
 import type { NewPileItem } from "@/lib/pile/types";
+import { Field } from "./Field";
 
 const STATE_LABELS: Record<(typeof PILE_STATES)[number], string> = {
   unbuilt: "Unbuilt",
@@ -12,42 +13,6 @@ const STATE_LABELS: Record<(typeof PILE_STATES)[number], string> = {
   in_progress: "In progress",
   painted: "Painted",
 };
-
-function Field({
-  label,
-  name,
-  required,
-  type = "text",
-  placeholder,
-  defaultValue,
-  min,
-}: {
-  label: string;
-  name: string;
-  required?: boolean;
-  type?: string;
-  placeholder?: string;
-  defaultValue?: string | number;
-  min?: number;
-}) {
-  return (
-    <div>
-      <label className="block text-sm font-medium mb-1">
-        {label}
-        {required && " *"}
-      </label>
-      <input
-        type={type}
-        name={name}
-        required={required}
-        placeholder={placeholder}
-        defaultValue={defaultValue}
-        min={min}
-        className="w-full border rounded px-3 py-2 text-sm"
-      />
-    </div>
-  );
-}
 
 export function QuickAddForm({
   onAdd,

@@ -1,7 +1,8 @@
 import { createPileItem, type FactoryDeps } from "./factory";
+import { applyEdit } from "./edit";
 import { advanceItem } from "./states";
 import { PILE_STORAGE_KEY, parsePile, serializePile } from "./serialize";
-import type { NewPileItem, PileItem, PileState, PileStore } from "./types";
+import type { EditPileItem, NewPileItem, PileItem, PileState, PileStore } from "./types";
 
 function getDefaultStorage(): Storage | null {
   if (typeof window === "undefined") return null; // SSR guard
@@ -67,6 +68,16 @@ export function createLocalPileStore(
       const idx = items.findIndex((item) => item.id === id);
       if (idx === -1) return null;
       const updated = advanceItem(items[idx], to, deps.now);
+      items[idx] = updated;
+      writeAll(items);
+      return updated;
+    },
+
+    async update(id: string, patch: EditPileItem): Promise<PileItem | null> {
+      const items = readAll();
+      const idx = items.findIndex((item) => item.id === id);
+      if (idx === -1) return null;
+      const updated = applyEdit(items[idx], patch, deps.now);
       items[idx] = updated;
       writeAll(items);
       return updated;

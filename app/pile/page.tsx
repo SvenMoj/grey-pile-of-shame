@@ -16,7 +16,7 @@ const STATE_LABELS: Record<(typeof PILE_STATES)[number], string> = {
 };
 
 export default function PilePage() {
-  const { items, loaded, add, addMany, advance, remove } = usePile();
+  const { items, loaded, add, addMany, advance, update, remove } = usePile();
 
   if (!loaded) {
     return (
@@ -77,6 +77,7 @@ export default function PilePage() {
             label={STATE_LABELS[state]}
             items={byState[state]}
             onAdvance={advance}
+            onUpdate={update}
             onRemove={remove}
           />
         ))}

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { localPileStore } from "@/lib/pile/local-store";
-import type { NewPileItem, PileItem, PileState } from "@/lib/pile/types";
+import type { EditPileItem, NewPileItem, PileItem, PileState } from "@/lib/pile/types";
 
 /**
  * Reactive bridge to the local pile store.
@@ -59,6 +59,15 @@ export function usePile() {
     [store, refresh],
   );
 
+  const update = useCallback(
+    async (id: string, patch: EditPileItem): Promise<PileItem | null> => {
+      const updated = await store.update(id, patch);
+      await refresh();
+      return updated;
+    },
+    [store, refresh],
+  );
+
   const remove = useCallback(
     async (id: string): Promise<void> => {
       await store.remove(id);
@@ -67,5 +76,5 @@ export function usePile() {
     [store, refresh],
   );
 
-  return { items, loaded, add, addMany, advance, remove };
+  return { items, loaded, add, addMany, advance, update, remove };
 }

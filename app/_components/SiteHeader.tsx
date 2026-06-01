@@ -6,7 +6,7 @@ export function SiteHeader() {
     <header className="px-6 py-4 border-b">
       <Link href="/pile">
         <Image
-          src="/grey-pile-of-shame-logo.png"
+          src="/grey-pile-of-shame.png"
           alt="Grey Pile of Shame"
           width={2816}
           height={1536}

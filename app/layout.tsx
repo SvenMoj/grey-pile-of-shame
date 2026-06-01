@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "grey-pile-of-shame",
   description: "Cross-brand miniature paint conversion lookup",
-  icons: { icon: "/grey-pile-of-shame-logo.png" },
+  icons: { icon: "/grey-pile-of-shame.png" },
 };
 
 export default function RootLayout({

@@ -202,6 +202,57 @@ describe("createLocalPileStore", () => {
     });
   });
 
+  describe("update", () => {
+    it("persists a field edit and returns the updated item", async () => {
+      const storage = fakeStorage();
+      const store = createLocalPileStore(storage, testDeps());
+      const created = await store.add({ display_name: "Unbuilt #1" });
+
+      const updated = await store.update(created.id, { display_name: "Sergeant" });
+      expect(updated?.display_name).toBe("Sergeant");
+
+      // Re-read from the same storage to confirm persistence
+      const store2 = createLocalPileStore(storage, testDeps());
+      const listed = await store2.list();
+      expect(listed[0].display_name).toBe("Sergeant");
+    });
+
+    it("returns null for a missing id", async () => {
+      const store = createLocalPileStore(fakeStorage(), testDeps());
+      expect(await store.update("missing-id", { display_name: "X" })).toBeNull();
+    });
+
+    it("does not affect sibling items", async () => {
+      const store = createLocalPileStore(fakeStorage(), testDeps());
+      const a = await store.add({ display_name: "A" });
+      const b = await store.add({ display_name: "B" });
+      await store.update(a.id, { display_name: "A-renamed" });
+      const listed = await store.list();
+      expect(listed.find((i) => i.id === b.id)?.display_name).toBe("B");
+    });
+
+    it("sets painted_at when state changes to painted", async () => {
+      const store = createLocalPileStore(fakeStorage(), testDeps());
+      const item = await store.add({ display_name: "M", state: "in_progress" });
+      const updated = await store.update(item.id, { state: "painted" });
+      expect(updated?.state).toBe("painted");
+      expect(updated?.painted_at).toBe(FIXED_TIME);
+    });
+
+    it("clears painted_at when state moves off painted", async () => {
+      const store = createLocalPileStore(fakeStorage(), testDeps());
+      const item = await store.add({ display_name: "M", state: "painted" });
+      const updated = await store.update(item.id, { state: "primed" });
+      expect(updated?.state).toBe("primed");
+      expect(updated?.painted_at).toBeNull();
+    });
+
+    it("returns null without throwing when storage is null", async () => {
+      const store = createLocalPileStore(null, testDeps());
+      expect(await store.update("any-id", { display_name: "X" })).toBeNull();
+    });
+  });
+
   describe("corrupt storage path", () => {
     it("falls back to [] when storage contains garbage", async () => {
       const storage = fakeStorage({ "gpos.pile.v1": "garbage" });

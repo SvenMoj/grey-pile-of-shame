@@ -23,6 +23,14 @@ export type NewPileItem = Partial<Omit<PileItem, "id" | "created_at" | "updated_
   Pick<PileItem, "display_name">;
 
 /**
+ * Partial patch applied when a user edits an existing item.
+ * Only keys present in the patch are merged; absent keys leave fields unchanged.
+ */
+export type EditPileItem = Partial<
+  Pick<PileItem, "display_name" | "game" | "faction" | "point_value" | "state">
+>;
+
+/**
  * The abstraction both localPileStore and the future supabasePileStore implement.
  * Async throughout so the Supabase backend shares the same interface without changes.
  */
@@ -32,5 +40,7 @@ export interface PileStore {
   addMany(items: NewPileItem[]): Promise<PileItem[]>;
   /** Advance to `to` (skip) or one step forward (default). Returns null if id not found. */
   advanceState(id: string, to?: PileState): Promise<PileItem | null>;
+  /** Apply a partial edit patch. Returns the updated item, or null if id not found. */
+  update(id: string, patch: EditPileItem): Promise<PileItem | null>;
   remove(id: string): Promise<void>;
 }
