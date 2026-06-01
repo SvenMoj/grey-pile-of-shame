@@ -1,59 +1,35 @@
 "use client";
 
+import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { PILE_STATES } from "@/lib/pile/states";
+import { modelAdvanceButtonClass } from "@/app/_components/ModelItemRow";
+import { nextState } from "@/lib/pile/states";
 import { STATE_LABELS, STATE_STYLES } from "@/lib/pile/display";
 import type { PileState } from "@/lib/pile/types";
 
-/**
- * Compact segmented stage stepper — renders all 5 painting stages as clickable
- * segments. Stages up to and including the current state are filled with their
- * stage colour; stages beyond it are muted and clickable to advance forward.
- */
+/** Single action to advance a model one painting stage forward. */
 export function StageStepper({
   state,
   onAdvance,
 }: {
   state: PileState;
-  onAdvance: (to: PileState) => void;
+  onAdvance: () => void;
 }) {
-  const currentIdx = PILE_STATES.indexOf(state);
+  const next = nextState(state);
+  if (!next) return null;
 
   return (
-    <div
-      className="flex w-fit overflow-hidden rounded-lg border border-border"
-      role="group"
-      aria-label="Painting stage"
+    <Button
+      type="button"
+      variant="outline"
+      size="xs"
+      onClick={onAdvance}
+      className={cn(modelAdvanceButtonClass, STATE_STYLES[next].pill)}
+      title={`Move to ${STATE_LABELS[next]}`}
     >
-      {PILE_STATES.map((s, idx) => {
-        const isCurrent = idx === currentIdx;
-        const isPast = idx < currentIdx;
-        const isFuture = idx > currentIdx;
-
-        return (
-          <Button
-            key={s}
-            type="button"
-            variant="ghost"
-            size="xs"
-            disabled={!isFuture}
-            onClick={() => isFuture && onAdvance(s)}
-            className={cn(
-              "h-auto rounded-none px-2 py-1 text-xs font-medium",
-              idx > 0 && "border-l border-border",
-              isCurrent &&
-                cn(STATE_STYLES[s].pill, "cursor-default font-semibold hover:bg-transparent"),
-              isPast && cn(STATE_STYLES[s].pill, "cursor-default opacity-60 hover:bg-transparent"),
-              isFuture && "text-muted-foreground hover:bg-muted hover:text-foreground",
-            )}
-            aria-current={isCurrent ? "true" : undefined}
-            title={isFuture ? `Advance to ${STATE_LABELS[s]}` : STATE_LABELS[s]}
-          >
-            {STATE_LABELS[s]}
-          </Button>
-        );
-      })}
-    </div>
+      <span className="truncate">Move to {STATE_LABELS[next]}</span>
+      <ChevronRight className="size-3 shrink-0" />
+    </Button>
   );
 }

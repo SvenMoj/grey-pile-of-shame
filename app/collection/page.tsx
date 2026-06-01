@@ -1,6 +1,7 @@
 "use client";
 
 import { useCollection } from "@/lib/hooks/use-collection";
+import { StateLegend } from "@/app/_components/StateLegend";
 import { CollectionShell } from "./CollectionShell";
 import { TrophyShelf } from "./TrophyShelf";
 import { Celebration } from "./Celebration";
@@ -13,7 +14,7 @@ export default function CollectionPage() {
   if (!loaded) {
     return (
       <div className="flex items-center justify-center min-h-[40vh]">
-        <p className="text-sm text-gray-500">Loading your collection…</p>
+        <p className="text-sm text-muted-foreground">Loading your collection…</p>
       </div>
     );
   }
@@ -23,14 +24,17 @@ export default function CollectionPage() {
   return (
     <div className="space-y-10">
       {/* Page header */}
-      <div>
+      <div className="space-y-2">
         <h1 className="text-2xl font-semibold">My Collection</h1>
         {items.length > 0 && (
-          <p className="text-sm text-gray-500 mt-1">
-            {overallSummary.counts.painted} painted ·{" "}
-            {overallSummary.counts.total - overallSummary.counts.painted} to go
-            {overallSummary.pointsPainted > 0 && ` · ${overallSummary.pointsPainted} pts painted`}
-          </p>
+          <>
+            <p className="text-sm text-muted-foreground">
+              {overallSummary.counts.painted} painted ·{" "}
+              {overallSummary.counts.total - overallSummary.counts.painted} to go
+              {overallSummary.pointsPainted > 0 && ` · ${overallSummary.pointsPainted} pts painted`}
+            </p>
+            <StateLegend />
+          </>
         )}
       </div>
 

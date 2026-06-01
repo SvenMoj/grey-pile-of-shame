@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/app/_components/SiteHeader";
+import { StateLegend } from "@/app/_components/StateLegend";
 import { ProgressBar } from "@/app/collection/ProgressBar";
 import { usePile } from "@/lib/hooks/use-pile";
 import { PILE_STATES } from "@/lib/pile/states";
@@ -64,9 +65,10 @@ export default function PilePage() {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-2xl space-y-6 p-6">
-        <div>
-          <h1 className="mb-2 text-xl font-semibold">My Pile of Shame</h1>
+        <div className="space-y-2">
+          <h1 className="text-xl font-semibold">My Pile of Shame</h1>
           <ProgressBar summary={summary} />
+          <StateLegend />
         </div>
 
         {showBanner && (
