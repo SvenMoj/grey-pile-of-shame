@@ -1,7 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { signOutAction } from "@/app/settings/actions";
 
-export function SiteHeader() {
+export async function SiteHeader() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <header className="px-6 py-4 border-b flex items-center justify-between gap-4">
       <Link href="/pile">
@@ -21,6 +28,13 @@ export function SiteHeader() {
         <Link href="/collection" className="text-gray-600 hover:text-gray-900">
           Collection
         </Link>
+        {user && (
+          <form action={signOutAction}>
+            <button type="submit" className="text-gray-500 hover:text-gray-800">
+              Log out
+            </button>
+          </form>
+        )}
       </nav>
     </header>
   );
