@@ -1,4 +1,17 @@
-import type { PileItem, Unit } from "./types";
+import type { PileItem, PileState, Unit } from "./types";
+
+/**
+ * Weighted progress value per stage: how much a model in this stage contributes
+ * toward "done". Allows the progress bar to reflect partial work, not just
+ * the binary painted / total fraction.
+ */
+export const STAGE_WEIGHTS: Record<PileState, number> = {
+  unbuilt: 0,
+  built: 0.25,
+  primed: 0.5,
+  in_progress: 0.75,
+  painted: 1,
+};
 
 export interface StageCounts {
   unbuilt: number;
@@ -13,6 +26,12 @@ export interface ProgressSummary {
   counts: StageCounts;
   /** Percentage of models painted, rounded to one decimal. 0 when total is 0. */
   paintedPct: number;
+  /**
+   * Weighted progress percentage (0–100, one decimal). Each stage contributes
+   * proportionally to STAGE_WEIGHTS, so intermediate states (built, primed,
+   * in_progress) move the bar rather than counting as 0%.
+   */
+  weightedPct: number;
   /** True only when total > 0 and every model is painted. */
   isComplete: boolean;
   /** Sum of point_value for painted models (null values treated as 0). */
@@ -44,9 +63,14 @@ export function summarizeItems(items: PileItem[]): ProgressSummary {
   const paintedPct =
     counts.total === 0 ? 0 : Math.round((counts.painted / counts.total) * 1000) / 10;
 
+  const weightedSum = (Object.keys(counts) as Array<keyof StageCounts>)
+    .filter((k): k is PileState => k !== "total")
+    .reduce((sum, state) => sum + counts[state] * STAGE_WEIGHTS[state], 0);
+  const weightedPct = counts.total === 0 ? 0 : Math.round((weightedSum / counts.total) * 1000) / 10;
+
   const isComplete = counts.total > 0 && counts.painted === counts.total;
 
-  return { counts, paintedPct, isComplete, pointsPainted, pointsTotal };
+  return { counts, paintedPct, weightedPct, isComplete, pointsPainted, pointsTotal };
 }
 
 /** Progress summary for all models belonging to a specific unit. */

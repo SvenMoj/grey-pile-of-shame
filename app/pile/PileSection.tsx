@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { isTerminal } from "@/lib/pile/states";
 import type { EditPileItem, PileItem, PileState } from "@/lib/pile/types";
+import { StageStepper } from "@/app/_components/StageStepper";
+import { StatePill } from "@/app/_components/StatePill";
 import { EditItemForm } from "./EditItemForm";
 
 export function PileSection({
@@ -16,7 +18,7 @@ export function PileSection({
   state: PileState;
   label: string;
   items: PileItem[];
-  onAdvance: (id: string) => Promise<unknown>;
+  onAdvance: (id: string, to?: PileState) => Promise<unknown>;
   onUpdate: (id: string, patch: EditPileItem) => Promise<unknown>;
   onRemove: (id: string) => Promise<unknown>;
 }) {
@@ -53,27 +55,28 @@ export function PileSection({
                     )}
                     {item.display_name}
                   </p>
-                  {(item.game ?? item.faction ?? item.point_value) !== null && (
-                    <p className="text-xs text-gray-500 truncate mt-0.5">
-                      {[
-                        item.game,
-                        item.faction,
-                        item.point_value !== null ? `${item.point_value}pts` : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                  )}
+                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                    <StatePill state={item.state} />
+                    {(item.game ?? item.faction ?? item.point_value) !== null && (
+                      <p className="text-xs text-gray-500 truncate">
+                        {[
+                          item.game,
+                          item.faction,
+                          item.point_value !== null ? `${item.point_value}pts` : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
                   {!isTerminal(state) && (
-                    <button
-                      onClick={() => void onAdvance(item.id)}
-                      className="bg-gray-900 text-white rounded px-3 py-1.5 text-xs"
-                    >
-                      Advance →
-                    </button>
+                    <StageStepper
+                      state={item.state}
+                      onAdvance={(to: PileState) => void onAdvance(item.id, to)}
+                    />
                   )}
                   <button
                     onClick={() => setEditingId((cur) => (cur === item.id ? null : item.id))}

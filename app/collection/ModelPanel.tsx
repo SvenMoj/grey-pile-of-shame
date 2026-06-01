@@ -1,23 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { isTerminal } from "@/lib/pile/states";
 import { unitProgress } from "@/lib/pile/progress";
-import type { PileItem, Unit } from "@/lib/pile/types";
+import type { PileItem, PileState, Unit } from "@/lib/pile/types";
 import type { useCollection } from "@/lib/hooks/use-collection";
 import { ProgressBar } from "./ProgressBar";
+import { StatePill } from "@/app/_components/StatePill";
+import { StageStepper } from "@/app/_components/StageStepper";
+import { CompletionBadge } from "@/app/_components/CompletionBadge";
 import { EditItemForm } from "@/app/pile/EditItemForm";
 import { Field } from "@/app/pile/Field";
 
 type Collection = ReturnType<typeof useCollection>;
-
-const STATE_LABELS: Record<PileItem["state"], string> = {
-  unbuilt: "Unbuilt",
-  built: "Built",
-  primed: "Primed",
-  in_progress: "In progress",
-  painted: "Painted",
-};
 
 export function ModelPanel({
   unit,
@@ -45,8 +39,11 @@ export function ModelPanel({
     <div className="space-y-3">
       {/* Header */}
       <div>
-        <h2 className="text-lg font-semibold">{title}</h2>
-        {summary && (
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-semibold">{title}</h2>
+          {summary?.isComplete && <CompletionBadge />}
+        </div>
+        {summary && !summary.isComplete && (
           <div className="mt-1">
             <ProgressBar summary={summary} />
           </div>
@@ -108,16 +105,8 @@ export function ModelPanel({
                     )}
                     {item.display_name}
                   </p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span
-                      className={`text-xs px-1.5 py-0.5 rounded-full ${
-                        item.state === "painted"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {STATE_LABELS[item.state]}
-                    </span>
+                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                    <StatePill state={item.state} />
                     {(item.game ?? item.faction ?? item.point_value) !== null && (
                       <p className="text-xs text-gray-500 truncate">
                         {[
@@ -132,14 +121,12 @@ export function ModelPanel({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  {!isTerminal(item.state) && (
-                    <button
-                      onClick={() => void collection.advanceModel(item.id)}
-                      className="bg-gray-900 text-white rounded px-2.5 py-1 text-xs"
-                    >
-                      Advance →
-                    </button>
+                <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                  {item.state !== "painted" && (
+                    <StageStepper
+                      state={item.state}
+                      onAdvance={(to: PileState) => void collection.advanceModel(item.id, to)}
+                    />
                   )}
                   <button
                     onClick={() => setEditingId((cur) => (cur === item.id ? null : item.id))}

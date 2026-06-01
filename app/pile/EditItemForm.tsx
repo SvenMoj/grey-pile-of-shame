@@ -2,16 +2,9 @@
 
 import { parseEditItem } from "@/lib/pile/parse-edit-item";
 import { PILE_STATES } from "@/lib/pile/states";
+import { STATE_LABELS } from "@/lib/pile/display";
 import type { EditPileItem, PileItem } from "@/lib/pile/types";
 import { Field } from "./Field";
-
-const STATE_LABELS: Record<(typeof PILE_STATES)[number], string> = {
-  unbuilt: "Unbuilt",
-  built: "Built",
-  primed: "Primed",
-  in_progress: "In progress",
-  painted: "Painted",
-};
 
 export function EditItemForm({
   item,
