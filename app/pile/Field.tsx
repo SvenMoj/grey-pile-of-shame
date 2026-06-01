@@ -1,3 +1,6 @@
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 export function Field({
   label,
   name,
@@ -6,29 +9,41 @@ export function Field({
   placeholder,
   defaultValue,
   min,
+  max,
+  disabled,
+  maxLength,
+  step,
 }: {
   label: string;
   name: string;
   required?: boolean;
   type?: string;
   placeholder?: string;
-  defaultValue?: string | number;
+  defaultValue?: string | number | null;
   min?: number;
+  max?: number;
+  disabled?: boolean;
+  maxLength?: number;
+  step?: string;
 }) {
   return (
-    <div>
-      <label className="block text-sm font-medium mb-1">
+    <div className="space-y-1.5">
+      <Label htmlFor={name}>
         {label}
         {required && " *"}
-      </label>
-      <input
+      </Label>
+      <Input
+        id={name}
         type={type}
         name={name}
         required={required}
         placeholder={placeholder}
-        defaultValue={defaultValue}
+        defaultValue={defaultValue ?? ""}
         min={min}
-        className="w-full border rounded px-3 py-2 text-sm"
+        max={max}
+        disabled={disabled}
+        maxLength={maxLength}
+        step={step}
       />
     </div>
   );

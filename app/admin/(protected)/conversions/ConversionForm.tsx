@@ -1,4 +1,9 @@
 import type { Conversion, PaintRow } from "@/lib/admin/types";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
+import { Field } from "@/app/pile/Field";
+import { SelectField } from "@/app/pile/SelectField";
 
 const SOURCE_TYPES = [
   { value: "official_chart", label: "Official chart" },
@@ -20,98 +25,82 @@ export default function ConversionForm({
   submitLabel: string;
 }) {
   return (
-    <form action={action} className="space-y-4 max-w-lg">
+    <form action={action} className="max-w-lg space-y-4">
       {conversion && <input type="hidden" name="_id" value={conversion.id} />}
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Paint A *</label>
-        <select
-          name="paint_a_id"
-          required
-          defaultValue={conversion?.paint_a_id ?? ""}
-          className="w-full border rounded px-3 py-2 text-sm"
-        >
-          <option value="">— select paint —</option>
-          {paints.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.brand} — {p.name} ({p.id})
-            </option>
-          ))}
-        </select>
+      <SelectField
+        label="Paint A"
+        name="paint_a_id"
+        required
+        defaultValue={conversion?.paint_a_id ?? ""}
+      >
+        <option value="">— select paint —</option>
+        {paints.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.brand} — {p.name} ({p.id})
+          </option>
+        ))}
+      </SelectField>
+
+      <SelectField
+        label="Paint B"
+        name="paint_b_id"
+        required
+        defaultValue={conversion?.paint_b_id ?? ""}
+      >
+        <option value="">— select paint —</option>
+        {paints.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.brand} — {p.name} ({p.id})
+          </option>
+        ))}
+      </SelectField>
+
+      <Field
+        label="Confidence (0.0 – 1.0)"
+        name="confidence"
+        type="number"
+        required
+        min={0}
+        max={1}
+        step="0.01"
+        defaultValue={conversion?.confidence ?? ""}
+      />
+
+      <SelectField
+        label="Source type"
+        name="source_type"
+        required
+        defaultValue={conversion?.source_type ?? ""}
+      >
+        <option value="">— select —</option>
+        {SOURCE_TYPES.map((s) => (
+          <option key={s.value} value={s.value}>
+            {s.label}
+          </option>
+        ))}
+      </SelectField>
+
+      <Field
+        label="Source URL"
+        name="source_url"
+        type="url"
+        defaultValue={conversion?.source_url ?? ""}
+      />
+
+      <div className="space-y-1.5">
+        <label htmlFor="notes" className="text-sm font-medium">
+          Notes
+        </label>
+        <Textarea id="notes" name="notes" rows={3} defaultValue={conversion?.notes ?? ""} />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Paint B *</label>
-        <select
-          name="paint_b_id"
-          required
-          defaultValue={conversion?.paint_b_id ?? ""}
-          className="w-full border rounded px-3 py-2 text-sm"
-        >
-          <option value="">— select paint —</option>
-          {paints.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.brand} — {p.name} ({p.id})
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">Confidence * (0.0 – 1.0)</label>
-        <input
-          type="number"
-          name="confidence"
-          required
-          min="0"
-          max="1"
-          step="0.01"
-          defaultValue={conversion?.confidence ?? ""}
-          className="w-full border rounded px-3 py-2 text-sm"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">Source type *</label>
-        <select
-          name="source_type"
-          required
-          defaultValue={conversion?.source_type ?? ""}
-          className="w-full border rounded px-3 py-2 text-sm"
-        >
-          <option value="">— select —</option>
-          {SOURCE_TYPES.map((s) => (
-            <option key={s.value} value={s.value}>
-              {s.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">Source URL</label>
-        <input
-          type="url"
-          name="source_url"
-          defaultValue={conversion?.source_url ?? ""}
-          className="w-full border rounded px-3 py-2 text-sm"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">Notes</label>
-        <textarea
-          name="notes"
-          rows={3}
-          defaultValue={conversion?.notes ?? ""}
-          className="w-full border rounded px-3 py-2 text-sm"
-        />
-      </div>
-
-      <button type="submit" className="bg-gray-900 text-white rounded px-4 py-2 text-sm">
-        {submitLabel}
-      </button>
+      <Button type="submit">{submitLabel}</Button>
     </form>
   );
 }

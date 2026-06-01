@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Layers, Library, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { signOutAction } from "@/app/settings/actions";
 
@@ -18,8 +20,6 @@ export function SiteHeader() {
       } = await supabase.auth.getUser();
       setIsAuthed(!!user);
 
-      // Subscribe after the initial fetch to avoid the supabase-js deadlock
-      // (concurrent getSession + onAuthStateChange calls).
       const { data } = supabase.auth.onAuthStateChange((_event, session) => {
         setIsAuthed(!!session);
       });
@@ -34,7 +34,7 @@ export function SiteHeader() {
   }, []);
 
   return (
-    <header className="px-6 py-4 border-b flex items-center justify-between gap-4">
+    <header className="flex items-center justify-between gap-4 border-b px-6 py-4">
       <Link href="/pile">
         <Image
           src="/grey-pile-of-shame.png"
@@ -45,18 +45,25 @@ export function SiteHeader() {
           priority
         />
       </Link>
-      <nav className="flex items-center gap-4 text-sm">
-        <Link href="/pile" className="text-gray-600 hover:text-gray-900">
-          Pile
-        </Link>
-        <Link href="/collection" className="text-gray-600 hover:text-gray-900">
-          Collection
-        </Link>
+      <nav className="flex items-center gap-1 text-sm">
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/pile">
+            <Layers />
+            Pile
+          </Link>
+        </Button>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/collection">
+            <Library />
+            Collection
+          </Link>
+        </Button>
         {isAuthed && (
           <form action={signOutAction}>
-            <button type="submit" className="text-gray-500 hover:text-gray-800">
+            <Button variant="ghost" size="sm" type="submit">
+              <LogOut />
               Log out
-            </button>
+            </Button>
           </form>
         )}
       </nav>

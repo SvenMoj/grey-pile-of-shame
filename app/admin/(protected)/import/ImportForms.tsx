@@ -1,26 +1,38 @@
 "use client";
 
 import { useActionState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { importPaintsAction, importConversionsAction } from "./actions";
 import type { ImportResult } from "./actions";
 
 function ResultBanner({ result }: { result: ImportResult | null }) {
   if (!result) return null;
-  if (!result.success) return <p className="text-red-600 text-sm">{result.error}</p>;
+  if (!result.success) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>{result.error}</AlertDescription>
+      </Alert>
+    );
+  }
   return (
-    <div className="text-sm space-y-1">
-      <p className="text-green-700 font-medium">
-        Imported {result.count} row{result.count !== 1 ? "s" : ""}.
-        {result.skipped > 0 && ` Skipped ${result.skipped} invalid rows.`}
-      </p>
-      {result.errors.length > 0 && (
-        <ul className="text-yellow-700 list-disc list-inside">
-          {result.errors.map((e, i) => (
-            <li key={i}>{e}</li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <Alert>
+      <AlertDescription className="space-y-1">
+        <p className="font-medium text-foreground">
+          Imported {result.count} row{result.count !== 1 ? "s" : ""}.
+          {result.skipped > 0 && ` Skipped ${result.skipped} invalid rows.`}
+        </p>
+        {result.errors.length > 0 && (
+          <ul className="list-inside list-disc text-yellow-700">
+            {result.errors.map((e, i) => (
+              <li key={i}>{e}</li>
+            ))}
+          </ul>
+        )}
+      </AlertDescription>
+    </Alert>
   );
 }
 
@@ -34,20 +46,20 @@ function CsvUploadForm({
   const [state, formAction, pending] = useActionState(action, null);
 
   return (
-    <div className="space-y-3 border rounded p-4 max-w-md">
-      <h2 className="font-semibold">{label}</h2>
-      <ResultBanner result={state} />
-      <form action={formAction} className="space-y-3">
-        <input type="file" name="csv" accept=".csv,text/csv" required className="block text-sm" />
-        <button
-          type="submit"
-          disabled={pending}
-          className="bg-gray-900 text-white rounded px-4 py-2 text-sm disabled:opacity-50"
-        >
-          {pending ? "Importing…" : "Import"}
-        </button>
-      </form>
-    </div>
+    <Card className="max-w-md">
+      <CardHeader>
+        <CardTitle className="text-base">{label}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <ResultBanner result={state} />
+        <form action={formAction} className="space-y-3">
+          <Input type="file" name="csv" accept=".csv,text/csv" required className="text-sm" />
+          <Button type="submit" disabled={pending}>
+            {pending ? "Importing…" : "Import"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 

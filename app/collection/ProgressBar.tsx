@@ -13,10 +13,7 @@ export function ProgressBar({
 
   return (
     <div className={compact ? "space-y-0.5" : "space-y-1"}>
-      {/* Segmented track */}
-      <div
-        className={`flex overflow-hidden rounded-full bg-gray-200 ${compact ? "h-1.5" : "h-2"}`}
-      >
+      <div className={`flex overflow-hidden rounded-full bg-muted ${compact ? "h-1.5" : "h-2"}`}>
         {PILE_STATES.map((state) => {
           const count = counts[state];
           if (count === 0 || counts.total === 0) return null;
@@ -31,8 +28,7 @@ export function ProgressBar({
         })}
       </div>
 
-      {/* Label */}
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-muted-foreground">
         {isComplete ? (
           "Complete"
         ) : (

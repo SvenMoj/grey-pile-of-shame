@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { looseUnits } from "@/lib/pile/progress";
 import type { Army, PileItem, Unit } from "@/lib/pile/types";
 import type { useCollection } from "@/lib/hooks/use-collection";
@@ -25,10 +27,8 @@ export function CollectionShell({
 }) {
   const [sidebarSelection, setSidebarSelection] = useState<SidebarSelection>(null);
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
-  // Mobile drill-down level
   const [drillLevel, setDrillLevel] = useState<DrillLevel>("armies");
 
-  // Resolve the currently visible units for the unit-list pane
   function visibleUnits(): Unit[] {
     if (!sidebarSelection) return [];
     if (sidebarSelection.type === "army") {
@@ -38,7 +38,6 @@ export function CollectionShell({
     return [];
   }
 
-  // Resolve the selected army object
   function selectedArmy(): Army | null {
     if (sidebarSelection?.type === "army") {
       return armies.find((a) => a.id === sidebarSelection.armyId) ?? null;
@@ -46,13 +45,11 @@ export function CollectionShell({
     return null;
   }
 
-  // Resolve the selected unit for the model panel
   function selectedUnit(): Unit | null {
     if (!selectedUnitId) return null;
     return units.find((u) => u.id === selectedUnitId) ?? null;
   }
 
-  // Whether the models pane should be the "loose models" bucket
   function isLooseModels(): boolean {
     return sidebarSelection?.type === "loose-models" && selectedUnitId === null;
   }
@@ -78,22 +75,22 @@ export function CollectionShell({
 
   return (
     <div>
-      {/* Mobile back button */}
       {drillLevel !== "armies" && (
-        <button
-          className="md:hidden flex items-center gap-1 text-sm text-gray-600 mb-4 hover:text-gray-900"
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-4 md:hidden"
           onClick={() => {
             if (drillLevel === "models") setDrillLevel("units");
             else setDrillLevel("armies");
           }}
         >
-          ← Back
-        </button>
+          <ChevronLeft />
+          Back
+        </Button>
       )}
 
-      {/* Responsive grid: sidebar + content on md+, single column on mobile */}
       <div className="md:grid md:grid-cols-[16rem_1fr] md:gap-8">
-        {/* Sidebar: armies */}
         <div className={showSidebar ? "block" : "hidden md:block"}>
           <ArmySidebar
             armies={armies}
@@ -105,18 +102,15 @@ export function CollectionShell({
           />
         </div>
 
-        {/* Right pane */}
         <div className={drillLevel !== "armies" ? "block" : "hidden md:block"}>
           {!sidebarSelection ? (
-            <div className="hidden md:block text-sm text-gray-500 italic pt-8 text-center">
+            <div className="hidden pt-8 text-center text-sm text-muted-foreground italic md:block">
               Select an army to see its units and models.
             </div>
           ) : sidebarSelection.type === "loose-models" ? (
-            /* Loose models bucket — no unit context */
             <ModelPanel unit={null} items={items} allUnits={units} collection={collection} />
           ) : (
-            /* Army or loose-units: split into unit list + models */
-            <div className="md:grid md:grid-cols-[14rem_1fr] md:gap-6 space-y-6 md:space-y-0">
+            <div className="space-y-6 md:grid md:grid-cols-[14rem_1fr] md:gap-6 md:space-y-0">
               <div
                 className={
                   drillLevel === "units" || drillLevel === "armies" ? "block" : "hidden md:block"
@@ -141,7 +135,7 @@ export function CollectionShell({
                     collection={collection}
                   />
                 ) : (
-                  <p className="text-sm text-gray-500 italic pt-8 text-center hidden md:block">
+                  <p className="hidden pt-8 text-center text-sm text-muted-foreground italic md:block">
                     Select a unit to see its models.
                   </p>
                 )}

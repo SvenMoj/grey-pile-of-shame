@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { armyProgress, looseItems, looseUnits } from "@/lib/pile/progress";
+import { listRowClass } from "@/lib/ui/list-row";
 import type { Army, PileItem, Unit } from "@/lib/pile/types";
 import type { useCollection } from "@/lib/hooks/use-collection";
 import { ProgressBar } from "./ProgressBar";
@@ -44,14 +48,6 @@ export function ArmySidebar({
     return true;
   }
 
-  function rowClass(sel: SidebarSelection): string {
-    return `w-full text-left px-3 py-2.5 rounded-lg border transition-colors ${
-      isSelected(sel)
-        ? "bg-gray-900 text-white border-gray-900"
-        : "hover:bg-gray-50 border-transparent hover:border-gray-200"
-    }`;
-  }
-
   async function handleCreateArmy(e: React.FormEvent) {
     e.preventDefault();
     const name = newArmyName.trim();
@@ -63,46 +59,48 @@ export function ArmySidebar({
 
   return (
     <nav className="space-y-1">
-      {/* Armies */}
       {armies.map((army) => {
         const summary = armyProgress(army.id, units, items);
         const sel: SidebarSelection = { type: "army", armyId: army.id };
+        const selected = isSelected(sel);
 
         return (
           <div key={army.id}>
             <button
-              onClick={() => onSelect(isSelected(sel) ? null : sel)}
-              className={rowClass(sel)}
+              onClick={() => onSelect(selected ? null : sel)}
+              className={listRowClass(selected)}
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-medium truncate">{army.name}</span>
+                <span className="truncate text-sm font-medium">{army.name}</span>
                 {summary.isComplete && summary.counts.total > 0 && (
                   <CompletionBadge className="shrink-0" />
                 )}
               </div>
               {!summary.isComplete && (
-                <div className={`mt-1 ${isSelected(sel) ? "opacity-70" : ""}`}>
+                <div className={`mt-1 ${selected ? "opacity-70" : ""}`}>
                   <ProgressBar summary={summary} compact />
                 </div>
               )}
             </button>
-            {/* Army actions */}
-            <div className="flex gap-3 px-3 pb-1 text-xs text-gray-400">
-              <button
+            <div className="flex gap-1 px-3 pb-1">
+              <Button
+                variant="ghost"
+                size="xs"
                 onClick={() => {
                   setEditingId(army.id);
                   setEditName(army.name);
                 }}
-                className="hover:text-gray-700"
               >
                 Rename
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="xs"
+                className="text-muted-foreground hover:text-destructive"
                 onClick={() => void collection.deleteArmy(army.id)}
-                className="hover:text-red-600"
               >
                 Delete
-              </button>
+              </Button>
             </div>
             {editingId === army.id && (
               <form
@@ -114,69 +112,57 @@ export function ArmySidebar({
                 }}
                 className="flex gap-2 px-3 pb-2"
               >
-                <input
+                <Input
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="border rounded px-2 py-1 text-xs flex-1"
+                  className="h-7 flex-1 text-xs"
                   autoFocus
                 />
-                <button type="submit" className="text-xs text-gray-700 hover:text-gray-900">
+                <Button type="submit" variant="ghost" size="xs">
                   Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditingId(null)}
-                  className="text-xs text-gray-400 hover:text-gray-700"
-                >
+                </Button>
+                <Button type="button" variant="ghost" size="xs" onClick={() => setEditingId(null)}>
                   Cancel
-                </button>
+                </Button>
               </form>
             )}
           </div>
         );
       })}
 
-      {/* Create army form */}
       <form onSubmit={(e) => void handleCreateArmy(e)} className="flex gap-2 pt-2">
-        <input
+        <Input
           value={newArmyName}
           onChange={(e) => setNewArmyName(e.target.value)}
           placeholder="New army…"
-          className="border rounded px-3 py-1.5 text-sm flex-1"
+          className="flex-1"
         />
-        <button
-          type="submit"
-          disabled={!newArmyName.trim()}
-          className="bg-gray-900 text-white rounded px-3 py-1.5 text-sm disabled:opacity-40"
-        >
+        <Button type="submit" disabled={!newArmyName.trim()} size="sm">
           + Army
-        </button>
+        </Button>
       </form>
 
-      {/* Divider */}
-      {(looseUnitCount > 0 || looseModelCount > 0) && <div className="border-t my-2" />}
+      {(looseUnitCount > 0 || looseModelCount > 0) && <Separator className="my-2" />}
 
-      {/* Loose units bucket */}
       {looseUnitCount > 0 && (
         <button
           onClick={() =>
             onSelect(isSelected({ type: "loose-units" }) ? null : { type: "loose-units" })
           }
-          className={rowClass({ type: "loose-units" })}
+          className={listRowClass(isSelected({ type: "loose-units" }))}
         >
-          <span className="text-sm text-gray-600">Loose units ({looseUnitCount})</span>
+          <span className="text-sm">Loose units ({looseUnitCount})</span>
         </button>
       )}
 
-      {/* Loose models bucket */}
       {looseModelCount > 0 && (
         <button
           onClick={() =>
             onSelect(isSelected({ type: "loose-models" }) ? null : { type: "loose-models" })
           }
-          className={rowClass({ type: "loose-models" })}
+          className={listRowClass(isSelected({ type: "loose-models" }))}
         >
-          <span className="text-sm text-gray-600">Loose models ({looseModelCount})</span>
+          <span className="text-sm">Loose models ({looseModelCount})</span>
         </button>
       )}
     </nav>

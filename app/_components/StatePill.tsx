@@ -1,3 +1,5 @@
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { STATE_LABELS, STATE_STYLES } from "@/lib/pile/display";
 import type { PileState } from "@/lib/pile/types";
 
@@ -7,8 +9,8 @@ import type { PileState } from "@/lib/pile/types";
  */
 export function StatePill({ state }: { state: PileState }) {
   return (
-    <span className={`text-xs px-1.5 py-0.5 rounded-full ${STATE_STYLES[state].pill}`}>
+    <Badge variant="secondary" className={cn("text-xs", STATE_STYLES[state].pill)}>
       {STATE_LABELS[state]}
-    </span>
+    </Badge>
   );
 }

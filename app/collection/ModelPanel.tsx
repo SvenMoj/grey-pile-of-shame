@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowLeftRight, Pencil, Plus, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { unitProgress } from "@/lib/pile/progress";
 import type { PileItem, PileState, Unit } from "@/lib/pile/types";
 import type { useCollection } from "@/lib/hooks/use-collection";
@@ -19,7 +22,7 @@ export function ModelPanel({
   allUnits,
   collection,
 }: {
-  unit: Unit | null; // null = "Loose models" bucket
+  unit: Unit | null;
   items: PileItem[];
   allUnits: Unit[];
   collection: Collection;
@@ -37,7 +40,6 @@ export function ModelPanel({
 
   return (
     <div className="space-y-3">
-      {/* Header */}
       <div>
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold">{title}</h2>
@@ -50,7 +52,6 @@ export function ModelPanel({
         )}
       </div>
 
-      {/* Add model form */}
       {addOpen ? (
         <form
           onSubmit={async (e) => {
@@ -65,50 +66,47 @@ export function ModelPanel({
             (e.target as HTMLFormElement).reset();
             setAddOpen(false);
           }}
-          className="border rounded p-3 space-y-3 bg-gray-50"
+          className="space-y-3 rounded-lg border bg-muted/50 p-3"
         >
           <Field label="Name" name="display_name" required />
           <div className="flex gap-2">
-            <button type="submit" className="bg-gray-900 text-white rounded px-3 py-1.5 text-xs">
+            <Button type="submit" size="sm">
               Add model
-            </button>
-            <button
-              type="button"
-              onClick={() => setAddOpen(false)}
-              className="text-xs text-gray-400 hover:text-gray-700 px-3 py-1.5"
-            >
+            </Button>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setAddOpen(false)}>
               Cancel
-            </button>
+            </Button>
           </div>
         </form>
       ) : (
-        <button
+        <Button
+          variant="outline"
+          className="h-auto w-full justify-start border-dashed px-4 py-2 text-sm font-normal text-muted-foreground"
           onClick={() => setAddOpen(true)}
-          className="text-sm text-gray-500 hover:text-gray-800 border border-dashed rounded px-4 py-2 w-full text-left"
         >
-          + Add model{unit ? ` to ${unit.name}` : ""}
-        </button>
+          <Plus />
+          Add model{unit ? ` to ${unit.name}` : ""}
+        </Button>
       )}
 
       {unitItems.length === 0 ? (
-        <p className="text-sm text-gray-500 italic">No models here yet.</p>
+        <p className="text-sm text-muted-foreground italic">No models here yet.</p>
       ) : (
-        <ul className="divide-y border rounded">
+        <ul className="divide-y rounded-lg border">
           {unitItems.map((item) => (
             <li key={item.id}>
-              {/* Row */}
               <div className="flex items-center gap-3 px-4 py-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">
                     {item.unit_size > 1 && (
-                      <span className="text-gray-400 mr-1">{item.unit_size}×</span>
+                      <span className="mr-1 text-muted-foreground">{item.unit_size}×</span>
                     )}
                     {item.display_name}
                   </p>
-                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <div className="mt-0.5 flex flex-wrap items-center gap-2">
                     <StatePill state={item.state} />
                     {(item.game ?? item.faction ?? item.point_value) !== null && (
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="truncate text-xs text-muted-foreground">
                         {[
                           item.game,
                           item.faction,
@@ -121,40 +119,46 @@ export function ModelPanel({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
                   {item.state !== "painted" && (
                     <StageStepper
                       state={item.state}
                       onAdvance={(to: PileState) => void collection.advanceModel(item.id, to)}
                     />
                   )}
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="xs"
                     onClick={() => setEditingId((cur) => (cur === item.id ? null : item.id))}
-                    className="text-xs text-gray-500 hover:text-gray-800"
                   >
+                    <Pencil />
                     {editingId === item.id ? "Close" : "Edit"}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="xs"
                     onClick={() => setAssigningId((cur) => (cur === item.id ? null : item.id))}
-                    className="text-xs text-gray-400 hover:text-gray-700"
                   >
+                    <ArrowLeftRight />
                     Move
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    className="text-muted-foreground hover:text-destructive"
                     onClick={() => void collection.removeModel(item.id)}
-                    className="text-xs text-gray-400 hover:text-red-600"
                   >
+                    <Trash2 />
                     Remove
-                  </button>
+                  </Button>
                 </div>
               </div>
 
-              {/* Inline assign-to-unit dropdown */}
               {assigningId === item.id && (
-                <div className="px-4 py-2 bg-gray-50 border-t flex items-center gap-2">
-                  <label className="text-xs text-gray-600 shrink-0">Move to unit:</label>
+                <div className="flex items-center gap-2 border-t bg-muted/50 px-4 py-2">
+                  <Label className="shrink-0 text-xs">Move to unit:</Label>
                   <select
-                    className="border rounded px-2 py-1 text-xs flex-1"
+                    className="h-7 flex-1 rounded-lg border border-input bg-transparent px-2 text-xs"
                     defaultValue={item.unit_id ?? ""}
                     onChange={async (e) => {
                       const val = e.target.value || null;
@@ -169,16 +173,12 @@ export function ModelPanel({
                       </option>
                     ))}
                   </select>
-                  <button
-                    onClick={() => setAssigningId(null)}
-                    className="text-xs text-gray-400 hover:text-gray-700"
-                  >
+                  <Button variant="ghost" size="xs" onClick={() => setAssigningId(null)}>
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               )}
 
-              {/* Inline edit form */}
               {editingId === item.id && (
                 <EditItemForm
                   item={item}

@@ -4,7 +4,9 @@ import { parseEditItem } from "@/lib/pile/parse-edit-item";
 import { PILE_STATES } from "@/lib/pile/states";
 import { STATE_LABELS } from "@/lib/pile/display";
 import type { EditPileItem, PileItem } from "@/lib/pile/types";
+import { Button } from "@/components/ui/button";
 import { Field } from "./Field";
+import { SelectField } from "./SelectField";
 
 export function EditItemForm({
   item,
@@ -18,12 +20,12 @@ export function EditItemForm({
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const result = parseEditItem(new FormData(e.currentTarget));
-    if ("errors" in result) return; // validation failed — stay open
+    if ("errors" in result) return;
     await onSave(result.data);
   }
 
   return (
-    <form onSubmit={(e) => void handleSubmit(e)} className="p-3 space-y-3 bg-gray-50 border-t">
+    <form onSubmit={(e) => void handleSubmit(e)} className="space-y-3 border-t bg-muted/50 p-3">
       <Field label="Name" name="display_name" required defaultValue={item.display_name} />
 
       <div className="grid grid-cols-2 gap-3">
@@ -57,33 +59,22 @@ export function EditItemForm({
           defaultValue={item.point_value ?? ""}
         />
 
-        <div>
-          <label className="block text-sm font-medium mb-1">State</label>
-          <select
-            name="state"
-            defaultValue={item.state}
-            className="w-full border rounded px-3 py-2 text-sm"
-          >
-            {PILE_STATES.map((s) => (
-              <option key={s} value={s}>
-                {STATE_LABELS[s]}
-              </option>
-            ))}
-          </select>
-        </div>
+        <SelectField label="State" name="state" defaultValue={item.state}>
+          {PILE_STATES.map((s) => (
+            <option key={s} value={s}>
+              {STATE_LABELS[s]}
+            </option>
+          ))}
+        </SelectField>
       </div>
 
       <div className="flex gap-2">
-        <button type="submit" className="bg-gray-900 text-white rounded px-3 py-1.5 text-xs">
+        <Button type="submit" size="sm">
           Save
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="text-xs text-gray-500 hover:text-gray-800 px-3 py-1.5"
-        >
+        </Button>
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

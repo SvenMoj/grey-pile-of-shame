@@ -1,6 +1,16 @@
 import Link from "next/link";
 import { adminClient } from "@/lib/supabase/admin";
 import type { Paint } from "@/lib/admin/types";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { softDeletePaintAction } from "./actions";
 
 const PAGE_SIZE = 50;
@@ -41,21 +51,22 @@ export default async function AdminPaintsPage({
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <h1 className="text-xl font-semibold">Paints ({totalCount})</h1>
-        <Link
-          href="/admin/paints/new"
-          className="bg-gray-900 text-white text-sm rounded px-3 py-1.5"
-        >
-          + New paint
-        </Link>
+        <Button size="sm" asChild>
+          <Link href="/admin/paints/new">+ New paint</Link>
+        </Button>
       </div>
 
-      {error && <p className="text-red-600 text-sm">{error.message}</p>}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error.message}</AlertDescription>
+        </Alert>
+      )}
 
       <form method="get" className="flex items-center gap-2">
         <select
           name="brand"
           defaultValue={brand ?? ""}
-          className="border rounded px-2 py-1 text-sm"
+          className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm"
         >
           <option value="">All brands</option>
           {brands.map((b) => (
@@ -64,94 +75,101 @@ export default async function AdminPaintsPage({
             </option>
           ))}
         </select>
-        <button type="submit" className="border rounded px-3 py-1 text-sm">
+        <Button type="submit" variant="outline" size="sm">
           Filter
-        </button>
+        </Button>
         {brand && (
-          <Link href="/admin/paints" className="text-sm text-gray-500 underline">
-            Clear
-          </Link>
+          <Button variant="link" size="sm" asChild className="h-auto p-0">
+            <Link href="/admin/paints">Clear</Link>
+          </Button>
         )}
       </form>
 
-      <div className="overflow-auto">
-        <table className="min-w-full text-sm border-collapse">
-          <thead>
-            <tr className="bg-gray-50 text-left">
-              <th className="border px-3 py-2">ID</th>
-              <th className="border px-3 py-2">Brand</th>
-              <th className="border px-3 py-2">Name</th>
-              <th className="border px-3 py-2">Hex</th>
-              <th className="border px-3 py-2">Status</th>
-              <th className="border px-3 py-2"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {paints.length === 0 && (
-              <tr>
-                <td colSpan={6} className="border px-3 py-4 text-gray-400 text-center">
-                  No paints found.
-                </td>
-              </tr>
-            )}
-            {paints.map((p) => (
-              <tr key={p.id} className={p.status === "discontinued" ? "opacity-50" : ""}>
-                <td className="border px-3 py-2 font-mono text-xs">{p.id}</td>
-                <td className="border px-3 py-2">{p.brand}</td>
-                <td className="border px-3 py-2">{p.name}</td>
-                <td className="border px-3 py-2">
-                  {p.hex ? (
-                    <span className="inline-flex items-center gap-1.5">
-                      <span
-                        className="inline-block w-4 h-4 rounded border"
-                        style={{ backgroundColor: `#${p.hex}` }}
-                      />
-                      <span className="font-mono text-xs">#{p.hex}</span>
-                    </span>
-                  ) : (
-                    "—"
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>ID</TableHead>
+            <TableHead>Brand</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Hex</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paints.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center text-muted-foreground">
+                No paints found.
+              </TableCell>
+            </TableRow>
+          )}
+          {paints.map((p) => (
+            <TableRow key={p.id} className={p.status === "discontinued" ? "opacity-50" : ""}>
+              <TableCell className="font-mono text-xs">{p.id}</TableCell>
+              <TableCell>{p.brand}</TableCell>
+              <TableCell>{p.name}</TableCell>
+              <TableCell>
+                {p.hex ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span
+                      className="inline-block h-4 w-4 rounded border"
+                      style={{ backgroundColor: `#${p.hex}` }}
+                    />
+                    <span className="font-mono text-xs">#{p.hex}</span>
+                  </span>
+                ) : (
+                  "—"
+                )}
+              </TableCell>
+              <TableCell>{p.status}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <Button variant="link" size="sm" asChild className="h-auto p-0">
+                    <Link href={`/admin/paints/${p.id}/edit`}>Edit</Link>
+                  </Button>
+                  {p.status === "active" && (
+                    <form action={softDeletePaintAction}>
+                      <input type="hidden" name="id" value={p.id} />
+                      <Button
+                        variant="link"
+                        size="sm"
+                        type="submit"
+                        className="h-auto p-0 text-destructive"
+                      >
+                        Discontinue
+                      </Button>
+                    </form>
                   )}
-                </td>
-                <td className="border px-3 py-2">{p.status}</td>
-                <td className="border px-3 py-2">
-                  <div className="flex items-center gap-2">
-                    <Link href={`/admin/paints/${p.id}/edit`} className="underline">
-                      Edit
-                    </Link>
-                    {p.status === "active" && (
-                      <form action={softDeletePaintAction}>
-                        <input type="hidden" name="id" value={p.id} />
-                        <button type="submit" className="text-red-600 underline">
-                          Discontinue
-                        </button>
-                      </form>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
       {(page > 1 || hasNextPage) && (
         <div className="flex items-center gap-3 text-sm">
           {page > 1 ? (
-            <Link href={pageHref(page - 1, brand)} className="border rounded px-3 py-1">
-              ← Prev
-            </Link>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={pageHref(page - 1, brand)}>← Prev</Link>
+            </Button>
           ) : (
-            <span className="border rounded px-3 py-1 text-gray-300">← Prev</span>
+            <Button variant="outline" size="sm" disabled>
+              ← Prev
+            </Button>
           )}
-          <span className="text-gray-500">
+          <span className="text-muted-foreground">
             Page {page} · {from + 1}–{from + paints.length} of {totalCount}
           </span>
           {hasNextPage ? (
-            <Link href={pageHref(page + 1, brand)} className="border rounded px-3 py-1">
-              Next →
-            </Link>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={pageHref(page + 1, brand)}>Next →</Link>
+            </Button>
           ) : (
-            <span className="border rounded px-3 py-1 text-gray-300">Next →</span>
+            <Button variant="outline" size="sm" disabled>
+              Next →
+            </Button>
           )}
         </div>
       )}

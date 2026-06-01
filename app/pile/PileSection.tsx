@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronDown, Pencil, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { isTerminal } from "@/lib/pile/states";
 import type { EditPileItem, PileItem, PileState } from "@/lib/pile/types";
 import { StageStepper } from "@/app/_components/StageStepper";
@@ -31,34 +34,34 @@ export function PileSection({
     <section>
       <button
         onClick={() => setCollapsed((c) => !c)}
-        className="flex items-center gap-1 w-full text-left mb-2 group"
+        className="group mb-2 flex w-full items-center gap-1 text-left"
       >
-        <span
-          className={`text-gray-400 transition-transform duration-150 ${collapsed ? "-rotate-90" : ""}`}
-        >
-          ▾
-        </span>
-        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide group-hover:text-gray-700">
+        <ChevronDown
+          className={cn(
+            "size-4 text-muted-foreground transition-transform duration-150",
+            collapsed && "-rotate-90",
+          )}
+        />
+        <h2 className="text-xs font-medium tracking-wide text-muted-foreground uppercase group-hover:text-foreground">
           {label} ({items.length})
         </h2>
       </button>
       {collapsed ? null : (
-        <ul className="divide-y border rounded">
+        <ul className="divide-y rounded-lg border">
           {items.map((item) => (
             <li key={item.id}>
-              {/* Row */}
               <div className="flex items-center gap-3 px-4 py-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">
                     {item.unit_size > 1 && (
-                      <span className="text-gray-400 mr-1">{item.unit_size}×</span>
+                      <span className="mr-1 text-muted-foreground">{item.unit_size}×</span>
                     )}
                     {item.display_name}
                   </p>
-                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <div className="mt-0.5 flex flex-wrap items-center gap-2">
                     <StatePill state={item.state} />
                     {(item.game ?? item.faction ?? item.point_value) !== null && (
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="truncate text-xs text-muted-foreground">
                         {[
                           item.game,
                           item.faction,
@@ -71,29 +74,33 @@ export function PileSection({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
                   {!isTerminal(state) && (
                     <StageStepper
                       state={item.state}
                       onAdvance={(to: PileState) => void onAdvance(item.id, to)}
                     />
                   )}
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="xs"
                     onClick={() => setEditingId((cur) => (cur === item.id ? null : item.id))}
-                    className="text-xs text-gray-500 hover:text-gray-800"
                   >
+                    <Pencil />
                     {editingId === item.id ? "Close" : "Edit"}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    className="text-muted-foreground hover:text-destructive"
                     onClick={() => void onRemove(item.id)}
-                    className="text-xs text-gray-400 hover:text-red-600"
                   >
+                    <Trash2 />
                     Remove
-                  </button>
+                  </Button>
                 </div>
               </div>
 
-              {/* Inline edit form */}
               {editingId === item.id && (
                 <EditItemForm
                   item={item}

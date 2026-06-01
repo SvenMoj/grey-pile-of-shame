@@ -1,6 +1,11 @@
 "use client";
 
 import { useActionState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { requestMagicLinkAction } from "./actions";
 
 export default function LoginForm({ urlError }: { urlError?: string }) {
@@ -9,10 +14,14 @@ export default function LoginForm({ urlError }: { urlError?: string }) {
   if (state?.success) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <div className="max-w-sm w-full p-8 border rounded space-y-4">
-          <h1 className="text-xl font-semibold">Check your inbox</h1>
-          <p className="text-gray-600">{state.message}</p>
-        </div>
+        <Card className="w-full max-w-sm">
+          <CardHeader>
+            <CardTitle>Check your inbox</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">{state.message}</p>
+          </CardContent>
+        </Card>
       </main>
     );
   }
@@ -21,31 +30,27 @@ export default function LoginForm({ urlError }: { urlError?: string }) {
 
   return (
     <main className="flex min-h-screen items-center justify-center">
-      <div className="max-w-sm w-full p-8 border rounded space-y-4">
-        <h1 className="text-xl font-semibold">Admin login</h1>
-        {errorMsg && <p className="text-red-600 text-sm">{errorMsg}</p>}
-        <form action={action} className="space-y-3">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              className="w-full border rounded px-3 py-2 text-sm"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={pending}
-            className="w-full bg-gray-900 text-white rounded px-4 py-2 text-sm disabled:opacity-50"
-          >
-            {pending ? "Sending…" : "Send magic link"}
-          </button>
-        </form>
-      </div>
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle>Admin login</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {errorMsg && (
+            <Alert variant="destructive">
+              <AlertDescription>{errorMsg}</AlertDescription>
+            </Alert>
+          )}
+          <form action={action} className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" name="email" type="email" required />
+            </div>
+            <Button type="submit" disabled={pending} className="w-full">
+              {pending ? "Sending…" : "Send magic link"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </main>
   );
 }

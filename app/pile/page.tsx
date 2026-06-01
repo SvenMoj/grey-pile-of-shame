@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { X } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/app/_components/SiteHeader";
 import { ProgressBar } from "@/app/collection/ProgressBar";
 import { usePile } from "@/lib/hooks/use-pile";
@@ -17,7 +20,6 @@ export default function PilePage() {
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const router = useRouter();
 
-  // Logged-in users get the full hierarchy view instead.
   useEffect(() => {
     if (loaded && session) router.replace("/collection");
   }, [loaded, session, router]);
@@ -26,9 +28,9 @@ export default function PilePage() {
     return (
       <>
         <SiteHeader />
-        <main className="max-w-2xl mx-auto p-6">
-          <h1 className="text-xl font-semibold mb-6">My Pile of Shame</h1>
-          <p className="text-sm text-gray-400">Loading…</p>
+        <main className="mx-auto max-w-2xl p-6">
+          <h1 className="mb-6 text-xl font-semibold">My Pile of Shame</h1>
+          <p className="text-sm text-muted-foreground">Loading…</p>
         </main>
       </>
     );
@@ -38,16 +40,13 @@ export default function PilePage() {
     return (
       <>
         <SiteHeader />
-        <main className="max-w-2xl mx-auto p-6">
-          <h1 className="text-xl font-semibold mb-6">My Pile of Shame</h1>
-          <div className="text-center py-16 space-y-4">
-            <p className="text-gray-500 text-sm">Your pile is empty. Time to confess.</p>
-            <Link
-              href="/onboarding"
-              className="inline-block bg-gray-900 text-white rounded px-4 py-2 text-sm"
-            >
-              Add your pile →
-            </Link>
+        <main className="mx-auto max-w-2xl p-6">
+          <h1 className="mb-6 text-xl font-semibold">My Pile of Shame</h1>
+          <div className="space-y-4 py-16 text-center">
+            <p className="text-sm text-muted-foreground">Your pile is empty. Time to confess.</p>
+            <Button asChild>
+              <Link href="/onboarding">Add your pile →</Link>
+            </Button>
           </div>
         </main>
       </>
@@ -64,30 +63,31 @@ export default function PilePage() {
   return (
     <>
       <SiteHeader />
-      <main className="max-w-2xl mx-auto p-6 space-y-6">
+      <main className="mx-auto max-w-2xl space-y-6 p-6">
         <div>
-          <h1 className="text-xl font-semibold mb-2">My Pile of Shame</h1>
+          <h1 className="mb-2 text-xl font-semibold">My Pile of Shame</h1>
           <ProgressBar summary={summary} />
         </div>
 
         {showBanner && (
-          <div className="border rounded px-4 py-3 text-sm flex items-center justify-between gap-4 bg-gray-50">
-            <span className="text-gray-700">
-              Create a free account to save your pile and sync across devices.
-            </span>
-            <div className="flex items-center gap-3 shrink-0">
-              <Link href="/login" className="font-medium underline whitespace-nowrap">
-                Sign up / log in
-              </Link>
-              <button
-                onClick={() => setBannerDismissed(true)}
-                aria-label="Dismiss"
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
+          <Alert>
+            <AlertDescription className="flex items-center justify-between gap-4">
+              <span>Create a free account to save your pile and sync across devices.</span>
+              <div className="flex shrink-0 items-center gap-3">
+                <Button variant="link" size="sm" asChild className="h-auto p-0">
+                  <Link href="/login">Sign up / log in</Link>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => setBannerDismissed(true)}
+                  aria-label="Dismiss"
+                >
+                  <X />
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
         )}
 
         <QuickAddForm onAdd={add} onAddMany={addMany} />

@@ -1,11 +1,15 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { parseQuickAdd } from "@/lib/pile/parse-quick-add";
 import { PILE_STATES } from "@/lib/pile/states";
 import { STATE_LABELS } from "@/lib/pile/display";
 import type { NewPileItem } from "@/lib/pile/types";
 import { Field } from "./Field";
+import { SelectField } from "./SelectField";
 
 export function QuickAddForm({
   onAdd,
@@ -15,11 +19,12 @@ export function QuickAddForm({
   onAddMany: (items: NewPileItem[]) => Promise<unknown>;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const [open, setOpen] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const result = parseQuickAdd(new FormData(e.currentTarget));
-    if ("errors" in result) return; // TODO: surface field-level errors
+    if ("errors" in result) return;
     if (result.data.length === 1) {
       await onAdd(result.data[0]);
     } else {
@@ -29,38 +34,50 @@ export function QuickAddForm({
   }
 
   return (
-    <details className="border rounded">
-      <summary className="px-4 py-3 text-sm font-medium cursor-pointer select-none">
-        + Add a model
-      </summary>
-      <form ref={formRef} onSubmit={(e) => void handleSubmit(e)} className="p-4 space-y-3 border-t">
-        <Field label="Name" name="display_name" required placeholder="e.g. Space Marine Sergeant" />
+    <Collapsible open={open} onOpenChange={setOpen} className="rounded-lg border">
+      <CollapsibleTrigger asChild>
+        <Button
+          variant="ghost"
+          className="h-auto w-full justify-start rounded-lg px-4 py-3 text-sm font-medium"
+        >
+          <Plus />
+          Add a model
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <form
+          ref={formRef}
+          onSubmit={(e) => void handleSubmit(e)}
+          className="space-y-3 border-t p-4"
+        >
+          <Field
+            label="Name"
+            name="display_name"
+            required
+            placeholder="e.g. Space Marine Sergeant"
+          />
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Game" name="game" placeholder="e.g. Warhammer 40k" />
-          <Field label="Faction" name="faction" placeholder="e.g. Ultramarines" />
-        </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Game" name="game" placeholder="e.g. Warhammer 40k" />
+            <Field label="Faction" name="faction" placeholder="e.g. Ultramarines" />
+          </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Points" name="point_value" type="number" min={0} />
-          <Field label="Qty" name="unit_size" type="number" defaultValue={1} min={1} />
-        </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Points" name="point_value" type="number" min={0} />
+            <Field label="Qty" name="unit_size" type="number" defaultValue={1} min={1} />
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">State</label>
-          <select name="state" defaultValue="unbuilt" className="border rounded px-3 py-2 text-sm">
+          <SelectField label="State" name="state" defaultValue="unbuilt">
             {PILE_STATES.map((s) => (
               <option key={s} value={s}>
                 {STATE_LABELS[s]}
               </option>
             ))}
-          </select>
-        </div>
+          </SelectField>
 
-        <button type="submit" className="bg-gray-900 text-white rounded px-4 py-2 text-sm">
-          Add to pile
-        </button>
-      </form>
-    </details>
+          <Button type="submit">Add to pile</Button>
+        </form>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

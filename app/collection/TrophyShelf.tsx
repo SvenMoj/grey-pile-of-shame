@@ -1,6 +1,8 @@
 "use client";
 
 import { ACHIEVEMENTS } from "@/lib/pile/achievements";
+import { Card, CardContent, CardDescription } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 export function TrophyShelf({ unlocked }: { unlocked: string[] }) {
   const unlockedSet = new Set(unlocked);
@@ -8,26 +10,31 @@ export function TrophyShelf({ unlocked }: { unlocked: string[] }) {
 
   return (
     <section>
-      <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+      <h2 className="mb-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
         Achievements ({earnedCount}/{ACHIEVEMENTS.length})
       </h2>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {ACHIEVEMENTS.map((a) => {
           const earned = unlockedSet.has(a.id);
           return (
-            <div
+            <Card
               key={a.id}
-              className={`border rounded-lg p-3 text-center transition-opacity ${
-                earned ? "opacity-100" : "opacity-30"
-              }`}
+              className={cn(
+                "text-center transition-opacity",
+                earned ? "opacity-100" : "opacity-30",
+              )}
               title={earned ? a.description : `Locked: ${a.description}`}
             >
-              <div className="text-2xl mb-1">{a.icon}</div>
-              <p className="text-xs font-medium leading-tight">{a.title}</p>
-              {earned && (
-                <p className="text-xs text-gray-500 mt-0.5 leading-tight">{a.description}</p>
-              )}
-            </div>
+              <CardContent className="pt-4">
+                <div className="mb-1 text-2xl">{a.icon}</div>
+                <p className="text-xs leading-tight font-medium">{a.title}</p>
+                {earned && (
+                  <CardDescription className="mt-0.5 text-xs leading-tight">
+                    {a.description}
+                  </CardDescription>
+                )}
+              </CardContent>
+            </Card>
           );
         })}
       </div>

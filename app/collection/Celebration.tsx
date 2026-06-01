@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 import type { NewlyUnlocked } from "@/lib/hooks/use-collection";
 import { ACHIEVEMENTS } from "@/lib/pile/achievements";
 
@@ -25,7 +26,6 @@ export function Celebration({
   onDismiss: () => void;
 }) {
   const firedRef = useRef(false);
-  const messages = newlyUnlocked ? buildMessages(newlyUnlocked) : [];
 
   useEffect(() => {
     if (!newlyUnlocked) {
@@ -35,9 +35,9 @@ export function Celebration({
     if (firedRef.current) return;
     firedRef.current = true;
 
+    const messages = buildMessages(newlyUnlocked);
     if (messages.length === 0) return;
 
-    // Fire confetti lazily (avoids SSR issues)
     void import("canvas-confetti").then(({ default: confetti }) => {
       void confetti({
         particleCount: newlyUnlocked.armyCompletedIds.length > 0 ? 200 : 80,
@@ -46,28 +46,13 @@ export function Celebration({
       });
     });
 
-    // Auto-dismiss after 4s
+    for (const msg of messages) {
+      toast.success(msg);
+    }
+
     const t = setTimeout(onDismiss, 4000);
     return () => clearTimeout(t);
-  }, [newlyUnlocked, onDismiss, messages.length]);
+  }, [newlyUnlocked, onDismiss]);
 
-  if (!newlyUnlocked || messages.length === 0) return null;
-
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"
-    >
-      {messages.map((msg, i) => (
-        <div
-          key={i}
-          className="bg-gray-900 text-white text-sm font-medium px-4 py-3 rounded-lg shadow-lg"
-          style={{ animation: "slideUp 0.3s ease-out" }}
-        >
-          {msg}
-        </div>
-      ))}
-    </div>
-  );
+  return null;
 }

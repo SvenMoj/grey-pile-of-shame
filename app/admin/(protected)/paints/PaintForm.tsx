@@ -1,4 +1,8 @@
 import type { Paint } from "@/lib/admin/types";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Field } from "@/app/pile/Field";
+import { SelectField } from "@/app/pile/SelectField";
 
 const STATUS_OPTIONS = ["active", "discontinued"] as const;
 const TYPE_SUGGESTIONS = "base,layer,shade,contrast,technical,dry,air,texture,effect,spray";
@@ -15,9 +19,13 @@ export default function PaintForm({
   submitLabel: string;
 }) {
   return (
-    <form action={action} className="space-y-4 max-w-lg">
+    <form action={action} className="max-w-lg space-y-4">
       {paint && <input type="hidden" name="_id" value={paint.id} />}
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <Field
         label="ID (slug, e.g. citadel-mephiston-red)"
@@ -70,20 +78,13 @@ export default function PaintForm({
         placeholder={TYPE_SUGGESTIONS}
       />
 
-      <div>
-        <label className="block text-sm font-medium mb-1">Status</label>
-        <select
-          name="status"
-          defaultValue={paint?.status ?? "active"}
-          className="border rounded px-3 py-2 text-sm"
-        >
-          {STATUS_OPTIONS.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-      </div>
+      <SelectField label="Status" name="status" defaultValue={paint?.status ?? "active"}>
+        {STATUS_OPTIONS.map((s) => (
+          <option key={s} value={s}>
+            {s}
+          </option>
+        ))}
+      </SelectField>
 
       <Field label="Version" name="version" type="number" defaultValue={paint?.version ?? 1} />
       <Field
@@ -93,51 +94,7 @@ export default function PaintForm({
         defaultValue={paint?.discontinued_date ?? ""}
       />
 
-      <button type="submit" className="bg-gray-900 text-white rounded px-4 py-2 text-sm">
-        {submitLabel}
-      </button>
+      <Button type="submit">{submitLabel}</Button>
     </form>
-  );
-}
-
-function Field({
-  label,
-  name,
-  required,
-  defaultValue,
-  type = "text",
-  disabled,
-  placeholder,
-  maxLength,
-  step,
-}: {
-  label: string;
-  name: string;
-  required?: boolean;
-  defaultValue?: string | number | null;
-  type?: string;
-  disabled?: boolean;
-  placeholder?: string;
-  maxLength?: number;
-  step?: string;
-}) {
-  return (
-    <div>
-      <label className="block text-sm font-medium mb-1">
-        {label}
-        {required && " *"}
-      </label>
-      <input
-        type={type}
-        name={name}
-        required={required}
-        defaultValue={defaultValue ?? ""}
-        disabled={disabled}
-        placeholder={placeholder}
-        maxLength={maxLength}
-        step={step}
-        className="w-full border rounded px-3 py-2 text-sm disabled:bg-gray-100"
-      />
-    </div>
   );
 }

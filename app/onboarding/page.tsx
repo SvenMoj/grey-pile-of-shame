@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/app/_components/SiteHeader";
+import { Button } from "@/components/ui/button";
 import { expandQuickCount } from "@/lib/pile/expand-quick-count";
 import { usePile } from "@/lib/hooks/use-pile";
 import type { PileState } from "@/lib/pile/types";
@@ -36,16 +37,16 @@ export default function OnboardingPage() {
     if (total === 0) return;
     const items = expandQuickCount(counts);
     await addMany(items);
-    router.replace("/pile"); // replace so the back button doesn't loop back to onboarding
+    router.replace("/pile");
   }
 
   return (
     <>
       <SiteHeader />
-      <main className="max-w-md mx-auto p-6 space-y-6">
+      <main className="mx-auto max-w-md space-y-6 p-6">
         <div>
           <h1 className="text-xl font-semibold">How big is your pile?</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="mt-1 text-sm text-muted-foreground">
             Roughly how many models do you have in each stage? You can add details and names later.
           </p>
         </div>
@@ -62,15 +63,11 @@ export default function OnboardingPage() {
           ))}
         </div>
 
-        <button
-          onClick={() => void handleAddToPile()}
-          disabled={total === 0}
-          className="w-full bg-gray-900 text-white rounded px-4 py-2 text-sm disabled:bg-gray-300 disabled:cursor-not-allowed"
-        >
+        <Button onClick={() => void handleAddToPile()} disabled={total === 0} className="w-full">
           {total === 0
             ? "Adjust the counts above to continue"
             : `Add ${total} model${total === 1 ? "" : "s"} to my pile →`}
-        </button>
+        </Button>
       </main>
     </>
   );

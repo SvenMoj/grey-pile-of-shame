@@ -2,6 +2,11 @@
 
 import { useActionState } from "react";
 import { SiteHeader } from "@/app/_components/SiteHeader";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { requestMagicLinkAction } from "./actions";
 
 export default function LoginForm({
@@ -18,10 +23,12 @@ export default function LoginForm({
       <>
         <SiteHeader />
         <main className="flex flex-1 items-center justify-center p-6">
-          <div className="max-w-sm w-full p-8 border rounded space-y-4">
-            <h1 className="text-xl font-semibold">Check your inbox</h1>
-            <p className="text-gray-600 text-sm">{state.message}</p>
-          </div>
+          <Card className="w-full max-w-sm">
+            <CardHeader>
+              <CardTitle>Check your inbox</CardTitle>
+              <CardDescription>{state.message}</CardDescription>
+            </CardHeader>
+          </Card>
         </main>
       </>
     );
@@ -34,36 +41,35 @@ export default function LoginForm({
     <>
       <SiteHeader />
       <main className="flex flex-1 items-center justify-center p-6">
-        <div className="max-w-sm w-full p-8 border rounded space-y-4">
-          <h1 className="text-xl font-semibold">Save your pile</h1>
-          <p className="text-sm text-gray-500">
-            Enter your email — we&apos;ll send a magic link. No password needed.
-          </p>
-          {infoMsg && <p className="text-gray-600 text-sm">{infoMsg}</p>}
-          {errorMsg && <p className="text-red-600 text-sm">{errorMsg}</p>}
-          <form action={action} className="space-y-3">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-1">
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                autoComplete="email"
-                className="w-full border rounded px-3 py-2 text-sm"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={pending}
-              className="w-full bg-gray-900 text-white rounded px-4 py-2 text-sm disabled:opacity-50"
-            >
-              {pending ? "Sending…" : "Send magic link"}
-            </button>
-          </form>
-        </div>
+        <Card className="w-full max-w-sm">
+          <CardHeader>
+            <CardTitle>Save your pile</CardTitle>
+            <CardDescription>
+              Enter your email — we&apos;ll send a magic link. No password needed.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {infoMsg && (
+              <Alert>
+                <AlertDescription>{infoMsg}</AlertDescription>
+              </Alert>
+            )}
+            {errorMsg && (
+              <Alert variant="destructive">
+                <AlertDescription>{errorMsg}</AlertDescription>
+              </Alert>
+            )}
+            <form action={action} className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" name="email" type="email" required autoComplete="email" />
+              </div>
+              <Button type="submit" disabled={pending} className="w-full">
+                {pending ? "Sending…" : "Send magic link"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </main>
     </>
   );

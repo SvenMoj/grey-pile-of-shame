@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { signOutAction, requestAccountDeletionAction } from "./actions";
 
 export default async function SettingsPage() {
@@ -11,34 +13,33 @@ export default async function SettingsPage() {
     <div className="space-y-8">
       <h1 className="text-xl font-semibold">Account settings</h1>
 
-      <section className="space-y-2">
-        <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Account</h2>
-        <div className="border rounded px-4 py-3 text-sm">
-          <span className="text-gray-500">Signed in as </span>
-          <span className="font-medium">{user?.email}</span>
-        </div>
+      <section className="space-y-3">
+        <h2 className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
+          Account
+        </h2>
+        <Card>
+          <CardContent className="pt-6 text-sm">
+            <span className="text-muted-foreground">Signed in as </span>
+            <span className="font-medium">{user?.email}</span>
+          </CardContent>
+        </Card>
         <form action={signOutAction}>
-          <button type="submit" className="bg-gray-900 text-white rounded px-4 py-2 text-sm">
-            Sign out
-          </button>
+          <Button type="submit">Sign out</Button>
         </form>
       </section>
 
-      <section className="space-y-2">
-        <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+      <section className="space-y-3">
+        <h2 className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
           Data & privacy
         </h2>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           Requesting deletion will flag your account for removal. All your data will be permanently
           deleted within 30 days.
         </p>
         <form action={requestAccountDeletionAction}>
-          <button
-            type="submit"
-            className="border border-red-300 text-red-600 hover:bg-red-50 rounded px-4 py-2 text-sm"
-          >
+          <Button type="submit" variant="destructive">
             Delete my account
-          </button>
+          </Button>
         </form>
       </section>
     </div>

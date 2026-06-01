@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { unitProgress } from "@/lib/pile/progress";
+import { listRowClass } from "@/lib/ui/list-row";
 import type { Army, PileItem, Unit } from "@/lib/pile/types";
 import type { useCollection } from "@/lib/hooks/use-collection";
 import { ProgressBar } from "./ProgressBar";
@@ -18,8 +22,8 @@ export function UnitList({
   onSelectUnit,
   collection,
 }: {
-  army: Army | null; // null = "Loose units" view
-  units: Unit[]; // units to show (already filtered by army or loose)
+  army: Army | null;
+  units: Unit[];
   items: PileItem[];
   allArmies: Army[];
   selectedUnitId: string | null;
@@ -44,7 +48,7 @@ export function UnitList({
     <div className="space-y-3">
       <h2 className="text-lg font-semibold">{army ? army.name : "Loose units"}</h2>
 
-      {units.length === 0 && <p className="text-sm text-gray-500 italic">No units yet.</p>}
+      {units.length === 0 && <p className="text-sm text-muted-foreground italic">No units yet.</p>}
 
       <ul className="space-y-1">
         {units.map((unit) => {
@@ -55,14 +59,10 @@ export function UnitList({
             <li key={unit.id}>
               <button
                 onClick={() => onSelectUnit(isSelected ? null : unit.id)}
-                className={`w-full text-left px-3 py-2.5 rounded-lg border transition-colors ${
-                  isSelected
-                    ? "bg-gray-900 text-white border-gray-900"
-                    : "hover:bg-gray-50 border-transparent hover:border-gray-200"
-                }`}
+                className={listRowClass(isSelected)}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium truncate">{unit.name}</span>
+                  <span className="truncate text-sm font-medium">{unit.name}</span>
                   {summary.isComplete && <CompletionBadge className="shrink-0" />}
                 </div>
                 {!summary.isComplete && (
@@ -72,29 +72,30 @@ export function UnitList({
                 )}
               </button>
 
-              {/* Inline actions */}
-              <div className="flex gap-3 px-3 pb-1 text-xs text-gray-400">
-                <button
+              <div className="flex gap-1 px-3 pb-1">
+                <Button
+                  variant="ghost"
+                  size="xs"
                   onClick={() => {
                     setEditingId(unit.id);
                     setEditName(unit.name);
                   }}
-                  className="hover:text-gray-700"
                 >
                   Rename
-                </button>
-                <button onClick={() => setAssigningId(unit.id)} className="hover:text-gray-700">
+                </Button>
+                <Button variant="ghost" size="xs" onClick={() => setAssigningId(unit.id)}>
                   Move to army
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  className="text-muted-foreground hover:text-destructive"
                   onClick={() => void collection.deleteUnit(unit.id)}
-                  className="hover:text-red-600"
                 >
                   Delete
-                </button>
+                </Button>
               </div>
 
-              {/* Inline rename */}
               {editingId === unit.id && (
                 <form
                   onSubmit={async (e) => {
@@ -105,31 +106,31 @@ export function UnitList({
                   }}
                   className="flex gap-2 px-3 pb-2"
                 >
-                  <input
+                  <Input
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    className="border rounded px-2 py-1 text-xs flex-1"
+                    className="h-7 flex-1 text-xs"
                     autoFocus
                   />
-                  <button type="submit" className="text-xs text-gray-700 hover:text-gray-900">
+                  <Button type="submit" variant="ghost" size="xs">
                     Save
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="xs"
                     onClick={() => setEditingId(null)}
-                    className="text-xs text-gray-400 hover:text-gray-700"
                   >
                     Cancel
-                  </button>
+                  </Button>
                 </form>
               )}
 
-              {/* Inline assign to army */}
               {assigningId === unit.id && (
                 <div className="flex items-center gap-2 px-3 pb-2">
-                  <label className="text-xs text-gray-600 shrink-0">Army:</label>
+                  <Label className="shrink-0 text-xs">Army:</Label>
                   <select
-                    className="border rounded px-2 py-1 text-xs flex-1"
+                    className="h-7 flex-1 rounded-lg border border-input bg-transparent px-2 text-xs"
                     defaultValue={unit.army_id ?? ""}
                     onChange={async (e) => {
                       const val = e.target.value || null;
@@ -144,12 +145,9 @@ export function UnitList({
                       </option>
                     ))}
                   </select>
-                  <button
-                    onClick={() => setAssigningId(null)}
-                    className="text-xs text-gray-400 hover:text-gray-700"
-                  >
+                  <Button variant="ghost" size="xs" onClick={() => setAssigningId(null)}>
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               )}
             </li>
@@ -157,21 +155,16 @@ export function UnitList({
         })}
       </ul>
 
-      {/* Create unit form */}
       <form onSubmit={(e) => void handleCreateUnit(e)} className="flex gap-2 pt-1">
-        <input
+        <Input
           value={newUnitName}
           onChange={(e) => setNewUnitName(e.target.value)}
           placeholder="New unit name…"
-          className="border rounded px-3 py-1.5 text-sm flex-1"
+          className="flex-1"
         />
-        <button
-          type="submit"
-          disabled={!newUnitName.trim()}
-          className="bg-gray-900 text-white rounded px-3 py-1.5 text-sm disabled:opacity-40"
-        >
+        <Button type="submit" disabled={!newUnitName.trim()} size="sm">
           + Unit
-        </button>
+        </Button>
       </form>
     </div>
   );
