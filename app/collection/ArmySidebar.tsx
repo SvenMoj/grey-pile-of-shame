@@ -5,6 +5,7 @@ import { armyProgress, looseItems, looseUnits } from "@/lib/pile/progress";
 import type { Army, PileItem, Unit } from "@/lib/pile/types";
 import type { useCollection } from "@/lib/hooks/use-collection";
 import { ProgressBar } from "./ProgressBar";
+import { CompletionBadge } from "@/app/_components/CompletionBadge";
 
 type Collection = ReturnType<typeof useCollection>;
 
@@ -76,12 +77,14 @@ export function ArmySidebar({
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-medium truncate">{army.name}</span>
                 {summary.isComplete && summary.counts.total > 0 && (
-                  <span className="text-xs shrink-0">⚜️</span>
+                  <CompletionBadge className="shrink-0" />
                 )}
               </div>
-              <div className={`mt-1 ${isSelected(sel) ? "opacity-70" : ""}`}>
-                <ProgressBar summary={summary} compact />
-              </div>
+              {!summary.isComplete && (
+                <div className={`mt-1 ${isSelected(sel) ? "opacity-70" : ""}`}>
+                  <ProgressBar summary={summary} compact />
+                </div>
+              )}
             </button>
             {/* Army actions */}
             <div className="flex gap-3 px-3 pb-1 text-xs text-gray-400">

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { summarizeItems, unitProgress, armyProgress, looseItems, looseUnits } from "./progress";
+import { STAGE_WEIGHTS } from "./progress";
 import type { PileItem, Unit } from "./types";
 
 // ---------------------------------------------------------------------------
@@ -188,6 +189,64 @@ describe("armyProgress", () => {
     ];
     const s = armyProgress("army-1", units, items);
     expect(s.pointsPainted).toBe(300);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// STAGE_WEIGHTS / weightedPct
+// ---------------------------------------------------------------------------
+
+describe("STAGE_WEIGHTS", () => {
+  it("has weight 0 for unbuilt and 1 for painted", () => {
+    expect(STAGE_WEIGHTS.unbuilt).toBe(0);
+    expect(STAGE_WEIGHTS.painted).toBe(1);
+  });
+
+  it("weights increase strictly from unbuilt to painted", () => {
+    const ordered = ["unbuilt", "built", "primed", "in_progress", "painted"] as const;
+    for (let i = 1; i < ordered.length; i++) {
+      expect(STAGE_WEIGHTS[ordered[i]]).toBeGreaterThan(STAGE_WEIGHTS[ordered[i - 1]]);
+    }
+  });
+});
+
+describe("summarizeItems — weightedPct", () => {
+  it("is 0 for an empty list", () => {
+    expect(summarizeItems([]).weightedPct).toBe(0);
+  });
+
+  it("is 0 for all-unbuilt items", () => {
+    const s = summarizeItems([item("unbuilt"), item("unbuilt")]);
+    expect(s.weightedPct).toBe(0);
+  });
+
+  it("is 100 for all-painted items", () => {
+    const s = summarizeItems([item("painted"), item("painted")]);
+    expect(s.weightedPct).toBe(100);
+  });
+
+  it("reflects partial progress — one of each stage (5 items, weights 0+0.25+0.5+0.75+1 = 2.5/5 = 50%)", () => {
+    const items = [
+      item("unbuilt"),
+      item("built"),
+      item("primed"),
+      item("in_progress"),
+      item("painted"),
+    ];
+    const s = summarizeItems(items);
+    expect(s.weightedPct).toBeCloseTo(50, 1);
+  });
+
+  it("a purely primed collection scores above 0 (partial progress shown)", () => {
+    const s = summarizeItems([item("primed"), item("primed"), item("primed")]);
+    expect(s.weightedPct).toBeGreaterThan(0);
+    expect(s.weightedPct).toBeLessThan(100);
+  });
+
+  it("weightedPct rounds to one decimal", () => {
+    // 1 built (0.25) + 2 unbuilt (0) = 0.25 / 3 = 8.333...% → 8.3
+    const s = summarizeItems([item("built"), item("unbuilt"), item("unbuilt")]);
+    expect(s.weightedPct).toBeCloseTo(8.3, 1);
   });
 });
 

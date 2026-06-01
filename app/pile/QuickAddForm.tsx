@@ -3,16 +3,9 @@
 import { useRef } from "react";
 import { parseQuickAdd } from "@/lib/pile/parse-quick-add";
 import { PILE_STATES } from "@/lib/pile/states";
+import { STATE_LABELS } from "@/lib/pile/display";
 import type { NewPileItem } from "@/lib/pile/types";
 import { Field } from "./Field";
-
-const STATE_LABELS: Record<(typeof PILE_STATES)[number], string> = {
-  unbuilt: "Unbuilt",
-  built: "Built",
-  primed: "Primed",
-  in_progress: "In progress",
-  painted: "Painted",
-};
 
 export function QuickAddForm({
   onAdd,

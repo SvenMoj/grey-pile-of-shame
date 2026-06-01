@@ -5,6 +5,7 @@ import { unitProgress } from "@/lib/pile/progress";
 import type { Army, PileItem, Unit } from "@/lib/pile/types";
 import type { useCollection } from "@/lib/hooks/use-collection";
 import { ProgressBar } from "./ProgressBar";
+import { CompletionBadge } from "@/app/_components/CompletionBadge";
 
 type Collection = ReturnType<typeof useCollection>;
 
@@ -62,11 +63,13 @@ export function UnitList({
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-medium truncate">{unit.name}</span>
-                  {summary.isComplete && <span className="text-xs shrink-0">✓ Done</span>}
+                  {summary.isComplete && <CompletionBadge className="shrink-0" />}
                 </div>
-                <div className={`mt-1 ${isSelected ? "opacity-70" : ""}`}>
-                  <ProgressBar summary={summary} compact />
-                </div>
+                {!summary.isComplete && (
+                  <div className={`mt-1 ${isSelected ? "opacity-70" : ""}`}>
+                    <ProgressBar summary={summary} compact />
+                  </div>
+                )}
               </button>
 
               {/* Inline actions */}
