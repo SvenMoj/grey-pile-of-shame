@@ -21,15 +21,26 @@ export function PileSection({
   onRemove: (id: string) => Promise<unknown>;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
 
   if (items.length === 0) return null;
 
   return (
     <section>
-      <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-        {label} ({items.length})
-      </h2>
-      <ul className="divide-y border rounded">
+      <button
+        onClick={() => setCollapsed((c) => !c)}
+        className="flex items-center gap-1 w-full text-left mb-2 group"
+      >
+        <span
+          className={`text-gray-400 transition-transform duration-150 ${collapsed ? "-rotate-90" : ""}`}
+        >
+          ▾
+        </span>
+        <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide group-hover:text-gray-700">
+          {label} ({items.length})
+        </h2>
+      </button>
+      {collapsed ? null : <ul className="divide-y border rounded">
         {items.map((item) => (
           <li key={item.id}>
             {/* Row */}
@@ -86,7 +97,7 @@ export function PileSection({
             )}
           </li>
         ))}
-      </ul>
+      </ul>}
     </section>
   );
 }
