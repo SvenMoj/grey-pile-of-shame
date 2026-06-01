@@ -24,6 +24,7 @@ Checklist-style breakdown of every discrete piece of work. Each item is sized to
 - [x] **P1** — Configure GitHub Actions or Vercel build checks for type errors and lint
 - [x] **P2** — Set up Prettier + ESLint with sensible defaults
 - [x] **P2** — Add a `README.md` documenting local setup
+- [x] **P0** — Site logo and favicon (`/grey-pile-of-shame.png` as browser icon + `SiteHeader` component on public pages)
 - [ ] **P2** — Install `culori` for CIEDE2000 color distance (Phase 4 only — not a P0 dependency)
 
 ---
@@ -51,10 +52,10 @@ All user-domain tables are already migrated with correct state machines and owne
 
 The core app works without any account. Local data lives in browser localStorage; on signup it migrates to Supabase.
 
-- [ ] **P0** — `PileStore` interface (`list`, `add`, `addMany`, `advanceState`, `remove`) — the abstraction both backends implement
-- [ ] **P0** — `localPileStore` — localStorage-backed implementation, versioned JSON key (`gpos.pile.v1`), graceful fallback on corrupt data or SSR
+- [x] **P0** — `PileStore` interface (`list`, `add`, `addMany`, `advanceState`, `update`, `remove`) — the abstraction both backends implement; `update` added for inline editing
+- [x] **P0** — `localPileStore` — localStorage-backed implementation, versioned JSON key (`gpos.pile.v1`), graceful fallback on corrupt data or SSR; fully TDD with injectable `Storage`
 - [ ] **P0** — `supabasePileStore` — RLS browser-client-backed implementation (uses `lib/supabase/client.ts`, never `adminClient`)
-- [ ] **P0** — `usePile()` hook — picks backend by session state (null → local, authed → supabase), exposes unified API to UI
+- [x] **P0** — `usePile()` hook — exposes unified API to UI; currently always uses `localPileStore` (session switching ships with the auth slice)
 - [ ] **P0** — `migrate-on-auth` — on first authed load, push local pile rows into Supabase under the new `user_id`, then clear local store; idempotent (migration flag persisted to localStorage)
 - [ ] **P0** — Handle edge case: user signs in to an account that already has cloud data (append local items, don't clobber)
 
@@ -77,10 +78,11 @@ Account = the "save & sync" action. The admin gate (`ADMIN_EMAIL`) must remain f
 
 All UI is **client components** driven by `usePile()`. No server actions for the pile (anonymous users have no session for RLS to key off). Pages are accessible without login.
 
-- [ ] **P0** — Pile dashboard (`/pile`): five sections in `PILE_STATES` order with counts ("pile shrinks" surface)
-- [ ] **P0** — Per-item one-tap **Advance** button (hidden at `painted`); sets `painted_at` only on the hop into `painted`
-- [ ] **P0** — Quick-add form: single vs batch (`unit_size`) control, optional game/faction/point_value/state
-- [ ] **P0** — Empty pile state → CTA to `/onboarding`
+- [x] **P0** — Pile dashboard (`/pile`): five sections in `PILE_STATES` order with counts ("pile shrinks" surface)
+- [x] **P0** — Per-item one-tap **Advance** button (hidden at `painted`); sets `painted_at` only on the hop into `painted`
+- [x] **P0** — Quick-add form: single vs batch (`unit_size`) control, optional game/faction/point_value/state
+- [x] **P0** — Per-item inline **Edit** form (Name / Game / Faction / Points / State): row expands in-place, Save persists, Cancel discards; state editable in any direction so accidental Advances can be undone
+- [x] **P0** — Empty pile state → CTA to `/onboarding`
 - [ ] **P0** — Soft contextual save banner: shown when `session == null && localPileCount > 0`; "Create a free account to save & sync across devices"; dismissible per session
 
 ---
@@ -89,7 +91,7 @@ All UI is **client components** driven by `usePile()`. No server actions for the
 
 Goal: a new visitor captures their whole pile in under 2 minutes, before ever touching a sign-up form.
 
-- [ ] **P0** — Quick-count flow (`/onboarding`): one stepper per state → `expandQuickCount` → `usePile().addMany` → `/pile`. One tap per state, no naming required.
+- [x] **P0** — Quick-count flow (`/onboarding`): one stepper per state → `expandQuickCount` → `usePile().addMany` → `/pile`. One tap per state, no naming required.
 - [ ] **P1** — Faction/game template flow: "You play Death Guard — tap the units you own" from a seeded unit list (tap, don't type)
 - [ ] **P1** — Step 0 context capture: "What do you mainly paint?" (game/faction picker) and "Which brands do you use?" — seeds smart defaults
 - [ ] **P2** — Box-barcode scan (Phase 4 hardware): scan a box → add the kit to the pile
@@ -201,5 +203,7 @@ No color math required. "Which paints did you use on this mini" is enough to sta
 ## Quick Dashboard
 
 - **Phase 1 (P0):** ~25 work sessions → anonymous pile tracker with local storage, magic-link signup, migrate-on-auth, soft save CTA.
+  - ✅ Done: `PileStore` + `localPileStore` (TDD), `usePile()` hook, `/pile` dashboard (Advance, Quick-add, Edit inline, empty state), `/onboarding` quick-count flow, site logo/favicon.
+  - 🔲 Remaining: `profiles` migration, generalized magic-link auth + `/login`, `supabasePileStore`, migrate-on-auth, `/settings`, soft save banner, Imprint/Privacy Policy.
 - **Phase 2 (P1 first wave):** ~20 sessions → challenges, paint inventory onboarding.
 - **Phase 3+ (P1/P2):** public funnel, community, color depth, social.

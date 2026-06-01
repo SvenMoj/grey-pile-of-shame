@@ -73,7 +73,7 @@ These hold across all six months. Re-read them whenever a decision feels hard.
 
 Because the priority is momentum, the things to do _this week_ regardless of month boundaries:
 
-1. **Ship the pile tracker, usable without login.** Local-first storage abstraction (localStorage), pile dashboard grouped by state, quick-count onboarding ("how many unbuilt? built?"), one-tap state progression. A stranger should be able to capture their pile in under 2 minutes on the first visit.
+1. ✅ **Ship the pile tracker, usable without login.** Local-first storage abstraction (localStorage), pile dashboard grouped by state, quick-count onboarding ("how many unbuilt? built?"), one-tap state progression, inline item editing. Shipped — a stranger can capture their pile in under 2 minutes.
 2. **Lock the domain and name.** Don't agonize past two weeks.
 3. **Generalize magic-link auth** (Supabase handles most of it). The user-facing app is open to any email; `/admin` stays gated by `ADMIN_EMAIL`. On signup, migrate local pile data to Supabase in one batched insert.
 4. **Build the first challenge preset** (_Weekend Warrior_ or _Pledge to Paint_) so the pile tracker immediately has a goal layer. Ugly is fine — the point is to feel the loop before polishing any node of it.
@@ -90,11 +90,11 @@ Because the priority is momentum, the things to do _this week_ regardless of mon
 
 ### Features
 
-**1.1 — Local-first pile storage** · _2-3 days_ · `PileStore` interface with two backends: `localPileStore` (localStorage, versioned JSON, SSR-safe fallback) and `supabasePileStore` (RLS browser client, used once authed). `usePile()` hook picks the backend by session state. _Success:_ pile data survives a page refresh without an account.
+**1.1 — Local-first pile storage** ✅ · `PileStore` interface (list/add/addMany/advanceState/update/remove) + `localPileStore` (localStorage, versioned JSON `gpos.pile.v1`, SSR-safe, corrupt-data recovery); fully TDD with injectable Storage. `usePile()` hook with reactive state; currently always uses localPileStore — session switching ships with 1.4. _Success:_ pile data survives a page refresh without an account. ✓
 
-**1.2 — Quick-count onboarding** · _1-2 days_ · `/onboarding`: one stepper per state → `expandQuickCount` → `usePile().addMany` → `/pile`. No naming, no login. _Success:_ a new visitor captures their whole pile in under 2 minutes.
+**1.2 — Quick-count onboarding** ✅ · `/onboarding`: stepper per state (unbuilt / built / primed / started) → `expandQuickCount` → `usePile().addMany` → `/pile`. No naming, no login. _Success:_ a new visitor captures their whole pile in under 2 minutes. ✓
 
-**1.3 — Pile dashboard** · _1 week_ · `/pile`: five sections in `PILE_STATES` order with counts (the "pile shrinks" surface). Per-item one-tap **Advance** button; hidden at `painted`. Quick-add form (single vs batch, optional game/faction). Empty pile → CTA to onboarding. _Success:_ advancing a mini one step takes one tap.
+**1.3 — Pile dashboard** ✅ · `/pile`: five sections in `PILE_STATES` order with counts (the "pile shrinks" surface). Per-item one-tap **Advance** button (hidden at `painted`); inline **Edit** form (Name / Game / Faction / Points / State, backward state moves allowed); Quick-add form (single vs batch); empty pile → CTA to onboarding. Site logo and favicon live. _Success:_ advancing a mini one step takes one tap; onboarding items can be named and enriched inline. ✓
 
 **1.4 — Generalized magic-link auth + migrate-on-signup** · _2-3 days_ · New `/login` route (no `ADMIN_EMAIL` check). Callback stops signing out non-admins: admin email → `/admin/paints`, else → `/pile`. On first authed load with non-empty local pile: push all local rows to Supabase, clear local store, set idempotency flag. _Success:_ sign-up under 30s; local pile appears in the cloud immediately; opening a second browser logged in shows the same pile.
 

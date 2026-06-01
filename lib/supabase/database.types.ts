@@ -224,6 +224,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      profiles: {
+        Row: {
+          created_at: string;
+          deletion_requested_at: string | null;
+          display_name: string | null;
+          id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          deletion_requested_at?: string | null;
+          display_name?: string | null;
+          id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          deletion_requested_at?: string | null;
+          display_name?: string | null;
+          id?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       recipe_applications: {
         Row: {
           applied_at: string | null;
@@ -465,7 +489,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      paint_brands: { Args: never; Returns: string[] };
     };
     Enums: {
       [_ in never]: never;

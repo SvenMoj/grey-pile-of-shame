@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { SiteHeader } from "@/app/_components/SiteHeader";
 import { usePile } from "@/lib/hooks/use-pile";
 import { PILE_STATES } from "@/lib/pile/states";
@@ -16,7 +17,8 @@ const STATE_LABELS: Record<(typeof PILE_STATES)[number], string> = {
 };
 
 export default function PilePage() {
-  const { items, loaded, add, addMany, advance, update, remove } = usePile();
+  const { items, loaded, session, add, addMany, advance, update, remove } = usePile();
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   if (!loaded) {
     return (
@@ -57,6 +59,8 @@ export default function PilePage() {
   const totalUnpainted = items.filter((i) => i.state !== "painted").length;
   const totalPainted = items.filter((i) => i.state === "painted").length;
 
+  const showBanner = !session && !bannerDismissed && items.length > 0;
+
   return (
     <>
       <SiteHeader />
@@ -67,6 +71,26 @@ export default function PilePage() {
             {totalPainted} painted · {totalUnpainted} to go
           </p>
         </div>
+
+        {showBanner && (
+          <div className="border rounded px-4 py-3 text-sm flex items-center justify-between gap-4 bg-gray-50">
+            <span className="text-gray-700">
+              Create a free account to save your pile and sync across devices.
+            </span>
+            <div className="flex items-center gap-3 shrink-0">
+              <Link href="/login" className="font-medium underline whitespace-nowrap">
+                Sign up / log in
+              </Link>
+              <button
+                onClick={() => setBannerDismissed(true)}
+                aria-label="Dismiss"
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
 
         <QuickAddForm onAdd={add} onAddMany={addMany} />
 
