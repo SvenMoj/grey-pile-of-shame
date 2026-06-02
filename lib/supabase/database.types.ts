@@ -583,6 +583,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      brand_pair_conversion_counts: {
+        Args: never;
+        Returns: {
+          brand_a: string;
+          brand_b: string;
+          n: number;
+        }[];
+      };
       paint_brands: { Args: never; Returns: string[] };
     };
     Enums: {

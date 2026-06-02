@@ -37,6 +37,9 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Run on all routes except Next.js internals and static files.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  // Run on all routes except Next.js internals, static files,
+  // and the public convert pages + sitemap/robots (no auth needed, save the overhead).
+  matcher: [
+    "/((?!_next/static|_next/image|favicon\\.ico|sitemap\\.xml|robots\\.txt|convert(?:/.*)?$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 };
