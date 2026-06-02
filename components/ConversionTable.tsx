@@ -26,7 +26,7 @@ function PaintSwatch({ hex, name }: { hex: string | null; name: string }) {
     <span className="flex items-center gap-2">
       {hex && (
         <span
-          className="inline-block h-4 w-4 shrink-0 rounded border border-border"
+          className="inline-block h-6 w-6 shrink-0 rounded border border-border"
           style={{ backgroundColor: `#${hex}` }}
           aria-hidden
         />
