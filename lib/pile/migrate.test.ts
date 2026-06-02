@@ -17,6 +17,8 @@ function makeItem(id: string, overrides: Partial<PileItem> = {}): PileItem {
     unit_id: null,
     state: "unbuilt",
     point_value: null,
+    image_url: null,
+    visibility: "private" as const,
     created_at: "2026-06-01T00:00:00.000Z",
     painted_at: null,
     updated_at: "2026-06-01T00:00:00.000Z",

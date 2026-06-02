@@ -13,6 +13,8 @@ function makeItem(overrides: Partial<PileItem> = {}): PileItem {
     unit_id: null,
     state: "unbuilt",
     point_value: null,
+    image_url: null,
+    visibility: "private" as const,
     created_at: "2026-01-01T00:00:00.000Z",
     painted_at: null,
     updated_at: "2026-01-01T00:00:00.000Z",
@@ -189,5 +191,49 @@ describe("applyEdit — immutability", () => {
     const item = makeItem();
     const result = applyEdit(item, { display_name: "Same name" }, now);
     expect(result).not.toBe(item);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// image_url and visibility
+// ---------------------------------------------------------------------------
+
+describe("applyEdit — image_url", () => {
+  it("sets image_url from null", () => {
+    const item = makeItem();
+    const result = applyEdit(item, { image_url: "https://example.com/photo.jpg" }, now);
+    expect(result.image_url).toBe("https://example.com/photo.jpg");
+  });
+
+  it("clears image_url with explicit null", () => {
+    const item = makeItem({ image_url: "https://example.com/photo.jpg" });
+    const result = applyEdit(item, { image_url: null }, now);
+    expect(result.image_url).toBeNull();
+  });
+
+  it("preserves image_url when absent from patch", () => {
+    const item = makeItem({ image_url: "https://example.com/photo.jpg" });
+    const result = applyEdit(item, { display_name: "Updated" }, now);
+    expect(result.image_url).toBe("https://example.com/photo.jpg");
+  });
+});
+
+describe("applyEdit — visibility", () => {
+  it("sets visibility to public", () => {
+    const item = makeItem();
+    const result = applyEdit(item, { visibility: "public" }, now);
+    expect(result.visibility).toBe("public");
+  });
+
+  it("sets visibility back to private", () => {
+    const item = makeItem({ visibility: "public" });
+    const result = applyEdit(item, { visibility: "private" }, now);
+    expect(result.visibility).toBe("private");
+  });
+
+  it("preserves visibility when absent from patch", () => {
+    const item = makeItem({ visibility: "public" });
+    const result = applyEdit(item, { display_name: "Updated" }, now);
+    expect(result.visibility).toBe("public");
   });
 });

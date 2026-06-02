@@ -1,4 +1,5 @@
 export type PileState = "unbuilt" | "built" | "primed" | "in_progress" | "painted";
+export type ModelVisibility = "private" | "public";
 
 /** Client-relevant subset of the miniature_items DB row. */
 export interface PileItem {
@@ -11,6 +12,8 @@ export interface PileItem {
   unit_id: string | null; // optional grouping: which unit this model belongs to
   state: PileState;
   point_value: number | null;
+  image_url: string | null; // model photo stored in Supabase Storage
+  visibility: ModelVisibility; // "private" (default) or "public" (shareable link)
   created_at: string; // ISO string
   painted_at: string | null; // set ONLY on the hop into "painted"
   updated_at: string; // ISO string
@@ -30,7 +33,15 @@ export type NewPileItem = Partial<Omit<PileItem, "id" | "created_at" | "updated_
 export type EditPileItem = Partial<
   Pick<
     PileItem,
-    "display_name" | "game" | "faction" | "unit_size" | "unit_id" | "point_value" | "state"
+    | "display_name"
+    | "game"
+    | "faction"
+    | "unit_size"
+    | "unit_id"
+    | "point_value"
+    | "state"
+    | "image_url"
+    | "visibility"
   >
 >;
 

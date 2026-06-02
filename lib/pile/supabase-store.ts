@@ -17,6 +17,8 @@ function toItem(row: Record<string, unknown>): PileItem {
     unit_id: (row.unit_id as string | null) ?? null,
     state: row.state as PileItem["state"],
     point_value: (row.point_value as number | null) ?? null,
+    image_url: (row.image_url as string | null) ?? null,
+    visibility: ((row.visibility as string | null) ?? "private") as PileItem["visibility"],
     created_at: row.created_at as string,
     painted_at: (row.painted_at as string | null) ?? null,
     updated_at: row.updated_at as string,
@@ -61,6 +63,8 @@ export function createSupabasePileStore(supabase: SupabaseClient): PileStore {
           unit_id: input.unit_id ?? null,
           state: input.state ?? "unbuilt",
           point_value: input.point_value ?? null,
+          image_url: null,
+          visibility: "private",
           painted_at: input.painted_at ?? null,
         })
         .select()
@@ -82,6 +86,8 @@ export function createSupabasePileStore(supabase: SupabaseClient): PileStore {
         unit_id: input.unit_id ?? null,
         state: input.state ?? "unbuilt",
         point_value: input.point_value ?? null,
+        image_url: null,
+        visibility: "private" as const,
         painted_at: input.painted_at ?? null,
       }));
       const { data, error } = await supabase.from("miniature_items").insert(rows).select();
@@ -134,6 +140,8 @@ export function createSupabasePileStore(supabase: SupabaseClient): PileStore {
           unit_size: updated.unit_size,
           unit_id: updated.unit_id,
           point_value: updated.point_value,
+          image_url: updated.image_url,
+          visibility: updated.visibility,
           state: updated.state,
           painted_at: updated.painted_at,
           updated_at: updated.updated_at,

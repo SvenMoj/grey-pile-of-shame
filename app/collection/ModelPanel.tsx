@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { unitProgress } from "@/lib/pile/progress";
 import type { PileItem, Unit } from "@/lib/pile/types";
 import type { useCollection } from "@/lib/hooks/use-collection";
-import { ModelItemRow } from "@/components/ModelItemRow";
+import { ModelCard } from "@/components/ModelCard";
 import { StageStepper } from "@/components/StageStepper";
 import { CompletionBadge } from "@/components/CompletionBadge";
 import { ProgressBar } from "@/components/ProgressBar";
@@ -96,10 +96,10 @@ export function ModelPanel({
       {unitItems.length === 0 ? (
         <p className="text-sm text-muted-foreground italic">No models here yet.</p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="grid gap-3 sm:grid-cols-2">
           {unitItems.map((item) => (
             <li key={item.id}>
-              <ModelItemRow
+              <ModelCard
                 item={item}
                 advance={
                   item.state !== "painted" ? (

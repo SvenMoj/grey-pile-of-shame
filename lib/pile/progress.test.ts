@@ -22,6 +22,8 @@ function item(
     unit_id: opts.unit_id ?? null,
     state,
     point_value: opts.point_value ?? null,
+    image_url: null,
+    visibility: "private" as const,
     created_at: "2026-01-01T00:00:00.000Z",
     painted_at: state === "painted" ? "2026-01-01T00:00:00.000Z" : null,
     updated_at: "2026-01-01T00:00:00.000Z",

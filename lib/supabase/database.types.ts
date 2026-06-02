@@ -156,6 +156,7 @@ export type Database = {
           faction: string | null;
           game: string | null;
           id: string;
+          image_url: string | null;
           kit_id: string | null;
           painted_at: string | null;
           point_value: number | null;
@@ -164,6 +165,7 @@ export type Database = {
           unit_size: number;
           updated_at: string;
           user_id: string;
+          visibility: string;
         };
         Insert: {
           created_at?: string;
@@ -171,6 +173,7 @@ export type Database = {
           faction?: string | null;
           game?: string | null;
           id?: string;
+          image_url?: string | null;
           kit_id?: string | null;
           painted_at?: string | null;
           point_value?: number | null;
@@ -179,6 +182,7 @@ export type Database = {
           unit_size?: number;
           updated_at?: string;
           user_id: string;
+          visibility?: string;
         };
         Update: {
           created_at?: string;
@@ -186,6 +190,7 @@ export type Database = {
           faction?: string | null;
           game?: string | null;
           id?: string;
+          image_url?: string | null;
           kit_id?: string | null;
           painted_at?: string | null;
           point_value?: number | null;
@@ -194,6 +199,7 @@ export type Database = {
           unit_size?: number;
           updated_at?: string;
           user_id?: string;
+          visibility?: string;
         };
         Relationships: [
           {
