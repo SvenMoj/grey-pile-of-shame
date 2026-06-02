@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { adminClient } from "@/lib/supabase/admin";
+import { publicClient } from "@/lib/supabase/public";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -46,7 +46,7 @@ export type FaqItem = {
  */
 export const getBrandPairCounts = cache(async (): Promise<BrandPairCount[]> => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (adminClient as any).rpc("brand_pair_conversion_counts");
+  const { data, error } = await (publicClient as any).rpc("brand_pair_conversion_counts");
   if (error)
     throw new Error(`brand_pair_conversion_counts: ${(error as { message: string }).message}`);
   // The RPC returns { brand_a, brand_b, n } where n is a bigint — Supabase
@@ -64,7 +64,7 @@ export async function getConversionsForPair(
   fromBrand: string,
   toBrand: string,
 ): Promise<PublicConversion[]> {
-  const { data, error } = await adminClient
+  const { data, error } = await publicClient
     .from("conversions")
     .select(
       "id, confidence, source_type, source_url, notes, verified_count, disputed_count, paint_a:paints!paint_a_id!inner(brand, name, hex, range), paint_b:paints!paint_b_id!inner(brand, name, hex, range)",
