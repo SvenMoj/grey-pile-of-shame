@@ -99,12 +99,9 @@ export default async function BrandPairPage({ params }: Props) {
     <>
       {/* Structured data */}
       <JsonLd
-        data={buildItemListJsonLd(
-          fromBrand,
-          toBrand,
-          conversions,
-          baseUrl,
-        ) as Record<string, unknown>}
+        data={
+          buildItemListJsonLd(fromBrand, toBrand, conversions, baseUrl) as Record<string, unknown>
+        }
       />
       <JsonLd data={buildFaqPageJsonLd(faqItems) as Record<string, unknown>} />
       <JsonLd data={buildBreadcrumbJsonLd(crumbs) as Record<string, unknown>} />
@@ -127,17 +124,16 @@ export default async function BrandPairPage({ params }: Props) {
           <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl">
             {count > 0 ? (
               <>
-                {count} {fromBrand} paint{count === 1 ? "" : "s"} with a known {toBrand}{" "}
-                substitute
+                {count} {fromBrand} paint{count === 1 ? "" : "s"} with a known {toBrand} substitute
                 {officialCount > 0 && (
-                  <>
-                    {" "}— including {officialCount} from an official conversion chart
-                  </>
+                  <> — including {officialCount} from an official conversion chart</>
                 )}
                 . Sorted by match confidence.
               </>
             ) : (
-              <>No conversion data found between {fromBrand} and {toBrand} yet.</>
+              <>
+                No conversion data found between {fromBrand} and {toBrand} yet.
+              </>
             )}
           </p>
         </header>
@@ -147,11 +143,7 @@ export default async function BrandPairPage({ params }: Props) {
           <h2 id="table-heading" className="sr-only">
             {fromBrand} to {toBrand} conversion table
           </h2>
-          <ConversionTable
-            conversions={conversions}
-            fromBrand={fromBrand}
-            toBrand={toBrand}
-          />
+          <ConversionTable conversions={conversions} fromBrand={fromBrand} toBrand={toBrand} />
         </section>
 
         {/* FAQ */}

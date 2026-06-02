@@ -16,9 +16,7 @@ export default async function ConvertIndexPage() {
 
   // Total conversions per source brand (sum all target counts)
   const brandsWithCounts = brands.map((brand) => {
-    const total = pairCounts
-      .filter((p) => p.brand_a === brand)
-      .reduce((s, p) => s + p.n, 0);
+    const total = pairCounts.filter((p) => p.brand_a === brand).reduce((s, p) => s + p.n, 0);
     return { brand, slug: slugifyBrand(brand), total };
   });
 
@@ -35,12 +33,10 @@ export default async function ConvertIndexPage() {
   return (
     <main className="container mx-auto max-w-4xl px-4 py-12 space-y-12">
       <header className="space-y-3">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Miniature Paint Conversion Charts
-        </h1>
+        <h1 className="text-3xl font-bold tracking-tight">Miniature Paint Conversion Charts</h1>
         <p className="text-muted-foreground text-lg">
-          Find the closest substitute for any miniature paint across Citadel, Vallejo,
-          Army Painter, Reaper, Scale75, and more. Select a brand to start.
+          Find the closest substitute for any miniature paint across Citadel, Vallejo, Army Painter,
+          Reaper, Scale75, and more. Select a brand to start.
         </p>
       </header>
 

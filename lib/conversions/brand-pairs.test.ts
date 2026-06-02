@@ -93,7 +93,12 @@ describe("buildItemListJsonLd", () => {
   });
 
   it("itemListElement length matches the input rows", () => {
-    const ld = buildItemListJsonLd("Citadel", "Vallejo", [highConf, midConf], "https://example.com");
+    const ld = buildItemListJsonLd(
+      "Citadel",
+      "Vallejo",
+      [highConf, midConf],
+      "https://example.com",
+    );
     expect(ld.itemListElement).toHaveLength(2);
   });
 

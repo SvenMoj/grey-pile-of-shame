@@ -28,64 +28,62 @@ export default async function OgImage({
   const count = pair?.n ?? 0;
 
   return new ImageResponse(
-    (
+    <div
+      style={{
+        background: "linear-gradient(135deg, #0f0f10 0%, #1a1a1c 100%)",
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        justifyContent: "flex-end",
+        padding: "60px 72px",
+        fontFamily: "sans-serif",
+      }}
+    >
+      {/* Badge */}
       <div
         style={{
-          background: "linear-gradient(135deg, #0f0f10 0%, #1a1a1c 100%)",
-          width: "100%",
-          height: "100%",
           display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          justifyContent: "flex-end",
-          padding: "60px 72px",
-          fontFamily: "sans-serif",
+          background: "rgba(255,255,255,0.08)",
+          borderRadius: "6px",
+          padding: "6px 14px",
+          marginBottom: "24px",
+          fontSize: "15px",
+          color: "rgba(255,255,255,0.55)",
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
         }}
       >
-        {/* Badge */}
-        <div
-          style={{
-            display: "flex",
-            background: "rgba(255,255,255,0.08)",
-            borderRadius: "6px",
-            padding: "6px 14px",
-            marginBottom: "24px",
-            fontSize: "15px",
-            color: "rgba(255,255,255,0.55)",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-          }}
-        >
-          Paint Conversion Chart
-        </div>
-
-        {/* Main heading */}
-        <div
-          style={{
-            fontSize: "72px",
-            fontWeight: 700,
-            color: "#ffffff",
-            lineHeight: 1.1,
-            marginBottom: "20px",
-          }}
-        >
-          {fromBrand}
-          <span style={{ color: "rgba(255,255,255,0.35)", margin: "0 20px" }}>→</span>
-          {toBrand}
-        </div>
-
-        {/* Subtitle */}
-        <div
-          style={{
-            fontSize: "28px",
-            color: "rgba(255,255,255,0.5)",
-            marginBottom: "0",
-          }}
-        >
-          {count} paint substitute{count === 1 ? "" : "s"} · grey-pile-of-shame
-        </div>
+        Paint Conversion Chart
       </div>
-    ),
+
+      {/* Main heading */}
+      <div
+        style={{
+          fontSize: "72px",
+          fontWeight: 700,
+          color: "#ffffff",
+          lineHeight: 1.1,
+          marginBottom: "20px",
+        }}
+      >
+        {fromBrand}
+        <span style={{ color: "rgba(255,255,255,0.35)", margin: "0 20px" }}>→</span>
+        {toBrand}
+      </div>
+
+      {/* Subtitle */}
+      <div
+        style={{
+          fontSize: "28px",
+          color: "rgba(255,255,255,0.5)",
+          marginBottom: "0",
+        }}
+      >
+        {count} paint substitute{count === 1 ? "" : "s"} · grey-pile-of-shame
+      </div>
+    </div>,
     {
       ...size,
     },

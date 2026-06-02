@@ -34,7 +34,11 @@ export function QuickAddForm({
   }
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+    <Collapsible
+      open={open}
+      onOpenChange={setOpen}
+      className="overflow-hidden rounded-xl border border-border bg-card shadow-sm"
+    >
       <CollapsibleTrigger asChild>
         <Button
           variant="ghost"

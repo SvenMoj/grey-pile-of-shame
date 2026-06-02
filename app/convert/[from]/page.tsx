@@ -58,18 +58,14 @@ export default async function BrandIndexPage({ params }: Props) {
       />
 
       <header className="space-y-3">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Convert {fromBrand} Paints
-        </h1>
+        <h1 className="text-3xl font-bold tracking-tight">Convert {fromBrand} Paints</h1>
         <p className="text-muted-foreground text-lg">
           Choose a target brand to see the full conversion chart for {fromBrand} paints.
         </p>
       </header>
 
       {targets.length === 0 ? (
-        <p className="text-muted-foreground">
-          No conversion data available for {fromBrand} yet.
-        </p>
+        <p className="text-muted-foreground">No conversion data available for {fromBrand} yet.</p>
       ) : (
         <ul className="space-y-2">
           {targets.map(({ brand, slug, count }) => (

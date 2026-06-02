@@ -47,7 +47,8 @@ export type FaqItem = {
 export const getBrandPairCounts = cache(async (): Promise<BrandPairCount[]> => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (adminClient as any).rpc("brand_pair_conversion_counts");
-  if (error) throw new Error(`brand_pair_conversion_counts: ${(error as { message: string }).message}`);
+  if (error)
+    throw new Error(`brand_pair_conversion_counts: ${(error as { message: string }).message}`);
   // The RPC returns { brand_a, brand_b, n } where n is a bigint — Supabase
   // converts it to a JS number when it fits safely, but coerce to be safe.
   return ((data as { brand_a: string; brand_b: string; n: number | string }[]) ?? []).map(

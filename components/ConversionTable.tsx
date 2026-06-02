@@ -78,11 +78,15 @@ export function ConversionTable({ conversions, fromBrand, toBrand }: Props) {
               <TableCell className="font-medium">
                 <PaintSwatch hex={c.paint_a.hex} name={c.paint_a.name} />
               </TableCell>
-              <TableCell className="text-muted-foreground text-sm">{c.paint_a.range ?? "—"}</TableCell>
+              <TableCell className="text-muted-foreground text-sm">
+                {c.paint_a.range ?? "—"}
+              </TableCell>
               <TableCell>
                 <PaintSwatch hex={c.paint_b.hex} name={c.paint_b.name} />
               </TableCell>
-              <TableCell className="text-muted-foreground text-sm">{c.paint_b.range ?? "—"}</TableCell>
+              <TableCell className="text-muted-foreground text-sm">
+                {c.paint_b.range ?? "—"}
+              </TableCell>
               <TableCell className="text-right font-mono text-sm">
                 {(c.confidence * 100).toFixed(0)}%
               </TableCell>
