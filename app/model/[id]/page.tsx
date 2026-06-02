@@ -14,15 +14,17 @@ type Props = { params: Promise<{ id: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const supabase = await createClient();
-  const { data } = await supabase.from("miniature_items").select("display_name, image_url").eq("id", id).single();
+  const { data } = await supabase
+    .from("miniature_items")
+    .select("display_name, image_url")
+    .eq("id", id)
+    .single();
 
   if (!data) return { title: "Model" };
 
   return {
     title: data.display_name,
-    openGraph: data.image_url
-      ? { images: [{ url: data.image_url }] }
-      : undefined,
+    openGraph: data.image_url ? { images: [{ url: data.image_url }] } : undefined,
   };
 }
 
@@ -57,7 +59,8 @@ export default async function ModelPage({ params }: Props) {
     state: row.state as import("@/lib/pile/types").PileState,
     point_value: row.point_value ?? null,
     image_url: (row.image_url as string | null) ?? null,
-    visibility: ((row.visibility as string) ?? "private") as import("@/lib/pile/types").ModelVisibility,
+    visibility: ((row.visibility as string) ??
+      "private") as import("@/lib/pile/types").ModelVisibility,
     created_at: row.created_at,
     painted_at: row.painted_at ?? null,
     updated_at: row.updated_at,

@@ -19,13 +19,7 @@ import type { PileItem } from "@/lib/pile/types";
  * Receives the server-fetched item as a prop; after each mutation it calls
  * router.refresh() so the parent server component re-fetches fresh data.
  */
-export function ModelDetailEditor({
-  item,
-  userId,
-}: {
-  item: PileItem;
-  userId: string;
-}) {
+export function ModelDetailEditor({ item, userId }: { item: PileItem; userId: string }) {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [togglingVisibility, setTogglingVisibility] = useState(false);
