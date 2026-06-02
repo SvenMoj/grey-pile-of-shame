@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { publicClient } from "@/lib/supabase/public";
+import { isPublicSupabaseConfigured, publicClient } from "@/lib/supabase/public";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -45,6 +45,7 @@ export type FaqItem = {
  * Used to build generateStaticParams and populate index page link counts.
  */
 export const getBrandPairCounts = cache(async (): Promise<BrandPairCount[]> => {
+  if (!isPublicSupabaseConfigured()) return [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (publicClient as any).rpc("brand_pair_conversion_counts");
   if (error)
@@ -64,6 +65,7 @@ export async function getConversionsForPair(
   fromBrand: string,
   toBrand: string,
 ): Promise<PublicConversion[]> {
+  if (!isPublicSupabaseConfigured()) return [];
   const { data, error } = await publicClient
     .from("conversions")
     .select(

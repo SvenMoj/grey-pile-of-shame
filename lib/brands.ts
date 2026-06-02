@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { publicClient } from "@/lib/supabase/public";
+import { isPublicSupabaseConfigured, publicClient } from "@/lib/supabase/public";
 
 /**
  * Convert a brand display name to a URL-safe slug.
@@ -31,6 +31,7 @@ export function resolveBrandSlug(slug: string, brands: string[]): string | null 
  * when multiple pages/params resolve brands during the same build render.
  */
 export const getBrands = cache(async (): Promise<string[]> => {
+  if (!isPublicSupabaseConfigured()) return [];
   const { data, error } = await publicClient.rpc("paint_brands");
   if (error) throw new Error(`Failed to fetch brands: ${error.message}`);
   return (data as string[]) ?? [];
