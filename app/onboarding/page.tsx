@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { SiteHeader } from "@/app/_components/SiteHeader";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { expandQuickCount } from "@/lib/pile/expand-quick-count";
 import { usePile } from "@/lib/hooks/use-pile";

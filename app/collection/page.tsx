@@ -1,7 +1,7 @@
 "use client";
 
 import { useCollection } from "@/lib/hooks/use-collection";
-import { StateLegend } from "@/app/_components/StateLegend";
+import { StateLegend } from "@/components/StateLegend";
 import { CollectionShell } from "./CollectionShell";
 import { TrophyShelf } from "./TrophyShelf";
 import { Celebration } from "./Celebration";

@@ -1,5 +1,5 @@
 import type { PileItem } from "@/lib/pile/types";
-import { StatePill } from "@/app/_components/StatePill";
+import { StatePill } from "@/components/StatePill";
 
 const ADVANCE_SLOT_WIDTH = "w-40";
 

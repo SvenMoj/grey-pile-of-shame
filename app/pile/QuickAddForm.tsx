@@ -8,8 +8,8 @@ import { parseQuickAdd } from "@/lib/pile/parse-quick-add";
 import { PILE_STATES } from "@/lib/pile/states";
 import { STATE_LABELS } from "@/lib/pile/display";
 import type { NewPileItem } from "@/lib/pile/types";
-import { Field } from "./Field";
-import { SelectField } from "./SelectField";
+import { Field } from "@/components/Field";
+import { SelectField } from "@/components/SelectField";
 
 export function QuickAddForm({
   onAdd,

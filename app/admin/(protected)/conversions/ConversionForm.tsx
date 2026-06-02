@@ -1,9 +1,10 @@
 import type { Conversion, PaintRow } from "@/lib/admin/types";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Field } from "@/app/pile/Field";
-import { SelectField } from "@/app/pile/SelectField";
+import { Field } from "@/components/Field";
+import { SelectField } from "@/components/SelectField";
 
 const SOURCE_TYPES = [
   { value: "official_chart", label: "Official chart" },
@@ -94,9 +95,7 @@ export default function ConversionForm({
       />
 
       <div className="space-y-1.5">
-        <label htmlFor="notes" className="text-sm font-medium">
-          Notes
-        </label>
+        <Label htmlFor="notes">Notes</Label>
         <Textarea id="notes" name="notes" rows={3} defaultValue={conversion?.notes ?? ""} />
       </div>
 

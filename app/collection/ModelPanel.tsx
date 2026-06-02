@@ -3,16 +3,17 @@
 import { useState } from "react";
 import { ArrowLeftRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { unitProgress } from "@/lib/pile/progress";
 import type { PileItem, Unit } from "@/lib/pile/types";
 import type { useCollection } from "@/lib/hooks/use-collection";
-import { ModelItemRow } from "@/app/_components/ModelItemRow";
-import { StageStepper } from "@/app/_components/StageStepper";
-import { CompletionBadge } from "@/app/_components/CompletionBadge";
-import { ProgressBar } from "./ProgressBar";
+import { ModelItemRow } from "@/components/ModelItemRow";
+import { StageStepper } from "@/components/StageStepper";
+import { CompletionBadge } from "@/components/CompletionBadge";
+import { ProgressBar } from "@/components/ProgressBar";
 import { EditItemForm } from "@/app/pile/EditItemForm";
-import { Field } from "@/app/pile/Field";
+import { Field } from "@/components/Field";
 
 type Collection = ReturnType<typeof useCollection>;
 
@@ -53,31 +54,34 @@ export function ModelPanel({
       </div>
 
       {addOpen ? (
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const fd = new FormData(e.currentTarget);
-            const name = (fd.get("display_name") as string).trim();
-            if (!name) return;
-            await collection.addModel({
-              display_name: name,
-              unit_id: unit?.id ?? null,
-            });
-            (e.target as HTMLFormElement).reset();
-            setAddOpen(false);
-          }}
-          className="space-y-3 rounded-lg border bg-muted/50 p-3"
-        >
-          <Field label="Name" name="display_name" required />
-          <div className="flex gap-2">
-            <Button type="submit" size="sm">
-              Add model
-            </Button>
-            <Button type="button" variant="ghost" size="sm" onClick={() => setAddOpen(false)}>
-              Cancel
-            </Button>
-          </div>
-        </form>
+        <Card className="bg-muted/50">
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const fd = new FormData(e.currentTarget);
+              const name = (fd.get("display_name") as string).trim();
+              if (!name) return;
+              await collection.addModel({
+                display_name: name,
+                unit_id: unit?.id ?? null,
+              });
+              (e.target as HTMLFormElement).reset();
+              setAddOpen(false);
+            }}
+          >
+            <CardContent className="space-y-3 p-3">
+              <Field label="Name" name="display_name" required />
+              <div className="flex gap-2">
+                <Button type="submit" size="sm">
+                  Add model
+                </Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setAddOpen(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </form>
+        </Card>
       ) : (
         <Button
           variant="outline"

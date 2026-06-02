@@ -59,10 +59,12 @@ pnpm dlx shadcn@latest add dialog   # example: add a new primitive
 - **Selected list rows:** [`lib/ui/list-row.ts`](lib/ui/list-row.ts) → `listRowClass(isSelected)` (`bg-primary` when active)
 - **Toasts:** `toast()` from `sonner` (see [`app/collection/Celebration.tsx`](app/collection/Celebration.tsx))
 - **Forms:** native `FormData` + server actions — no react-hook-form. Shared field helpers:
-  - [`app/pile/Field.tsx`](app/pile/Field.tsx) — shadcn `Label` + `Input`
-  - [`app/pile/SelectField.tsx`](app/pile/SelectField.tsx) — native `<select>` styled for FormData compatibility (use shadcn `Select` only when controlled state is needed)
+  - [`components/Field.tsx`](components/Field.tsx) — shadcn `Label` + `Input`
+  - [`components/SelectField.tsx`](components/SelectField.tsx) — native `<select>` styled for FormData compatibility (use shadcn `Select` only when controlled state is needed)
 
-### Domain components (`app/_components/`)
+### Domain components (`components/`)
+
+All shared domain components live in the root `components/` folder alongside the shadcn primitives in `components/ui/`. Import them via `@/components/<Name>`.
 
 | Component         | Purpose                                                                                         |
 | ----------------- | ----------------------------------------------------------------------------------------------- |
@@ -72,6 +74,9 @@ pnpm dlx shadcn@latest add dialog   # example: add a new primitive
 | `ModelItemRow`    | Model list layout: name → state pill → actions row; advance button right-aligned in `w-40` slot |
 | `CompletionBadge` | Green “Done” badge                                                                              |
 | `SiteHeader`      | App nav                                                                                         |
+| `ProgressBar`     | Multi-segment stacked progress bar (one colored slice per painting state)                       |
+| `Field`           | Form field: shadcn `Label` + `Input`                                                            |
+| `SelectField`     | Form select: shadcn `Label` + native `<select>` (FormData-compatible)                           |
 
 ### Painting-state colors
 

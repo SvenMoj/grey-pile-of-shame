@@ -5,8 +5,8 @@ import { PILE_STATES } from "@/lib/pile/states";
 import { STATE_LABELS } from "@/lib/pile/display";
 import type { EditPileItem, PileItem } from "@/lib/pile/types";
 import { Button } from "@/components/ui/button";
-import { Field } from "./Field";
-import { SelectField } from "./SelectField";
+import { Field } from "@/components/Field";
+import { SelectField } from "@/components/SelectField";
 
 export function EditItemForm({
   item,

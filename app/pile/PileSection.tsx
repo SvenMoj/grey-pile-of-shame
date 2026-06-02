@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { isTerminal } from "@/lib/pile/states";
 import type { EditPileItem, PileItem, PileState } from "@/lib/pile/types";
-import { ModelItemRow } from "@/app/_components/ModelItemRow";
-import { StageStepper } from "@/app/_components/StageStepper";
+import { ModelItemRow } from "@/components/ModelItemRow";
+import { StageStepper } from "@/components/StageStepper";
 import { EditItemForm } from "./EditItemForm";
 
 export function PileSection({

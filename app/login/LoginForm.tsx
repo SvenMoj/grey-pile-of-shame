@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { SiteHeader } from "@/app/_components/SiteHeader";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

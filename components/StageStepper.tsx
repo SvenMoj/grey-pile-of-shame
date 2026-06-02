@@ -3,7 +3,7 @@
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { modelAdvanceButtonClass } from "@/app/_components/ModelItemRow";
+import { modelAdvanceButtonClass } from "@/components/ModelItemRow";
 import { nextState } from "@/lib/pile/states";
 import { STATE_LABELS, STATE_STYLES } from "@/lib/pile/display";
 import type { PileState } from "@/lib/pile/types";

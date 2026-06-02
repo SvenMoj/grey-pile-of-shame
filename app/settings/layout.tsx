@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { getUserOrRedirect } from "@/lib/user/auth";
-import { SiteHeader } from "@/app/_components/SiteHeader";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
   await getUserOrRedirect();

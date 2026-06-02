@@ -1,8 +1,8 @@
 import type { Paint } from "@/lib/admin/types";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Field } from "@/app/pile/Field";
-import { SelectField } from "@/app/pile/SelectField";
+import { Field } from "@/components/Field";
+import { SelectField } from "@/components/SelectField";
 
 const STATUS_OPTIONS = ["active", "discontinued"] as const;
 const TYPE_SUGGESTIONS = "base,layer,shade,contrast,technical,dry,air,texture,effect,spray";

@@ -8,8 +8,8 @@ import { armyProgress, looseItems, looseUnits } from "@/lib/pile/progress";
 import { listRowClass } from "@/lib/ui/list-row";
 import type { Army, PileItem, Unit } from "@/lib/pile/types";
 import type { useCollection } from "@/lib/hooks/use-collection";
-import { ProgressBar } from "./ProgressBar";
-import { CompletionBadge } from "@/app/_components/CompletionBadge";
+import { ProgressBar } from "@/components/ProgressBar";
+import { CompletionBadge } from "@/components/CompletionBadge";
 
 type Collection = ReturnType<typeof useCollection>;
 
