@@ -15,9 +15,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "grey-pile-of-shame",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+  title: {
+    default: "grey-pile-of-shame",
+    template: "%s · grey-pile-of-shame",
+  },
   description: "Cross-brand miniature paint conversion lookup",
   icons: { icon: "/grey-pile-of-shame.png" },
+  openGraph: {
+    siteName: "grey-pile-of-shame",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({
