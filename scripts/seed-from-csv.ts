@@ -46,7 +46,7 @@ function readCsv(filename: string): Record<string, string>[] {
 
 async function seedPaints() {
   const rows = readCsv("paints.csv").map((row) =>
-    sanitizeRow(row, ["lab_l", "lab_a", "lab_b"], ["size_ml"]),
+    sanitizeRow(row, ["lab_l", "lab_a", "lab_b"], ["size_ml", "r", "g", "b", "version"]),
   );
   const { error } = await supabase.from("paints").upsert(rows as never[], {
     onConflict: "id",

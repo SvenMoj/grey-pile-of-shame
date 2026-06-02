@@ -1,3 +1,8 @@
 pnpm-lock.yaml
 .next/
 node_modules/
+# Source data files and backups — not authored code
+data/paints/
+data/backups/
+# Auto-generated — formatted by the generator, not by us
+lib/supabase/database.types.ts

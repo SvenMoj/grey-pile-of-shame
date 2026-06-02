@@ -48,3 +48,5 @@ next-env.d.ts
 # seed data (may contain emails — keep out of version control)
 /data/*.csv
 /data/*.json
+/data/paints/
+/data/backups/
