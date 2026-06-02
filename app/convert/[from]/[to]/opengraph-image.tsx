@@ -26,6 +26,7 @@ export default async function OgImage({
   const pairCounts = await getBrandPairCounts();
   const pair = pairCounts.find((p) => p.brand_a === fromBrand && p.brand_b === toBrand);
   const count = pair?.n ?? 0;
+  const subtitle = `${count} paint substitute${count === 1 ? "" : "s"} · grey-pile-of-shame`;
 
   return new ImageResponse(
     <div
@@ -61,6 +62,8 @@ export default async function OgImage({
       {/* Main heading */}
       <div
         style={{
+          display: "flex",
+          alignItems: "center",
           fontSize: "72px",
           fontWeight: 700,
           color: "#ffffff",
@@ -68,9 +71,9 @@ export default async function OgImage({
           marginBottom: "20px",
         }}
       >
-        {fromBrand}
+        <span>{fromBrand}</span>
         <span style={{ color: "rgba(255,255,255,0.35)", margin: "0 20px" }}>→</span>
-        {toBrand}
+        <span>{toBrand}</span>
       </div>
 
       {/* Subtitle */}
@@ -81,7 +84,7 @@ export default async function OgImage({
           marginBottom: "0",
         }}
       >
-        {count} paint substitute{count === 1 ? "" : "s"} · grey-pile-of-shame
+        {subtitle}
       </div>
     </div>,
     {
