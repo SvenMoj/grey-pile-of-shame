@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Layers, Library, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ModeToggle } from "@/components/ModeToggle";
 import { createClient } from "@/lib/supabase/client";
 import { signOutAction } from "@/app/settings/actions";
 
@@ -66,6 +67,7 @@ export function SiteHeader() {
             </Button>
           </form>
         )}
+        <ModeToggle />
       </nav>
     </header>
   );
