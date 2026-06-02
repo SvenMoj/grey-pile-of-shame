@@ -7,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { PaintSwatch } from "@/components/PaintSwatch";
 import type { PublicConversion } from "@/lib/conversions/brand-pairs";
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -20,21 +21,6 @@ const SOURCE_VARIANTS: Record<string, "default" | "secondary" | "outline"> = {
   community: "secondary",
   hex_derived: "outline",
 };
-
-function PaintSwatch({ hex, name }: { hex: string | null; name: string }) {
-  return (
-    <span className="flex items-center gap-2">
-      {hex && (
-        <span
-          className="inline-block h-6 w-6 shrink-0 rounded border border-border"
-          style={{ backgroundColor: `#${hex}` }}
-          aria-hidden
-        />
-      )}
-      <span>{name}</span>
-    </span>
-  );
-}
 
 type Props = {
   conversions: PublicConversion[];
