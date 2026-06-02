@@ -15,6 +15,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     {
+      url: `${BASE_URL}/brands`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
       url: `${BASE_URL}/convert`,
       lastModified: new Date(),
       changeFrequency: "weekly",
@@ -29,6 +35,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
+  const brandDetailPages: MetadataRoute.Sitemap = brands.map((brand) => ({
+    url: `${BASE_URL}/brands/${slugifyBrand(brand)}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
+
   const pairPages: MetadataRoute.Sitemap = pairCounts
     .filter((p) => p.n > 0)
     .map((p) => ({
@@ -38,5 +51,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     }));
 
-  return [...staticPages, ...brandIndexPages, ...pairPages];
+  return [...staticPages, ...brandIndexPages, ...brandDetailPages, ...pairPages];
 }

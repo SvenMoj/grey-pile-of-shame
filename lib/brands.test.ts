@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { slugifyBrand, resolveBrandSlug } from "./brands";
+import { slugifyBrand, resolveBrandSlug, groupPaintsByRange } from "./brands";
 
 // All 10 real brand names from paints.csv
 const REAL_BRANDS = [
@@ -68,6 +68,72 @@ describe("slugifyBrand", () => {
     for (const brand of REAL_BRANDS) {
       expect(slugifyBrand(brand), `slug for "${brand}"`).toBe(expected[brand]);
     }
+  });
+});
+
+describe("groupPaintsByRange", () => {
+  // Minimal paint shape — only the fields groupPaintsByRange cares about
+  type P = { id: string; name: string; range: string | null; hex: string | null };
+  const p = (id: string, range: string | null): P => ({ id, name: id, range, hex: null });
+
+  it("returns an empty array for empty input", () => {
+    expect(groupPaintsByRange([])).toEqual([]);
+  });
+
+  it("groups paints that share a range into one entry", () => {
+    const input: P[] = [p("a", "Base"), p("b", "Base"), p("c", "Base")];
+    const result = groupPaintsByRange(input);
+    expect(result).toHaveLength(1);
+    expect(result[0].range).toBe("Base");
+    expect(result[0].paints).toHaveLength(3);
+  });
+
+  it("creates separate groups for separate ranges in first-seen order", () => {
+    const input: P[] = [p("a", "Base"), p("b", "Layer"), p("c", "Wash")];
+    const result = groupPaintsByRange(input);
+    expect(result.map((g) => g.range)).toEqual(["Base", "Layer", "Wash"]);
+  });
+
+  it("preserves input order within each group", () => {
+    const input: P[] = [p("a", "Base"), p("c", "Base"), p("b", "Base")];
+    const result = groupPaintsByRange(input);
+    expect(result[0].paints.map((x) => x.id)).toEqual(["a", "c", "b"]);
+  });
+
+  it("buckets null-range paints into 'Other'", () => {
+    const input: P[] = [p("a", null), p("b", null)];
+    const result = groupPaintsByRange(input);
+    expect(result).toHaveLength(1);
+    expect(result[0].range).toBe("Other");
+    expect(result[0].paints).toHaveLength(2);
+  });
+
+  it("puts the 'Other' group last even when null-range paints appear first in input", () => {
+    const input: P[] = [p("x", null), p("a", "Base"), p("b", "Layer")];
+    const result = groupPaintsByRange(input);
+    expect(result[result.length - 1].range).toBe("Other");
+    expect(result.map((g) => g.range)).toEqual(["Base", "Layer", "Other"]);
+  });
+
+  it("handles a single paint with no range", () => {
+    const input: P[] = [p("z", null)];
+    const result = groupPaintsByRange(input);
+    expect(result).toHaveLength(1);
+    expect(result[0].range).toBe("Other");
+  });
+
+  it("handles a mix of named ranges and null ranges", () => {
+    const input: P[] = [
+      p("a", "Contrast"),
+      p("b", null),
+      p("c", "Contrast"),
+      p("d", "Technical"),
+      p("e", null),
+    ];
+    const result = groupPaintsByRange(input);
+    expect(result.map((g) => g.range)).toEqual(["Contrast", "Technical", "Other"]);
+    expect(result[0].paints.map((x) => x.id)).toEqual(["a", "c"]);
+    expect(result[2].paints.map((x) => x.id)).toEqual(["b", "e"]);
   });
 });
 

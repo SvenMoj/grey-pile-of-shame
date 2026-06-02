@@ -589,6 +589,15 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      brand_overview: {
+        Args: never;
+        Returns: {
+          brand: string;
+          paint_count: number;
+          range_count: number;
+          sample_hexes: string[];
+        }[];
+      };
       brand_pair_conversion_counts: {
         Args: never;
         Returns: {
@@ -598,6 +607,33 @@ export type Database = {
         }[];
       };
       paint_brands: { Args: never; Returns: string[] };
+      paints_by_brand: {
+        Args: { p_brand: string };
+        Returns: {
+          brand: string;
+          created_at: string;
+          discontinued_date: string | null;
+          hex: string | null;
+          id: string;
+          lab_a: number | null;
+          lab_b: number | null;
+          lab_l: number | null;
+          name: string;
+          range: string | null;
+          size_ml: number | null;
+          sku_code: string | null;
+          status: string;
+          type: string | null;
+          updated_at: string;
+          version: number;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "paints";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
     };
     Enums: {
       [_ in never]: never;

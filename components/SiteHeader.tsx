@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Layers, Library, LogIn, LogOut, Palette, Settings, User } from "lucide-react";
+import { Brush, Layers, Library, LogIn, LogOut, Palette, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -70,6 +70,12 @@ export function SiteHeader() {
           <Link href="/collection">
             <Library />
             Collection
+          </Link>
+        </Button>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/brands">
+            <Brush />
+            Brands
           </Link>
         </Button>
         <Button variant="ghost" size="sm" asChild>
