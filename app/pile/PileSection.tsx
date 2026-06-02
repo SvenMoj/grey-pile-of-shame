@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { isTerminal } from "@/lib/pile/states";
 import type { EditPileItem, PileItem, PileState } from "@/lib/pile/types";
-import { ModelItemRow } from "@/components/ModelItemRow";
+import { ModelCard } from "@/components/ModelCard";
 import { StageStepper } from "@/components/StageStepper";
 import { EditItemForm } from "./EditItemForm";
 
@@ -48,10 +48,10 @@ export function PileSection({
         </h2>
       </button>
       {collapsed ? null : (
-        <div className="flex flex-col gap-2 px-4 pb-4">
+        <div className="grid gap-3 px-4 pb-4 sm:grid-cols-2">
           {items.map((item) => (
             <div key={item.id}>
-              <ModelItemRow
+              <ModelCard
                 item={item}
                 advance={
                   !isTerminal(state) ? (

@@ -30,6 +30,8 @@ export function createPileItem(input: NewPileItem, deps: FactoryDeps = {}): Pile
     unit_id: input.unit_id ?? null,
     state,
     point_value: input.point_value ?? null,
+    image_url: null,
+    visibility: "private" as const,
     created_at: now,
     painted_at,
     updated_at: now,

@@ -40,6 +40,8 @@ export function applyEdit(
     unit_size: "unit_size" in patch ? (patch.unit_size ?? item.unit_size) : item.unit_size,
     unit_id: "unit_id" in patch ? (patch.unit_id ?? null) : item.unit_id,
     point_value: "point_value" in patch ? (patch.point_value ?? null) : item.point_value,
+    image_url: "image_url" in patch ? (patch.image_url ?? null) : item.image_url,
+    visibility: "visibility" in patch ? (patch.visibility ?? item.visibility) : item.visibility,
     state: newState,
     painted_at,
     updated_at: now(),
