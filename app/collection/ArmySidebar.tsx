@@ -58,7 +58,7 @@ export function ArmySidebar({
   }
 
   return (
-    <nav className="space-y-1">
+    <nav className="space-y-2">
       {armies.map((army) => {
         const summary = armyProgress(army.id, units, items);
         const sel: SidebarSelection = { type: "army", armyId: army.id };
@@ -77,7 +77,7 @@ export function ArmySidebar({
                 )}
               </div>
               {!summary.isComplete && (
-                <div className={`mt-1 ${selected ? "opacity-70" : ""}`}>
+                <div className="mt-1">
                   <ProgressBar summary={summary} compact />
                 </div>
               )}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { isTerminal } from "@/lib/pile/states";
 import type { EditPileItem, PileItem, PileState } from "@/lib/pile/types";
@@ -31,10 +32,10 @@ export function PileSection({
   if (items.length === 0) return null;
 
   return (
-    <section>
+    <Card className="gap-0 py-0">
       <button
         onClick={() => setCollapsed((c) => !c)}
-        className="group mb-2 flex w-full items-center gap-1 text-left"
+        className="group flex w-full items-center gap-1 px-4 py-4 text-left transition-colors hover:bg-muted/50 rounded-t-xl"
       >
         <ChevronDown
           className={cn(
@@ -47,9 +48,9 @@ export function PileSection({
         </h2>
       </button>
       {collapsed ? null : (
-        <ul className="divide-y rounded-lg border">
+        <div className="flex flex-col gap-2 px-4 pb-4">
           {items.map((item) => (
-            <li key={item.id}>
+            <div key={item.id}>
               <ModelItemRow
                 item={item}
                 advance={
@@ -81,19 +82,21 @@ export function PileSection({
               />
 
               {editingId === item.id && (
-                <EditItemForm
-                  item={item}
-                  onSave={async (patch) => {
-                    await onUpdate(item.id, patch);
-                    setEditingId(null);
-                  }}
-                  onCancel={() => setEditingId(null)}
-                />
+                <div className="mt-2">
+                  <EditItemForm
+                    item={item}
+                    onSave={async (patch) => {
+                      await onUpdate(item.id, patch);
+                      setEditingId(null);
+                    }}
+                    onCancel={() => setEditingId(null)}
+                  />
+                </div>
               )}
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
-    </section>
+    </Card>
   );
 }

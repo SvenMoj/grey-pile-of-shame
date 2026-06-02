@@ -1,6 +1,7 @@
 "use client";
 
 import { useCollection } from "@/lib/hooks/use-collection";
+import { Card, CardContent } from "@/components/ui/card";
 import { StateLegend } from "@/components/StateLegend";
 import { CollectionShell } from "./CollectionShell";
 import { TrophyShelf } from "./TrophyShelf";
@@ -24,19 +25,22 @@ export default function CollectionPage() {
   return (
     <div className="space-y-10">
       {/* Page header */}
-      <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">My Collection</h1>
-        {items.length > 0 && (
-          <>
-            <p className="text-sm text-muted-foreground">
-              {overallSummary.counts.painted} painted ·{" "}
-              {overallSummary.counts.total - overallSummary.counts.painted} to go
-              {overallSummary.pointsPainted > 0 && ` · ${overallSummary.pointsPainted} pts painted`}
-            </p>
-            <StateLegend />
-          </>
-        )}
-      </div>
+      <Card>
+        <CardContent className="space-y-2">
+          <h1 className="text-2xl font-semibold">My Collection</h1>
+          {items.length > 0 && (
+            <>
+              <p className="text-sm text-muted-foreground">
+                {overallSummary.counts.painted} painted ·{" "}
+                {overallSummary.counts.total - overallSummary.counts.painted} to go
+                {overallSummary.pointsPainted > 0 &&
+                  ` · ${overallSummary.pointsPainted} pts painted`}
+              </p>
+              <StateLegend />
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Hierarchy browser */}
       <CollectionShell items={items} armies={armies} units={units} collection={collection} />

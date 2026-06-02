@@ -96,7 +96,7 @@ export function ModelPanel({
       {unitItems.length === 0 ? (
         <p className="text-sm text-muted-foreground italic">No models here yet.</p>
       ) : (
-        <ul className="divide-y rounded-lg border">
+        <ul className="flex flex-col gap-2">
           {unitItems.map((item) => (
             <li key={item.id}>
               <ModelItemRow
@@ -141,7 +141,7 @@ export function ModelPanel({
               />
 
               {assigningId === item.id && (
-                <div className="flex items-center gap-2 border-t bg-muted/50 px-4 py-2">
+                <div className="mt-2 flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-4 py-2">
                   <Label className="shrink-0 text-xs">Move to unit:</Label>
                   <select
                     className="h-7 flex-1 rounded-lg border border-input bg-transparent px-2 text-xs"
@@ -166,14 +166,16 @@ export function ModelPanel({
               )}
 
               {editingId === item.id && (
-                <EditItemForm
-                  item={item}
-                  onSave={async (patch) => {
-                    await collection.editModel(item.id, patch);
-                    setEditingId(null);
-                  }}
-                  onCancel={() => setEditingId(null)}
-                />
+                <div className="mt-2">
+                  <EditItemForm
+                    item={item}
+                    onSave={async (patch) => {
+                      await collection.editModel(item.id, patch);
+                      setEditingId(null);
+                    }}
+                    onCancel={() => setEditingId(null)}
+                  />
+                </div>
               )}
             </li>
           ))}

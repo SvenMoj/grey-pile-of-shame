@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { expandQuickCount } from "@/lib/pile/expand-quick-count";
 import { usePile } from "@/lib/hooks/use-pile";
 import type { PileState } from "@/lib/pile/types";
@@ -44,12 +45,15 @@ export default function OnboardingPage() {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-md space-y-6 p-6">
-        <div>
-          <h1 className="text-xl font-semibold">How big is your pile?</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Roughly how many models do you have in each stage? You can add details and names later.
-          </p>
-        </div>
+        <Card>
+          <CardContent className="space-y-1">
+            <h1 className="text-xl font-semibold">How big is your pile?</h1>
+            <p className="text-sm text-muted-foreground">
+              Roughly how many models do you have in each stage? You can add details and names
+              later.
+            </p>
+          </CardContent>
+        </Card>
 
         <div className="space-y-3">
           {ONBOARDING_STATES.map(({ state, label, description }) => (

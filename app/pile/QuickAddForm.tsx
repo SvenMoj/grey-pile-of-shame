@@ -34,11 +34,11 @@ export function QuickAddForm({
   }
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className="rounded-lg border">
+    <Collapsible open={open} onOpenChange={setOpen} className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
       <CollapsibleTrigger asChild>
         <Button
           variant="ghost"
-          className="h-auto w-full justify-start rounded-lg px-4 py-3 text-sm font-medium"
+          className="h-auto w-full justify-start rounded-t-xl px-4 py-3 text-sm font-medium"
         >
           <Plus />
           Add a model

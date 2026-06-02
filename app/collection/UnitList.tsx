@@ -50,7 +50,7 @@ export function UnitList({
 
       {units.length === 0 && <p className="text-sm text-muted-foreground italic">No units yet.</p>}
 
-      <ul className="space-y-1">
+      <ul className="space-y-2">
         {units.map((unit) => {
           const summary = unitProgress(unit.id, items);
           const isSelected = selectedUnitId === unit.id;
@@ -66,7 +66,7 @@ export function UnitList({
                   {summary.isComplete && <CompletionBadge className="shrink-0" />}
                 </div>
                 {!summary.isComplete && (
-                  <div className={`mt-1 ${isSelected ? "opacity-70" : ""}`}>
+                  <div className="mt-1">
                     <ProgressBar summary={summary} compact />
                   </div>
                 )}

@@ -25,7 +25,7 @@ export function EditItemForm({
   }
 
   return (
-    <form onSubmit={(e) => void handleSubmit(e)} className="space-y-3 border-t bg-muted/50 p-3">
+    <form onSubmit={(e) => void handleSubmit(e)} className="space-y-3 rounded-lg border border-border bg-muted/50 p-3">
       <Field label="Name" name="display_name" required defaultValue={item.display_name} />
 
       <div className="grid grid-cols-2 gap-3">

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { SiteHeader } from "@/components/SiteHeader";
 import { StateLegend } from "@/components/StateLegend";
 import { ProgressBar } from "@/components/ProgressBar";
@@ -65,11 +66,13 @@ export default function PilePage() {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-2xl space-y-6 p-6">
-        <div className="space-y-2">
-          <h1 className="text-xl font-semibold">My Pile of Shame</h1>
-          <ProgressBar summary={summary} />
-          <StateLegend />
-        </div>
+        <Card>
+          <CardContent className="space-y-2">
+            <h1 className="text-xl font-semibold">My Pile of Shame</h1>
+            <ProgressBar summary={summary} />
+            <StateLegend />
+          </CardContent>
+        </Card>
 
         {showBanner && (
           <Alert>

@@ -1,4 +1,5 @@
 import type { PileItem } from "@/lib/pile/types";
+import { rowCardClass } from "@/lib/ui/list-row";
 import { StatePill } from "@/components/StatePill";
 
 const ADVANCE_SLOT_WIDTH = "w-40";
@@ -21,7 +22,7 @@ export function ModelItemRow({
     .join(" · ");
 
   return (
-    <div className="px-4 py-3">
+    <div className={rowCardClass()}>
       <div className="flex gap-3">
         <div className="min-w-0 flex-1 space-y-2">
           <p className="truncate text-sm font-medium">

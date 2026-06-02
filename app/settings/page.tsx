@@ -32,15 +32,19 @@ export default async function SettingsPage() {
         <h2 className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
           Data & privacy
         </h2>
-        <p className="text-sm text-muted-foreground">
-          Requesting deletion will flag your account for removal. All your data will be permanently
-          deleted within 30 days.
-        </p>
-        <form action={requestAccountDeletionAction}>
-          <Button type="submit" variant="destructive">
-            Delete my account
-          </Button>
-        </form>
+        <Card>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Requesting deletion will flag your account for removal. All your data will be
+              permanently deleted within 30 days.
+            </p>
+            <form action={requestAccountDeletionAction}>
+              <Button type="submit" variant="destructive">
+                Delete my account
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </section>
     </div>
   );
