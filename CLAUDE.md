@@ -25,6 +25,8 @@ Write the test first, make it pass, then refactor.
 
 Test files live next to the code they test (`foo.ts` → `foo.test.ts`). Use Vitest. Run `pnpm test` before committing — all tests must pass. Never skip or comment out a failing test to unblock a commit; fix the root cause.
 
+After every implementation task run `pnpm typecheck`, `pnpm lint`, and `pnpm format:check` — CI will fail if any of these do not pass.
+
 ## Key conventions
 
 - Package manager: pnpm 9
