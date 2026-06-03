@@ -1,22 +1,89 @@
 # Paint Data Seeding Guide
 
-Instructions for populating `data/paints.csv` and `data/conversions.csv`. Follow this exactly — the import pipeline is strict and will reject malformed rows.
+Instructions for maintaining `data/paints.csv`, `data/conversions.csv`, and the markdown source files in `data/paints/`. Follow this exactly — the import pipeline is strict and will reject malformed rows.
 
 ---
 
-## Task overview
+## How the catalog is built
 
-1. Research paint lines and their cross-brand conversions
-2. Add every paint as a row in `paints.csv`
-3. Add every known conversion pair as a row in `conversions.csv`
-4. Both files are append-safe and idempotent — re-running the import upserts on the primary key, so duplicates are harmless
+The paint catalog has two layers:
+
+1. **Markdown source files** (`data/paints/*.md`) — one file per brand; these are the primary source of truth for ~11 600 paints across 34 brands. Edits to these files are how you add or correct paint data.
+2. **CSV files** (`data/paints.csv`, `data/conversions.csv`) — generated artifacts. Do not hand-edit unless you are adding conversions or retaining paints not covered by any markdown file.
+
+### Normal workflow
+
+```
+data/paints/*.md  ──┐
+data/conversions.csv ┼──► build-catalog-from-markdown.ts ──► data/paints.csv
+production DB     ──┘                                          data/conversions.csv (official_chart only)
+                                                                       │
+                                                                       ▼
+                                                           rebuild-catalog-prod.ts  ──► production DB
+```
+
+**Step 1 — Rebuild the CSVs from source**
+
+```bash
+npx tsx scripts/build-catalog-from-markdown.ts
+```
+
+Reads all `data/paints/*.md` files, fetches the current production DB for the retention set (Two Thin Coats, Army Painter Masterclass, and any conversion endpoints not in markdown), merges them, and writes fresh `data/paints.csv` and `data/conversions.csv`.
+
+**Step 2 — Review and apply to production**
+
+```bash
+npx tsx scripts/rebuild-catalog-prod.ts
+```
+
+Backs up the current DB to `data/backups/`, wipes paints + conversions, then upserts from the two CSVs. Sanity-checks: aborts if fewer than 11 000 paints or 700 official conversions survive.
+
+**Incremental update only (no full wipe)**
+
+```bash
+npx tsx scripts/seed-from-csv.ts
+```
+
+Upserts from both CSVs without touching rows that aren't in the files. Use when you've added new community conversions or want to apply a small correction without a full rebuild.
+
+---
+
+## Adding or correcting paint data
+
+### Brands covered by a markdown file
+
+Edit the relevant file in `data/paints/`. Each file is a GitHub-flavoured Markdown table:
+
+```
+# Brand Name
+![Brand_Name](../logos/Brand_Name.png "Brand_Name")
+
+|Name|Set|R|G|B|Hex|
+|---|---|---|---|---|---|
+|Mephiston Red|Base|124|10|2|![#7C0A02](https://placehold.co/15x15/7C0A02/7C0A02.png) `#7C0A02`|
+```
+
+Some brands include a `Code` column between `Name` and `Set` (7-column format). The parser accepts both formats automatically.
+
+- **Set (discontinued)** suffix marks the paint as `status='discontinued'`; the suffix is stripped from the range name.
+- IDs are derived automatically: `{brand-slug}-{set-slug}-{name-slug}`. Do not change IDs without also updating every conversion row that references them.
+
+To add a new brand:
+
+1. Create `data/paints/BrandName.md` following the format above.
+2. Add an entry to `BRAND_MAP` in `lib/seed/parse-paint-markdown.ts`.
+3. Run `build-catalog-from-markdown.ts` then `rebuild-catalog-prod.ts`.
+
+### Brands without a markdown file
+
+These paints live only in the production DB and are preserved by the retention logic in `build-catalog-from-markdown.ts`. To add or edit them, update `data/paints.csv` directly (following the column reference below) and run `seed-from-csv.ts`.
 
 ---
 
 ## `paints.csv` — column reference
 
 ```
-id,brand,range,name,sku_code,hex,lab_l,lab_a,lab_b,size_ml,type,status
+id,brand,range,name,sku_code,hex,r,g,b,status,type,lab_l,lab_a,lab_b,size_ml,version
 ```
 
 | Column     | Required | Format               | Notes                                                                                                          |
@@ -27,12 +94,16 @@ id,brand,range,name,sku_code,hex,lab_l,lab_a,lab_b,size_ml,type,status
 | `name`     | **yes**  | text                 | Official paint name exactly as printed on the pot                                                              |
 | `sku_code` | no       | text                 | Manufacturer's product code (the number on the pot / webshop listing)                                          |
 | `hex`      | no       | 6-char uppercase hex | Color value **without** the `#`. Example: `7C0A02`. Approximate is fine if no official value exists.           |
+| `r`        | no       | integer 0–255        | Red channel. Derived from `hex` by the build script; set manually only when `hex` is absent.                   |
+| `g`        | no       | integer 0–255        | Green channel.                                                                                                 |
+| `b`        | no       | integer 0–255        | Blue channel.                                                                                                  |
+| `status`   | **yes**  | enum                 | `active` or `discontinued`                                                                                     |
+| `type`     | no       | text                 | Paint type. See valid values below.                                                                            |
 | `lab_l`    | no       | decimal              | CIE L*a*b\* lightness (0–100). Leave blank if unknown.                                                         |
 | `lab_a`    | no       | decimal              | CIE L*a*b\* green–red axis. Leave blank if unknown.                                                            |
 | `lab_b`    | no       | decimal              | CIE L*a*b\* blue–yellow axis. Leave blank if unknown.                                                          |
 | `size_ml`  | no       | integer              | Volume in millilitres (e.g. `12`, `17`, `18`)                                                                  |
-| `type`     | no       | text                 | Paint type. See valid values below.                                                                            |
-| `status`   | **yes**  | enum                 | `active` or `discontinued`                                                                                     |
+| `version`  | no       | integer              | Schema version. Default `1`. Leave blank or set to `1` when seeding manually.                                  |
 
 ### `id` naming rules
 
@@ -40,7 +111,7 @@ id,brand,range,name,sku_code,hex,lab_l,lab_a,lab_b,size_ml,type,status
 - Pattern: `{brand-slug}-{range-slug}-{name-slug}`
 - Brand slug examples: `citadel`, `vallejo`, `army-painter`, `scale75`, `reaper`, `ak-interactive`
 - Range slug examples: `base`, `layer`, `contrast`, `game-color`, `model-color`, `speedpaint`
-- Name slug: replace spaces and punctuation with hyphens, remove apostrophes
+- Name slug: replace spaces and punctuation with hyphens, remove apostrophes and dots
 - Examples:
   - Citadel Base "Mephiston Red" → `citadel-base-mephiston-red`
   - Vallejo Game Color "Stonewall Grey" → `vallejo-game-color-stonewall-grey`
@@ -76,6 +147,8 @@ No hard enum in the DB — use these consistently:
 ```
 paint_a_id,paint_b_id,confidence,source_type,source_url,notes
 ```
+
+The CSV export from the DB includes additional columns (`id`, `verified_count`, `disputed_count`, `created_at`, `updated_at`) but these are auto-managed — omit them when seeding manually. The upsert key is `(paint_a_id, paint_b_id)`, so a missing `id` is fine.
 
 | Column        | Required | Format          | Notes                                                                              |
 | ------------- | -------- | --------------- | ---------------------------------------------------------------------------------- |
@@ -121,6 +194,15 @@ When in doubt, round down.
 - `(paint_a_id, paint_b_id)` is unique — one row per ordered pair
 - Both IDs must exist in `paints` before importing conversions (import paints first)
 
+### What happens to community conversions during a full rebuild
+
+`build-catalog-from-markdown.ts` keeps **only `official_chart` rows** in the output `conversions.csv`. Community and hex-derived rows are dropped from the CSV but remain in the production DB until `rebuild-catalog-prod.ts` wipes and re-seeds. If you need to preserve community conversions through a rebuild, back them up first:
+
+```bash
+# Before rebuild-catalog-prod.ts
+npx supabase db dump --data-only -t conversions > data/backups/conversions-backup.csv
+```
+
 ---
 
 ## Recommended sources
@@ -151,28 +233,16 @@ If no curated source exists for a pair, a hex distance match is still useful. To
 
 ---
 
-## Process
-
-1. **Pick a brand pair** — Start with the most-requested: Citadel ↔ Vallejo Game Color. Then Citadel ↔ Army Painter. Then expand.
-2. **Add all paints for both brands first** — `paints.csv` must be complete before conversions can reference them
-3. **Work through the official chart** — one row per named conversion, confidence 0.9
-4. **Add community conversions** for gaps the official chart doesn't cover
-5. **Fill hex values** where you can — even approximate swatches help the future hex-fallback feature
-6. **Verify IDs are consistent** — a typo in an `id` in `paints.csv` will cascade to broken foreign keys in `conversions.csv`
-7. **Import via admin UI** — go to `/admin/import`, upload `paints.csv` first, then `conversions.csv`. The UI reports row counts and per-row errors.
-
----
-
 ## Example rows
 
 ### paints.csv
 
 ```csv
-id,brand,range,name,sku_code,hex,lab_l,lab_a,lab_b,size_ml,type,status
-citadel-base-mephiston-red,Citadel,Base,Mephiston Red,99189950002,7C0A02,,,,12,base,active
-citadel-base-abaddon-black,Citadel,Base,Abaddon Black,99189950001,231F20,,,,12,base,active
-vallejo-game-color-blood-red,Vallejo,Game Color,Blood Red,72010,BC1919,,,,17,base,active
-vallejo-game-color-black,Vallejo,Game Color,Black,72051,1A1A1A,,,,17,base,active
+id,brand,range,name,sku_code,hex,r,g,b,status,type,lab_l,lab_a,lab_b,size_ml,version
+citadel-base-mephiston-red,Citadel,Base,Mephiston Red,99189950002,7C0A02,124,10,2,active,base,,,,12,1
+citadel-base-abaddon-black,Citadel,Base,Abaddon Black,99189950001,231F20,35,31,32,active,base,,,,12,1
+vallejo-game-color-blood-red,Vallejo,Game Color,Blood Red,72010,BC1919,188,25,25,active,base,,,,17,1
+vallejo-game-color-black,Vallejo,Game Color,Black,72051,1A1A1A,26,26,26,active,base,,,,17,1
 ```
 
 ### conversions.csv
@@ -189,10 +259,12 @@ vallejo-game-color-black,citadel-base-abaddon-black,0.95,official_chart,,
 
 ## Common mistakes to avoid
 
+- **Editing paints.csv by hand for brands that have a markdown file** — your changes will be overwritten the next time `build-catalog-from-markdown.ts` runs. Edit the markdown file instead.
 - **Wrong ID format** — spaces or uppercase in an `id` will cause the row to be rejected or create duplicate IDs
-- **Missing paint before conversion** — always import `paints.csv` before `conversions.csv`
+- **Missing paint before conversion** — always ensure paints are seeded before conversions
 - **Confidence out of range** — must be `0.0` to `1.0` inclusive
 - **Wrong `source_type`** — only `official_chart`, `community`, `hex_derived` are accepted
 - **Hex with `#`** — store as `7C0A02` not `#7C0A02`
 - **Forgetting both directions** — official "X = Y" means two rows, not one
 - **Omitting `status`** — it is required; use `active` unless the paint is genuinely discontinued
+- **Running rebuild-catalog-prod.ts without reviewing the CSVs first** — check row counts and spot-check a few brands before applying to production
