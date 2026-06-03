@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PaintSwatch } from "@/components/PaintSwatch";
+import { AddToInventoryButton } from "@/components/AddToInventoryButton";
 import {
   getBrands,
   getBrandOverviews,
@@ -76,7 +77,8 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ br
                   className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm"
                 >
                   <PaintSwatch hex={paint.hex} />
-                  <span className="truncate">{paint.name}</span>
+                  <span className="flex-1 truncate">{paint.name}</span>
+                  <AddToInventoryButton paintId={paint.id} />
                 </li>
               ))}
             </ul>
