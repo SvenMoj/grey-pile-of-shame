@@ -15,6 +15,10 @@ export async function GET(request: NextRequest) {
         // Admin — existing protected area unchanged
         return NextResponse.redirect(new URL("/admin/paints", origin));
       }
+      // New user who hasn't set a password yet — force the set-password step
+      if (!data.user.user_metadata?.has_password) {
+        return NextResponse.redirect(new URL("/set-password", origin));
+      }
       // General user — go to the pile
       return NextResponse.redirect(new URL("/pile", origin));
     }

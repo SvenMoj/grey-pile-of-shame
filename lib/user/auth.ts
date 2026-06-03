@@ -15,5 +15,11 @@ export async function getUserOrRedirect() {
     redirect("/login");
   }
 
+  // Require a password to be set before accessing the app (admin is exempt)
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (user.email !== adminEmail && !user.user_metadata?.has_password) {
+    redirect("/set-password");
+  }
+
   return user;
 }
