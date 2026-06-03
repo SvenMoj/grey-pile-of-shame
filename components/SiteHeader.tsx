@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -24,36 +23,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ModeToggle } from "@/components/ModeToggle";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth-provider";
 import { signOutAction } from "@/app/settings/actions";
 
 export function SiteHeader() {
-  const [isAuthed, setIsAuthed] = useState(false);
-  const [email, setEmail] = useState<string | null>(null);
-
-  useEffect(() => {
-    const supabase = createClient();
-
-    async function init() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setIsAuthed(!!user);
-      setEmail(user?.email ?? null);
-
-      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-        setIsAuthed(!!session);
-        setEmail(session?.user?.email ?? null);
-      });
-      return data.subscription;
-    }
-
-    const subscriptionPromise = init();
-
-    return () => {
-      void subscriptionPromise.then((sub) => sub?.unsubscribe());
-    };
-  }, []);
+  const { user } = useAuth();
+  const isAuthed = !!user;
+  const email = user?.email ?? null;
 
   return (
     <header className="flex items-center justify-between gap-4 border-b px-6 py-4">

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { createSupabaseInventoryStore } from "@/lib/inventory/supabase-store";
+import { useAuth } from "@/components/auth-provider";
 import { Button } from "@/components/ui/button";
 
 type Props = {
@@ -13,20 +14,14 @@ type Props = {
 
 /**
  * A small "Add to inventory" button embedded in catalog/brand pages.
- * Renders nothing until auth state is known; hidden when not logged in.
+ * Auth state comes from the shared AuthProvider — no per-button effects.
+ * Hidden while auth is loading or when the user is not signed in.
  */
 export function AddToInventoryButton({ paintId }: Props) {
-  const [authed, setAuthed] = useState<boolean | null>(null); // null = loading
+  const { isAuthed, loading } = useAuth();
   const [adding, setAdding] = useState(false);
 
-  useEffect(() => {
-    const supabase = createClient();
-    void supabase.auth.getUser().then(({ data: { user } }) => {
-      setAuthed(!!user);
-    });
-  }, []);
-
-  if (authed === null || !authed) return null;
+  if (loading || !isAuthed) return null;
 
   async function handleAdd() {
     setAdding(true);
