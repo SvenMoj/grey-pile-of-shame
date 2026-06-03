@@ -2,8 +2,31 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 export type LoginState = { message: string; success: boolean } | null;
+
+export async function signInWithPasswordAction(
+  _prev: LoginState,
+  formData: FormData,
+): Promise<LoginState> {
+  const email = ((formData.get("email") as string) ?? "").trim().toLowerCase();
+  const password = (formData.get("password") as string) ?? "";
+
+  if (!email) return { message: "Please enter your email address.", success: false };
+  if (!password) return { message: "Please enter your password.", success: false };
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) return { message: error.message, success: false };
+
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (adminEmail && email === adminEmail) {
+    redirect("/admin/paints");
+  }
+  redirect("/pile");
+}
 
 export async function requestMagicLinkAction(
   _prev: LoginState,

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { signOutAction, requestAccountDeletionAction } from "./actions";
+import PasswordForm from "./PasswordForm";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -27,6 +28,8 @@ export default async function SettingsPage() {
           <Button type="submit">Sign out</Button>
         </form>
       </section>
+
+      <PasswordForm hasPassword={!!user?.user_metadata?.has_password} />
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
