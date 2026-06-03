@@ -6,6 +6,7 @@ import { isPublicSupabaseConfigured, publicClient } from "@/lib/supabase/public"
 // ---------------------------------------------------------------------------
 
 export type PublicPaintSummary = {
+  id: string;
   brand: string;
   name: string;
   hex: string | null;
@@ -34,6 +35,17 @@ export type BrandPairCount = {
 export type FaqItem = {
   question: string;
   answer: string;
+};
+
+/** A single paint from the public catalog with display fields. */
+export type PaintDetail = {
+  id: string;
+  brand: string;
+  name: string;
+  hex: string | null;
+  range: string | null;
+  type: string | null;
+  sku_code: string | null;
 };
 
 // ---------------------------------------------------------------------------
@@ -69,7 +81,7 @@ export async function getConversionsForPair(
   const { data, error } = await publicClient
     .from("conversions")
     .select(
-      "id, confidence, source_type, source_url, notes, verified_count, disputed_count, paint_a:paints!paint_a_id!inner(brand, name, hex, range), paint_b:paints!paint_b_id!inner(brand, name, hex, range)",
+      "id, confidence, source_type, source_url, notes, verified_count, disputed_count, paint_a:paints!paint_a_id!inner(id, brand, name, hex, range), paint_b:paints!paint_b_id!inner(id, brand, name, hex, range)",
     )
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .eq("paint_a.brand" as any, fromBrand)
@@ -79,6 +91,54 @@ export async function getConversionsForPair(
   if (error) throw new Error(`getConversionsForPair: ${error.message}`);
   const rows = (data ?? []) as unknown as PublicConversion[];
   return sortConversions(rows);
+}
+
+/**
+ * Fetch a single paint by its slug id.
+ * Returns null if not found.
+ */
+export const getPaintById = cache(async (id: string): Promise<PaintDetail | null> => {
+  if (!isPublicSupabaseConfigured()) return null;
+  const { data, error } = await publicClient
+    .from("paints")
+    .select("id, brand, name, hex, range, type, sku_code")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(`getPaintById: ${error.message}`);
+  return data as PaintDetail | null;
+});
+
+/**
+ * Fetch all conversions for a single paint (both directions).
+ * The result is normalized so `paint_a` is always the searched paint and
+ * `paint_b` is always the conversion target, then sorted by confidence desc.
+ */
+export async function getConversionsForPaint(paintId: string): Promise<PublicConversion[]> {
+  if (!isPublicSupabaseConfigured()) return [];
+  const { data, error } = await publicClient
+    .from("conversions")
+    .select(
+      "id, confidence, source_type, source_url, notes, verified_count, disputed_count, paint_a:paints!paint_a_id!inner(id, brand, name, hex, range), paint_b:paints!paint_b_id!inner(id, brand, name, hex, range)",
+    )
+    .or(`paint_a_id.eq.${paintId},paint_b_id.eq.${paintId}`);
+
+  if (error) throw new Error(`getConversionsForPaint: ${error.message}`);
+  const rows = (data ?? []) as unknown as PublicConversion[];
+
+  // Normalize direction: paint_a = the searched paint, paint_b = the target
+  const normalized = rows.map((row) =>
+    row.paint_b.id === paintId ? { ...row, paint_a: row.paint_b, paint_b: row.paint_a } : row,
+  );
+
+  // Sort first so the higher-confidence version wins, then deduplicate by
+  // target paint id (both (A→B) and (B→A) rows collapse to one entry).
+  const sorted = sortConversions(normalized);
+  const seen = new Set<string>();
+  return sorted.filter((row) => {
+    if (seen.has(row.paint_b.id)) return false;
+    seen.add(row.paint_b.id);
+    return true;
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -94,6 +154,27 @@ export function sortConversions(rows: PublicConversion[]): PublicConversion[] {
     if (b.confidence !== a.confidence) return b.confidence - a.confidence;
     return b.verified_count - a.verified_count;
   });
+}
+
+/**
+ * Group an already-sorted conversion list by target brand (paint_b.brand).
+ * Brands are ordered by their best match (first row's confidence, since rows
+ * are pre-sorted). Returns a new array without mutating the input.
+ */
+export function groupConversionsByBrand(
+  rows: PublicConversion[],
+): { brand: string; conversions: PublicConversion[] }[] {
+  const map = new Map<string, PublicConversion[]>();
+  for (const row of rows) {
+    const brand = row.paint_b.brand;
+    const existing = map.get(brand);
+    if (existing) {
+      existing.push(row);
+    } else {
+      map.set(brand, [row]);
+    }
+  }
+  return Array.from(map.entries()).map(([brand, conversions]) => ({ brand, conversions }));
 }
 
 /**
