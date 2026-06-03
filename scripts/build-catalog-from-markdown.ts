@@ -18,6 +18,7 @@
  *   npx tsx scripts/build-catalog-from-markdown.ts
  */
 
+import { randomUUID } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import type { WebSocketLikeConstructor } from "@supabase/supabase-js";
 import { parse } from "csv-parse/sync";
@@ -311,15 +312,23 @@ async function main(): Promise<void> {
   );
 
   // Build the combined list: official rows first, then transitive.
+  // Transitive rows must carry all columns present in the official CSV rows so that
+  // toCsvString produces a consistent header and the seed script can insert them.
+  const now = new Date().toISOString();
   const allConvs = [
     ...finalConvs,
     ...transitiveConvs.map((r) => ({
+      id: randomUUID(),
       paint_a_id: r.paint_a_id,
       paint_b_id: r.paint_b_id,
       confidence: String(r.confidence),
       source_type: r.source_type,
-      source_url: r.source_url ?? "",
+      source_url: "",
       notes: r.notes,
+      verified_count: "0",
+      disputed_count: "0",
+      created_at: now,
+      updated_at: now,
     })),
   ];
 
