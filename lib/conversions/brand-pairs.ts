@@ -16,7 +16,7 @@ export type PublicPaintSummary = {
 export type PublicConversion = {
   id: string;
   confidence: number;
-  source_type: "official_chart" | "community" | "hex_derived";
+  source_type: "official_chart" | "community" | "hex_derived" | "transitive";
   source_url: string | null;
   notes: string | null;
   verified_count: number;

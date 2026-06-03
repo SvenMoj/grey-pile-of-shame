@@ -26,7 +26,7 @@ export type ParsedConversion = {
   paint_a_id: string;
   paint_b_id: string;
   confidence: number;
-  source_type: "official_chart" | "community" | "hex_derived";
+  source_type: "official_chart" | "community" | "hex_derived" | "transitive";
   source_url: string | null;
   notes: string | null;
 };
@@ -106,7 +106,7 @@ export function parseConversionForm(
   else if (confidence < 0 || confidence > 1)
     errors.confidence = "Confidence must be between 0 and 1";
 
-  const validSourceTypes = ["official_chart", "community", "hex_derived"];
+  const validSourceTypes = ["official_chart", "community", "hex_derived", "transitive"];
   if (!source_type) errors.source_type = "Source type is required";
   else if (!validSourceTypes.includes(source_type)) errors.source_type = "Invalid source type";
 
@@ -117,7 +117,7 @@ export function parseConversionForm(
       paint_a_id,
       paint_b_id,
       confidence,
-      source_type: source_type as "official_chart" | "community" | "hex_derived",
+      source_type: source_type as "official_chart" | "community" | "hex_derived" | "transitive",
       source_url,
       notes,
     },

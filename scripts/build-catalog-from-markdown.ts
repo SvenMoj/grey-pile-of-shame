@@ -32,6 +32,7 @@ import {
   parsePaintMarkdown as PPM,
   type PaintRecord as PR,
 } from "../lib/seed/parse-paint-markdown";
+import { deriveTransitiveConversions, type OfficialRow } from "../lib/seed/derive-conversions";
 import type { Database } from "../lib/supabase/database.types";
 
 config({ path: resolve(process.cwd(), ".env.local") });
@@ -294,13 +295,43 @@ async function main(): Promise<void> {
     );
   }
 
+  // ── Step 6b: Derive transitive conversions ───────────────────────────────
+  console.log("\nDeriving transitive conversions …");
+  const paintMinimal = finalPaints.map((p) => ({
+    id: p.id as string,
+    brand: p.brand as string,
+    name: p.name as string,
+  }));
+  const transitiveConvs = deriveTransitiveConversions(
+    finalConvs as unknown as OfficialRow[],
+    paintMinimal,
+  );
+  console.log(
+    `  ${transitiveConvs.length} transitive rows derived from ${finalConvs.length} official rows`,
+  );
+
+  // Build the combined list: official rows first, then transitive.
+  const allConvs = [
+    ...finalConvs,
+    ...transitiveConvs.map((r) => ({
+      paint_a_id: r.paint_a_id,
+      paint_b_id: r.paint_b_id,
+      confidence: String(r.confidence),
+      source_type: r.source_type,
+      source_url: r.source_url ?? "",
+      notes: r.notes,
+    })),
+  ];
+
   // ── Step 7: Write CSVs ────────────────────────────────────────────────────
   console.log("\nWriting data/paints.csv …");
   writeFileSync(resolve(DATA_DIR, "paints.csv"), toCsvString(finalPaints), "utf-8");
   console.log("  ✓");
 
-  console.log("Writing data/conversions.csv …");
-  writeFileSync(resolve(DATA_DIR, "conversions.csv"), toCsvString(finalConvs), "utf-8");
+  console.log(
+    `Writing data/conversions.csv … (${finalConvs.length} official + ${transitiveConvs.length} transitive)`,
+  );
+  writeFileSync(resolve(DATA_DIR, "conversions.csv"), toCsvString(allConvs), "utf-8");
   console.log("  ✓");
 
   // Brand breakdown.

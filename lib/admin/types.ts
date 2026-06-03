@@ -22,7 +22,7 @@ export type Conversion = {
   paint_a_id: string;
   paint_b_id: string;
   confidence: number;
-  source_type: "official_chart" | "community" | "hex_derived";
+  source_type: "official_chart" | "community" | "hex_derived" | "transitive";
   source_url: string | null;
   notes: string | null;
   verified_count: number;
