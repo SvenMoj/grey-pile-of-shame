@@ -22,9 +22,9 @@ type Props = {
   ownedIds?: Set<string>;
 };
 
-/** Sanitize a query string for use in a Supabase `.or()` ilike filter. */
+/** Trim whitespace from a query string. */
 function sanitize(q: string): string {
-  return q.replace(/[%,]/g, "").trim();
+  return q.trim();
 }
 
 /**
@@ -46,14 +46,10 @@ export function PaintSearch({ onAdd, ownedIds }: Props) {
     setLoading(true);
     try {
       const supabase = createClient();
-      const { data } = await supabase
-        .from("paints")
-        .select("id, brand, name, hex, range")
-        .eq("status", "active")
-        .or(`name.ilike.%${safe}%,brand.ilike.%${safe}%`)
-        .order("brand")
-        .order("name")
-        .limit(20);
+      const { data } = await supabase.rpc("search_paints", {
+        search_query: safe,
+        result_limit: 20,
+      });
       setResults((data as CatalogPaint[]) ?? []);
     } finally {
       setLoading(false);
