@@ -14,11 +14,13 @@ export const metadata: Metadata = {
 export default async function ConvertIndexPage() {
   const [brands, pairCounts] = await Promise.all([getBrands(), getBrandPairCounts()]);
 
-  // Total conversions per source brand (sum all target counts)
-  const brandsWithCounts = brands.map((brand) => {
-    const total = pairCounts.filter((p) => p.brand_a === brand).reduce((s, p) => s + p.n, 0);
-    return { brand, slug: slugifyBrand(brand), total };
-  });
+  // Total conversions per source brand (sum all target counts); hide brands with none
+  const brandsWithCounts = brands
+    .map((brand) => {
+      const total = pairCounts.filter((p) => p.brand_a === brand).reduce((s, p) => s + p.n, 0);
+      return { brand, slug: slugifyBrand(brand), total };
+    })
+    .filter(({ total }) => total > 0);
 
   // Top pairs by count for the "Popular conversions" section
   const topPairs = [...pairCounts]
