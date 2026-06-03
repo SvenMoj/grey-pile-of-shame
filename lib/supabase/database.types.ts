@@ -563,6 +563,7 @@ export type Database = {
           custom_hex: string | null
           custom_name: string | null
           id: string
+          quantity: number
           state: string
           updated_at: string
           user_id: string
@@ -574,6 +575,7 @@ export type Database = {
           custom_hex?: string | null
           custom_name?: string | null
           id?: string
+          quantity?: number
           state?: string
           updated_at?: string
           user_id: string
@@ -585,6 +587,7 @@ export type Database = {
           custom_hex?: string | null
           custom_name?: string | null
           id?: string
+          quantity?: number
           state?: string
           updated_at?: string
           user_id?: string
@@ -652,6 +655,18 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      search_paints: {
+        Args: { result_limit?: number; search_query: string }
+        Returns: {
+          brand: string
+          hex: string
+          id: string
+          name: string
+          range: string
+        }[]
+      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       [_ in never]: never

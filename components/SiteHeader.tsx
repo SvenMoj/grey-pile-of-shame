@@ -1,9 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Brush, Layers, Library, LogIn, LogOut, Palette, Settings, User } from "lucide-react";
+import {
+  Brush,
+  Layers,
+  Library,
+  LogIn,
+  LogOut,
+  Menu,
+  PaintBucket,
+  Palette,
+  Settings,
+  User,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,40 +24,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ModeToggle } from "@/components/ModeToggle";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/auth-provider";
 import { signOutAction } from "@/app/settings/actions";
 
 export function SiteHeader() {
-  const [isAuthed, setIsAuthed] = useState(false);
-  const [email, setEmail] = useState<string | null>(null);
+  const { user } = useAuth();
+  const isAuthed = !!user;
+  const email = user?.email ?? null;
+  const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    const supabase = createClient();
-
-    async function init() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setIsAuthed(!!user);
-      setEmail(user?.email ?? null);
-
-      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-        setIsAuthed(!!session);
-        setEmail(session?.user?.email ?? null);
-      });
-      return data.subscription;
-    }
-
-    const subscriptionPromise = init();
-
-    return () => {
-      void subscriptionPromise.then((sub) => sub?.unsubscribe());
-    };
-  }, []);
+  const close = () => setOpen(false);
 
   return (
-    <header className="flex items-center justify-between gap-4 border-b px-6 py-4">
+    <header className="flex items-center justify-between gap-4 border-b px-3 py-4 sm:px-6">
       <Link href="/pile">
         <Image
           src="/grey-pile-of-shame.png"
@@ -57,7 +49,9 @@ export function SiteHeader() {
           priority
         />
       </Link>
-      <nav className="flex items-center gap-1 text-sm">
+
+      {/* Desktop nav */}
+      <nav className="hidden sm:flex items-center gap-1 text-sm">
         {!isAuthed && (
           <Button variant="ghost" size="sm" asChild>
             <Link href="/pile">
@@ -72,6 +66,14 @@ export function SiteHeader() {
             Collection
           </Link>
         </Button>
+        {isAuthed && (
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/inventory">
+              <PaintBucket />
+              Inventory
+            </Link>
+          </Button>
+        )}
         <Button variant="ghost" size="sm" asChild>
           <Link href="/brands">
             <Brush />
@@ -128,6 +130,90 @@ export function SiteHeader() {
         )}
         <ModeToggle />
       </nav>
+
+      {/* Mobile: theme toggle + hamburger */}
+      <div className="flex items-center gap-1 sm:hidden">
+        <ModeToggle />
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="sm" aria-label="Open menu">
+              <Menu />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-64">
+            <SheetHeader>
+              <SheetTitle className="sr-only">Navigation</SheetTitle>
+            </SheetHeader>
+            <nav className="flex flex-col gap-1 pt-4 text-sm">
+              {!isAuthed && (
+                <Button variant="ghost" className="justify-start" asChild>
+                  <Link href="/pile" onClick={close}>
+                    <Layers />
+                    Pile
+                  </Link>
+                </Button>
+              )}
+              <Button variant="ghost" className="justify-start" asChild>
+                <Link href="/collection" onClick={close}>
+                  <Library />
+                  Collection
+                </Link>
+              </Button>
+              {isAuthed && (
+                <Button variant="ghost" className="justify-start" asChild>
+                  <Link href="/inventory" onClick={close}>
+                    <PaintBucket />
+                    Inventory
+                  </Link>
+                </Button>
+              )}
+              <Button variant="ghost" className="justify-start" asChild>
+                <Link href="/brands" onClick={close}>
+                  <Brush />
+                  Brands
+                </Link>
+              </Button>
+              <Button variant="ghost" className="justify-start" asChild>
+                <Link href="/convert" onClick={close}>
+                  <Palette />
+                  Convert
+                </Link>
+              </Button>
+              {isAuthed ? (
+                <>
+                  {email && (
+                    <p className="px-3 py-2 text-xs text-muted-foreground truncate">{email}</p>
+                  )}
+                  <Button variant="ghost" className="justify-start" asChild>
+                    <Link href="/settings" onClick={close}>
+                      <Settings />
+                      Settings
+                    </Link>
+                  </Button>
+                  <form action={signOutAction} className="w-full">
+                    <Button
+                      type="submit"
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={close}
+                    >
+                      <LogOut />
+                      Log out
+                    </Button>
+                  </form>
+                </>
+              ) : (
+                <Button variant="ghost" className="justify-start" asChild>
+                  <Link href="/login" onClick={close}>
+                    <LogIn />
+                    Sign in
+                  </Link>
+                </Button>
+              )}
+            </nav>
+          </SheetContent>
+        </Sheet>
+      </div>
     </header>
   );
 }
