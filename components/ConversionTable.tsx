@@ -9,20 +9,7 @@ import {
 } from "@/components/ui/table";
 import { PaintSwatch } from "@/components/PaintSwatch";
 import type { PublicConversion } from "@/lib/conversions/brand-pairs";
-
-const SOURCE_LABELS: Record<string, string> = {
-  official_chart: "Official",
-  community: "Community",
-  hex_derived: "Color match",
-  transitive: "Bridged",
-};
-
-const SOURCE_VARIANTS: Record<string, "default" | "secondary" | "outline"> = {
-  official_chart: "default",
-  community: "secondary",
-  hex_derived: "outline",
-  transitive: "secondary",
-};
+import { SOURCE_LABELS, SOURCE_VARIANTS } from "@/lib/conversions/source-display";
 
 type Props = {
   conversions: PublicConversion[];

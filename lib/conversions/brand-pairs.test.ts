@@ -5,6 +5,7 @@ import {
   buildItemListJsonLd,
   buildFaqPageJsonLd,
   buildBreadcrumbJsonLd,
+  groupConversionsByBrand,
 } from "./brand-pairs";
 import type { PublicConversion } from "./brand-pairs";
 
@@ -17,8 +18,20 @@ const makeRow = (overrides: Partial<PublicConversion> = {}): PublicConversion =>
   notes: null,
   verified_count: 0,
   disputed_count: 0,
-  paint_a: { brand: "Citadel", name: "Mephiston Red", hex: "7C0A02", range: "Base" },
-  paint_b: { brand: "Vallejo", name: "Bloody Red", hex: "9C1308", range: "Game Color" },
+  paint_a: {
+    id: "citadel-mephiston-red",
+    brand: "Citadel",
+    name: "Mephiston Red",
+    hex: "7C0A02",
+    range: "Base",
+  },
+  paint_b: {
+    id: "vallejo-bloody-red",
+    brand: "Vallejo",
+    name: "Bloody Red",
+    hex: "9C1308",
+    range: "Game Color",
+  },
   ...overrides,
 });
 
@@ -160,5 +173,67 @@ describe("buildBreadcrumbJsonLd", () => {
     expect(ld.itemListElement[1].position).toBe(2);
     expect(ld.itemListElement[0].item["@id"]).toBe("https://example.com");
     expect(ld.itemListElement[1].item.name).toBe("Convert");
+  });
+});
+
+describe("groupConversionsByBrand", () => {
+  const makeTarget = (
+    id: string,
+    brand: string,
+    name: string,
+    confidence: number,
+  ): PublicConversion =>
+    makeRow({
+      id,
+      confidence,
+      paint_b: { id, brand, name, hex: null, range: null },
+    });
+
+  it("returns empty array for empty input", () => {
+    expect(groupConversionsByBrand([])).toEqual([]);
+  });
+
+  it("groups rows by paint_b.brand", () => {
+    const row1 = makeTarget("v-1", "Vallejo", "Bloody Red", 0.9);
+    const row2 = makeTarget("ap-1", "Army Painter", "Pure Red", 0.85);
+    const row3 = makeTarget("v-2", "Vallejo", "Gory Red", 0.7);
+
+    const groups = groupConversionsByBrand(sortConversions([row1, row2, row3]));
+    const brands = groups.map((g) => g.brand);
+    expect(brands).toContain("Vallejo");
+    expect(brands).toContain("Army Painter");
+    expect(groups).toHaveLength(2);
+
+    const vallejo = groups.find((g) => g.brand === "Vallejo")!;
+    expect(vallejo.conversions).toHaveLength(2);
+  });
+
+  it("orders brands by their best match (highest confidence first)", () => {
+    const ap = makeTarget("ap-1", "Army Painter", "Pure Red", 0.95);
+    const v1 = makeTarget("v-1", "Vallejo", "Bloody Red", 0.8);
+    const v2 = makeTarget("v-2", "Vallejo", "Gory Red", 0.6);
+
+    const groups = groupConversionsByBrand(sortConversions([v1, ap, v2]));
+    expect(groups[0].brand).toBe("Army Painter"); // 0.95 > 0.8
+    expect(groups[1].brand).toBe("Vallejo");
+  });
+
+  it("preserves confidence-sorted order within each brand group", () => {
+    const v1 = makeTarget("v-1", "Vallejo", "Bloody Red", 0.9);
+    const v2 = makeTarget("v-2", "Vallejo", "Gory Red", 0.6);
+    const v3 = makeTarget("v-3", "Vallejo", "Mid Red", 0.75);
+
+    const groups = groupConversionsByBrand(sortConversions([v2, v1, v3]));
+    const names = groups[0].conversions.map((c) => c.paint_b.name);
+    expect(names).toEqual(["Bloody Red", "Mid Red", "Gory Red"]);
+  });
+
+  it("does not mutate the input array", () => {
+    const row1 = makeTarget("v-1", "Vallejo", "Bloody Red", 0.9);
+    const row2 = makeTarget("ap-1", "Army Painter", "Pure Red", 0.85);
+    const input = [row1, row2];
+    const copy = [...input];
+    groupConversionsByBrand(input);
+    expect(input).toEqual(copy);
   });
 });

@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getBrands, slugifyBrand } from "@/lib/brands";
 import { getBrandPairCounts } from "@/lib/conversions/brand-pairs";
+import { PaintConvertSearch } from "@/components/PaintConvertSearch";
 
 export const metadata: Metadata = {
   title: "Miniature Paint Conversion Charts — All Brands",
@@ -41,6 +42,17 @@ export default async function ConvertIndexPage() {
           Reaper, Scale75, and more. Select a brand to start.
         </p>
       </header>
+
+      {/* Paint search */}
+      <section aria-labelledby="search-heading">
+        <h2 id="search-heading" className="text-xl font-semibold mb-3">
+          Search for a specific paint
+        </h2>
+        <p className="text-sm text-muted-foreground mb-3">
+          Type a paint name or brand to find it and see all its known conversions.
+        </p>
+        <PaintConvertSearch />
+      </section>
 
       {/* Brand grid */}
       <section aria-labelledby="brands-heading">

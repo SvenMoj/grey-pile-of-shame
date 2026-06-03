@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Plus } from "lucide-react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { PaintSwatch } from "@/components/PaintSwatch";
 
@@ -15,27 +15,41 @@ type CatalogPaint = {
   range: string | null;
 };
 
-type Props = {
-  /** Called when the user clicks "Add" on a search result. */
-  onAdd: (paintId: string) => void;
-  /** Optional set of already-owned catalog_paint_ids to mark as "In inventory". */
-  ownedIds?: Set<string>;
-};
-
-/** Trim whitespace from a query string. */
 function sanitize(q: string): string {
   return q.trim();
 }
 
 /**
- * Debounced paint catalog search with inline add buttons.
- * Queries the public `paints` table directly from the browser (public-read RLS).
+ * Debounced paint catalog search for the /convert page.
+ * Results link to /paint/[id] for per-paint conversion lookup.
+ * Shows an "In inventory" badge for paints the logged-in user already owns
+ * (RLS-scoped; silently empty when logged out).
  */
-export function PaintSearch({ onAdd, ownedIds }: Props) {
+export function PaintConvertSearch() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<CatalogPaint[]>([]);
   const [loading, setLoading] = useState(false);
+  const [ownedIds, setOwnedIds] = useState<Set<string>>(new Set());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Load owned paint ids once on mount (RLS-scoped; empty when not logged in)
+  useEffect(() => {
+    const supabase = createClient();
+    void supabase
+      .from("user_paints")
+      .select("catalog_paint_id")
+      .then(({ data }) => {
+        if (data) {
+          setOwnedIds(
+            new Set(
+              (data as { catalog_paint_id: string | null }[])
+                .map((r) => r.catalog_paint_id)
+                .filter((id): id is string => id !== null),
+            ),
+          );
+        }
+      });
+  }, []);
 
   const search = useCallback(async (q: string) => {
     const safe = sanitize(q);
@@ -46,7 +60,8 @@ export function PaintSearch({ onAdd, ownedIds }: Props) {
     setLoading(true);
     try {
       const supabase = createClient();
-      const { data, error } = await supabase.rpc("search_paints", {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any).rpc("search_paints", {
         search_query: safe,
         result_limit: 20,
       });
@@ -82,12 +97,11 @@ export function PaintSearch({ onAdd, ownedIds }: Props) {
       {loading && <p className="text-sm text-muted-foreground px-1">Searching…</p>}
       {!loading && results.length > 0 && (
         <ul className="border border-border rounded-md divide-y divide-border">
-          {results.map((paint) => {
-            const alreadyOwned = ownedIds?.has(paint.id) ?? false;
-            return (
-              <li
-                key={paint.id}
-                className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted/60"
+          {results.map((paint) => (
+            <li key={paint.id}>
+              <Link
+                href={`/paint/${paint.id}`}
+                className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted/60 transition-colors"
               >
                 <PaintSwatch hex={paint.hex} size="sm" />
                 <span className="flex-1 min-w-0">
@@ -97,18 +111,14 @@ export function PaintSearch({ onAdd, ownedIds }: Props) {
                     {paint.range ? ` · ${paint.range}` : ""}
                   </span>
                 </span>
-                <Button
-                  size="sm"
-                  variant={alreadyOwned ? "secondary" : "default"}
-                  onClick={() => onAdd(paint.id)}
-                  aria-label={`Add ${paint.name} to inventory`}
-                >
-                  <Plus className="h-3 w-3" />
-                  {alreadyOwned ? "Add another" : "Add"}
-                </Button>
-              </li>
-            );
-          })}
+                {ownedIds.has(paint.id) && (
+                  <Badge variant="secondary" className="shrink-0 text-xs">
+                    In inventory
+                  </Badge>
+                )}
+              </Link>
+            </li>
+          ))}
         </ul>
       )}
       {!loading && query.length > 0 && sanitize(query).length > 0 && results.length === 0 && (
