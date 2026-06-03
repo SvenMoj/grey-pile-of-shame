@@ -355,6 +355,44 @@ export type Database = {
           },
         ]
       }
+      recipe_images: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          recipe_id: string
+          sort_order: number
+          storage_path: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          recipe_id: string
+          sort_order: number
+          storage_path: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          recipe_id?: string
+          sort_order?: number
+          storage_path?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_images_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recipe_steps: {
         Row: {
           area_note: string | null
@@ -655,6 +693,14 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      reorder_recipe_images: {
+        Args: { p_ordered_ids: string[]; p_recipe_id: string }
+        Returns: undefined
+      }
+      reorder_recipe_steps: {
+        Args: { p_ordered_ids: string[]; p_recipe_id: string }
+        Returns: undefined
+      }
       search_paints: {
         Args: { result_limit?: number; search_query: string }
         Returns: {
@@ -663,6 +709,17 @@ export type Database = {
           id: string
           name: string
           range: string
+        }[]
+      }
+      search_recipes: {
+        Args: { result_limit?: number; search_query?: string }
+        Returns: {
+          author_user_id: string
+          cover_image_url: string
+          id: string
+          step_count: number
+          title: string
+          visibility: string
         }[]
       }
       show_limit: { Args: never; Returns: number }

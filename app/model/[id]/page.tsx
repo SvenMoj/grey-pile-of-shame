@@ -8,6 +8,8 @@ import { StatePill } from "@/components/StatePill";
 import { STATE_STYLES, STATE_LABELS } from "@/lib/pile/display";
 import { cn } from "@/lib/utils";
 import { ModelDetailEditor } from "./ModelDetailEditor";
+import { ModelRecipeApply } from "./ModelRecipeApply";
+import { listMyRecipes } from "@/lib/recipes/queries";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -43,6 +45,19 @@ export default async function ModelPage({ params }: Props) {
     supabase.auth.getUser(),
     supabase.from("miniature_items").select("*").eq("id", id).single(),
   ]);
+
+  // Owner-only data — fetch after we know the user
+  const isOwnerEarly = !!user;
+  const [myRecipes, appliedRecipes] = isOwnerEarly
+    ? await Promise.all([
+        listMyRecipes(),
+        supabase
+          .from("recipe_applications")
+          .select("recipe_id")
+          .eq("miniature_item_id", id)
+          .then(({ data }) => new Set((data ?? []).map((r) => r.recipe_id as string))),
+      ])
+    : [[], new Set<string>()];
 
   // RLS hides private items from non-owners; notFound() handles both "not found"
   // and "exists but private and you're not the owner".
@@ -131,6 +146,16 @@ export default async function ModelPage({ params }: Props) {
             Manage
           </h2>
           <ModelDetailEditor item={item} userId={user!.id} />
+        </section>
+      )}
+
+      {/* ── Recipes ── */}
+      {isOwner && (
+        <section className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            Recipes
+          </h2>
+          <ModelRecipeApply modelId={id} recipes={myRecipes} appliedRecipeIds={appliedRecipes} />
         </section>
       )}
     </div>
