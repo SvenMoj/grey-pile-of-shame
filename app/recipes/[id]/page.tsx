@@ -13,6 +13,8 @@ import {
   getConversionsForPaints,
   getOwnedPaintIds,
   listMyModels,
+  listModelsForRecipe,
+  type ApplicationWithModel,
 } from "@/lib/recipes/queries";
 import {
   indexConversionsByRecipePaint,
@@ -74,21 +76,15 @@ export default async function RecipePage({ params }: Props) {
   ];
 
   // Fetch cross-ref data in parallel (safe for anon — owned set will be empty)
-  const [rawConversions, ownedPaintIds, brands, models, applications] = await Promise.all([
+  const [rawConversions, ownedPaintIds, brands, models, appliedModels] = await Promise.all([
     getConversionsForPaints(stepPaintIds),
     getOwnedPaintIds(),
     getBrands(),
     isAuthed ? listMyModels() : Promise.resolve([]),
-    isAuthed
-      ? createClient().then((s) =>
-          s
-            .from("recipe_applications")
-            .select("miniature_item_id")
-            .eq("recipe_id", id)
-            .then(({ data }) => new Set((data ?? []).map((r) => r.miniature_item_id as string))),
-        )
-      : Promise.resolve(new Set<string>()),
+    isAuthed ? listModelsForRecipe(id) : Promise.resolve([] as ApplicationWithModel[]),
   ]);
+
+  const appliedModelIds = new Set(appliedModels.map((a) => a.miniature_item_id));
 
   const conversionsByPaint = indexConversionsByRecipePaint(rawConversions, new Set(stepPaintIds));
   const statuses = resolveAllSteps(recipe.steps, ownedPaintIds, conversionsByPaint);
@@ -264,8 +260,28 @@ export default async function RecipePage({ params }: Props) {
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
             Apply to a model
           </h2>
+
+          {/* Applied models list */}
+          {appliedModels.length > 0 && (
+            <ul className="space-y-1.5">
+              {appliedModels.map((app) => (
+                <li key={app.id} className="flex items-center gap-2 text-sm">
+                  <Link
+                    href={`/model/${app.miniature_item_id}`}
+                    className="font-medium hover:underline underline-offset-2 flex-1 min-w-0 truncate"
+                  >
+                    {app.model.display_name}
+                  </Link>
+                  <Badge variant="secondary" className="shrink-0 capitalize">
+                    {app.status === "in_progress" ? "In progress" : app.status}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+
           {models.length > 0 ? (
-            <RecipeApplyButton recipeId={id} models={models} appliedModelIds={applications} />
+            <RecipeApplyButton recipeId={id} models={models} appliedModelIds={appliedModelIds} />
           ) : (
             <p className="text-sm text-muted-foreground">
               No models yet.{" "}

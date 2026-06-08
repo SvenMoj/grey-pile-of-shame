@@ -27,6 +27,10 @@ export type ApplicationWithRecipe = RecipeApplication & {
   recipe: { title: string };
 };
 
+export type ApplicationWithModel = RecipeApplication & {
+  model: { display_name: string; state: string };
+};
+
 // ─── Recipe detail ────────────────────────────────────────────────────────────
 
 /**
@@ -182,6 +186,24 @@ export async function listApplicationsForModel(
     .order("created_at");
   if (error) return [];
   return (data ?? []) as unknown as ApplicationWithRecipe[];
+}
+
+/**
+ * List recipe applications for a given recipe, with the applied model's name/state
+ * joined in. Returns applications in creation order (oldest first).
+ * RLS scopes results to the current user's own applications.
+ */
+export async function listModelsForRecipe(recipeId: string): Promise<ApplicationWithModel[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("recipe_applications")
+    .select(
+      "*, model:miniature_items!recipe_applications_miniature_item_id_fkey(display_name, state)",
+    )
+    .eq("recipe_id", recipeId)
+    .order("created_at");
+  if (error) return [];
+  return (data ?? []) as unknown as ApplicationWithModel[];
 }
 
 /**
