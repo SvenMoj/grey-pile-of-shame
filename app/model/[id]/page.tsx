@@ -8,6 +8,9 @@ import { StatePill } from "@/components/StatePill";
 import { STATE_STYLES, STATE_LABELS } from "@/lib/pile/display";
 import { cn } from "@/lib/utils";
 import { ModelDetailEditor } from "./ModelDetailEditor";
+import { ModelRecipeApply } from "./ModelRecipeApply";
+import { AppliedRecipes } from "./AppliedRecipes";
+import { listMyRecipes, listApplicationsForModel } from "@/lib/recipes/queries";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -48,6 +51,16 @@ export default async function ModelPage({ params }: Props) {
   // and "exists but private and you're not the owner".
   if (!row) notFound();
 
+  const isOwner = !!user && user.id === row.user_id;
+
+  // Owner-only data: my recipe list, applied recipes with titles (for display + apply picker)
+  const [myRecipes, applications] = isOwner
+    ? await Promise.all([listMyRecipes(), listApplicationsForModel(id)])
+    : [[], []];
+
+  // IDs already applied — used to annotate the apply-picker dropdown
+  const appliedRecipeIds = new Set(applications.map((a) => a.recipe_id));
+
   const item = {
     id: row.id,
     kit_id: row.kit_id ?? null,
@@ -65,8 +78,6 @@ export default async function ModelPage({ params }: Props) {
     painted_at: row.painted_at ?? null,
     updated_at: row.updated_at,
   };
-
-  const isOwner = !!user && user.id === row.user_id;
 
   const metadata = [
     item.game,
@@ -131,6 +142,21 @@ export default async function ModelPage({ params }: Props) {
             Manage
           </h2>
           <ModelDetailEditor item={item} userId={user!.id} />
+        </section>
+      )}
+
+      {/* ── Recipes ── */}
+      {isOwner && (
+        <section className="space-y-4 rounded-xl border border-border bg-muted/30 p-4">
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            Recipes
+          </h2>
+
+          {/* Applied recipes list with status + unapply controls */}
+          <AppliedRecipes applications={applications} modelId={id} />
+
+          {/* Apply-a-new-recipe picker */}
+          <ModelRecipeApply modelId={id} recipes={myRecipes} appliedRecipeIds={appliedRecipeIds} />
         </section>
       )}
     </div>

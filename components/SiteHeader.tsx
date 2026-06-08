@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   Brush,
+  FlaskConical,
   Layers,
   Library,
   LogIn,
@@ -84,6 +85,12 @@ export function SiteHeader() {
           <Link href="/convert">
             <Palette />
             Convert
+          </Link>
+        </Button>
+        <Button variant="ghost" size="sm" asChild>
+          <Link href="/recipes">
+            <FlaskConical />
+            Recipes
           </Link>
         </Button>
         {isAuthed ? (
@@ -177,6 +184,12 @@ export function SiteHeader() {
                 <Link href="/convert" onClick={close}>
                   <Palette />
                   Convert
+                </Link>
+              </Button>
+              <Button variant="ghost" className="justify-start" asChild>
+                <Link href="/recipes" onClick={close}>
+                  <FlaskConical />
+                  Recipes
                 </Link>
               </Button>
               {isAuthed ? (
