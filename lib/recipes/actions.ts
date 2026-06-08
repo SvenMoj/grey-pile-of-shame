@@ -8,12 +8,19 @@ import { validateRecipeForm, parseStepsPayload } from "./validation";
 
 export type RecipeFormState = { error: string } | null;
 
+/** Result returned to the client so it can flush staged images before navigating. */
+export type SaveRecipeResult = { recipeId: string } | { error: string };
+
 // ─── saveRecipeAction ────────────────────────────────────────────────────────
 
 /**
  * Create or update a recipe together with its full step list.
  * Steps are received as a JSON string in the hidden "steps" field so the
  * entire recipe + steps write happens in one server round-trip.
+ *
+ * Returns { recipeId } on success so the caller can flush staged images
+ * browser-side before navigating (binary files cannot pass through server
+ * actions due to the ~1MB body cap).
  *
  * Form fields expected:
  *   _id          (string, empty → create)
@@ -23,10 +30,7 @@ export type RecipeFormState = { error: string } | null;
  *   source_url   (string, optional)
  *   steps        (JSON string of ParsedStep[])
  */
-export async function saveRecipeAction(
-  _prev: RecipeFormState,
-  formData: FormData,
-): Promise<RecipeFormState> {
+export async function saveRecipeAction(formData: FormData): Promise<SaveRecipeResult> {
   const user = await getUserOrRedirect();
 
   const recipeResult = validateRecipeForm(formData);
@@ -91,7 +95,7 @@ export async function saveRecipeAction(
 
   revalidatePath("/recipes");
   revalidatePath(`/recipes/${recipeId}`);
-  redirect(`/recipes/${recipeId}`);
+  return { recipeId };
 }
 
 // ─── deleteRecipeAction ──────────────────────────────────────────────────────

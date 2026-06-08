@@ -11,6 +11,7 @@ import {
   removeRecipeImageAction,
   reorderRecipeImagesAction,
 } from "@/lib/recipes/actions";
+import { uploadRecipeImageFile } from "@/lib/recipes/upload-image";
 import type { RecipeImage } from "@/lib/recipes/types";
 
 type Props = {
@@ -39,19 +40,11 @@ export function RecipeImageGallery({ recipeId, userId, initialImages, onImagesCh
       // File upload goes directly to Supabase Storage from the browser.
       // Server Action request bodies cap at ~1MB so binary files must not go through them.
       const supabase = createClient();
-      const ext = file.name.split(".").pop() ?? "jpg";
-      const filename = `${crypto.randomUUID()}.${ext}`;
-      const storagePath = `${userId}/${recipeId}/${filename}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("recipe-images")
-        .upload(storagePath, file, { upsert: false });
-
-      if (uploadError) throw uploadError;
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("recipe-images").getPublicUrl(storagePath);
+      const { storagePath, publicUrl } = await uploadRecipeImageFile(supabase, {
+        userId,
+        recipeId,
+        file,
+      });
 
       // DB row write goes through a server action (convention: only server actions mutate DB).
       const fd = new FormData();
