@@ -1,15 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useActionState, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { createClient } from "@/lib/supabase/client";
-import { createSupabaseRecipesStore } from "@/lib/recipes/supabase-store";
+import { SelectField } from "@/components/SelectField";
+import { saveRecipeAction } from "@/lib/recipes/actions";
 import { StepEditor, type LocalStep } from "./StepEditor";
 import { RecipeImageGallery } from "./RecipeImageGallery";
 import type { RecipeImage, RecipeWithDetail } from "@/lib/recipes/types";
@@ -33,117 +31,27 @@ function recipeStepsToLocalSteps(recipe: RecipeWithDetail): LocalStep[] {
 }
 
 export function RecipeEditor({ userId, recipe }: Props) {
-  const router = useRouter();
   const isEdit = !!recipe;
 
-  const [title, setTitle] = useState(recipe?.title ?? "");
-  const [description, setDescription] = useState(recipe?.description ?? "");
-  const [visibility, setVisibility] = useState<"private" | "public">(
-    recipe?.visibility ?? "private",
-  );
-  const [sourceUrl, setSourceUrl] = useState(recipe?.source_url ?? "");
+  // Steps and images stay as client state since StepEditor and RecipeImageGallery
+  // are interactive components. Steps are serialised into the hidden "steps" field
+  // before form submission so the server action receives the full on-screen order.
   const [steps, setSteps] = useState<LocalStep[]>(recipe ? recipeStepsToLocalSteps(recipe) : []);
   const [images, setImages] = useState<RecipeImage[]>(recipe?.images ?? []);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  async function handleSave() {
-    if (!title.trim()) {
-      setError("Title is required.");
-      return;
-    }
-    setSaving(true);
-    setError(null);
-
-    const supabase = createClient();
-    const store = createSupabaseRecipesStore(supabase);
-
-    try {
-      let recipeId: string;
-
-      if (isEdit) {
-        await store.updateRecipe(recipe.id, {
-          title: title.trim(),
-          description: description.trim() || null,
-          visibility,
-          source_url: sourceUrl.trim() || null,
-        });
-        recipeId = recipe.id;
-      } else {
-        const created = await store.createRecipe({
-          title: title.trim(),
-          description: description.trim() || null,
-          visibility,
-          source_url: sourceUrl.trim() || null,
-        });
-        recipeId = created.id;
-      }
-
-      // Sync steps: remove steps not in local state, add/update the rest.
-      if (isEdit) {
-        const existingIds = new Set(recipe.steps.map((s) => s.id));
-        const localIds = new Set(steps.map((s) => s.id));
-
-        // Remove deleted steps
-        for (const existing of recipe.steps) {
-          if (!localIds.has(existing.id)) {
-            await store.removeStep(existing.id);
-          }
-        }
-
-        // Update or add remaining steps in order
-        for (let i = 0; i < steps.length; i++) {
-          const step = steps[i];
-          if (existingIds.has(step.id)) {
-            await store.updateStep(step.id, {
-              role: step.role,
-              target_paint_id: step.target_paint_id,
-              target_hex: step.target_hex,
-              technique_note: step.technique_note || null,
-              area_note: step.area_note || null,
-            });
-          } else {
-            await store.addStep(recipeId, {
-              role: step.role,
-              target_paint_id: step.target_paint_id,
-              target_hex: step.target_hex,
-              technique_note: step.technique_note || null,
-              area_note: step.area_note || null,
-            });
-          }
-        }
-
-        // Reorder to final positions
-        const finalIds = steps.filter((s) => existingIds.has(s.id)).map((s) => s.id);
-        if (finalIds.length > 1) {
-          await store.reorderSteps(recipeId, finalIds);
-        }
-      } else {
-        for (const step of steps) {
-          await store.addStep(recipeId, {
-            role: step.role,
-            target_paint_id: step.target_paint_id,
-            target_hex: step.target_hex,
-            technique_note: step.technique_note || null,
-            area_note: step.area_note || null,
-          });
-        }
-      }
-
-      toast.success(isEdit ? "Recipe updated" : "Recipe created");
-      router.push(`/recipes/${recipeId}`);
-    } catch (err) {
-      console.error(err);
-      setError("Something went wrong — please try again.");
-      setSaving(false);
-    }
-  }
+  const [state, formAction, pending] = useActionState(saveRecipeAction, null);
 
   return (
-    <div className="space-y-8 max-w-2xl">
-      {error && (
+    <form action={formAction} className="space-y-8 max-w-2xl">
+      {/* Hidden fields */}
+      <input type="hidden" name="_id" value={recipe?.id ?? ""} />
+      {/* Steps are serialised here; the server reads this instead of individual fields
+          so the full on-screen order (including newly-added interspersed steps) is sent. */}
+      <input type="hidden" name="steps" value={JSON.stringify(steps)} />
+
+      {state?.error && (
         <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{state.error}</AlertDescription>
         </Alert>
       )}
 
@@ -159,8 +67,8 @@ export function RecipeEditor({ userId, recipe }: Props) {
           </Label>
           <Input
             id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            name="title"
+            defaultValue={recipe?.title ?? ""}
             placeholder="e.g. Ultramarines Blue Armour"
             maxLength={200}
             required
@@ -171,39 +79,35 @@ export function RecipeEditor({ userId, recipe }: Props) {
           <Label htmlFor="description">Description</Label>
           <Textarea
             id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            name="description"
+            defaultValue={recipe?.description ?? ""}
             placeholder="Optional notes about this recipe…"
             rows={3}
           />
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="visibility">Visibility</Label>
-          <select
-            id="visibility"
-            value={visibility}
-            onChange={(e) => setVisibility(e.target.value as "private" | "public")}
-            className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
-          >
-            <option value="private">Private — only you can see this</option>
-            <option value="public">Public — anyone can browse and find this</option>
-          </select>
-        </div>
+        <SelectField
+          label="Visibility"
+          name="visibility"
+          defaultValue={recipe?.visibility ?? "private"}
+        >
+          <option value="private">Private — only you can see this</option>
+          <option value="public">Public — anyone can browse and find this</option>
+        </SelectField>
 
         <div className="space-y-1.5">
           <Label htmlFor="source_url">Source URL</Label>
           <Input
             id="source_url"
+            name="source_url"
             type="url"
-            value={sourceUrl}
-            onChange={(e) => setSourceUrl(e.target.value)}
+            defaultValue={recipe?.source_url ?? ""}
             placeholder="https://…"
           />
         </div>
       </section>
 
-      {/* Steps — only available in edit mode (recipe must exist to upload images too) */}
+      {/* Steps — only available in edit mode (recipe must exist before steps can be saved) */}
       {isEdit ? (
         <>
           <section className="space-y-3">
@@ -232,16 +136,21 @@ export function RecipeEditor({ userId, recipe }: Props) {
       )}
 
       <div className="flex gap-3">
-        <Button onClick={() => void handleSave()} disabled={saving}>
-          {saving ? "Saving…" : isEdit ? "Save changes" : "Create recipe"}
+        <Button type="submit" disabled={pending}>
+          {pending ? "Saving…" : isEdit ? "Save changes" : "Create recipe"}
         </Button>
         <Button
+          type="button"
           variant="outline"
-          onClick={() => router.push(isEdit ? `/recipes/${recipe.id}` : "/recipes")}
+          onClick={() =>
+            window.history.length > 1
+              ? window.history.back()
+              : (window.location.href = isEdit ? `/recipes/${recipe!.id}` : "/recipes")
+          }
         >
           Cancel
         </Button>
       </div>
-    </div>
+    </form>
   );
 }

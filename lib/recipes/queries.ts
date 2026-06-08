@@ -13,7 +13,18 @@
 
 import { createClient } from "@/lib/supabase/server";
 import type { RawConversionRow } from "./cross-reference";
-import type { Recipe, RecipeImage, RecipeListItem, RecipeStep, RecipeWithDetail } from "./types";
+import type {
+  Recipe,
+  RecipeApplication,
+  RecipeImage,
+  RecipeListItem,
+  RecipeStep,
+  RecipeWithDetail,
+} from "./types";
+
+export type ApplicationWithRecipe = RecipeApplication & {
+  recipe: { title: string };
+};
 
 // ─── Recipe detail ────────────────────────────────────────────────────────────
 
@@ -58,7 +69,7 @@ export async function getRecipeById(id: string): Promise<RecipeWithDetail | null
 export async function listPublicRecipes(searchQuery?: string): Promise<RecipeListItem[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("search_recipes", {
-    search_query: searchQuery ?? null,
+    search_query: searchQuery ?? undefined,
     result_limit: 50,
   });
   if (error) throw new Error(`search_recipes RPC: ${error.message}`);
@@ -107,8 +118,9 @@ export async function getOwnedPaintIds(): Promise<Set<string>> {
 }
 
 /**
- * List all recipes belonging to the current user (for the apply-to-model picker).
+ * List all recipes belonging to the current user, with cover image and step count.
  * Includes both private and public (owner sees all their own via RLS).
+ * Used for: the "Your recipes" section on /recipes and the model apply-picker.
  */
 export async function listMyRecipes(): Promise<RecipeListItem[]> {
   const supabase = await createClient();
@@ -119,16 +131,46 @@ export async function listMyRecipes(): Promise<RecipeListItem[]> {
 
   const { data, error } = await supabase
     .from("recipes")
-    .select("id, title, visibility, author_user_id")
+    .select(
+      `id, title, visibility, author_user_id,
+       cover:recipe_images!recipe_images_recipe_id_fkey(image_url, sort_order),
+       steps:recipe_steps!recipe_steps_recipe_id_fkey(id)`,
+    )
     .eq("author_user_id", user.id)
     .order("updated_at", { ascending: false });
 
   if (error) return [];
-  return (data ?? []).map((r) => ({
-    ...(r as unknown as Pick<RecipeListItem, "id" | "title" | "visibility" | "author_user_id">),
-    cover_image_url: null,
-    step_count: 0,
-  }));
+
+  return (data ?? []).map((r) => {
+    const images = (r.cover as { image_url: string; sort_order: number }[] | null) ?? [];
+    const cover = images.sort((a, b) => a.sort_order - b.sort_order)[0] ?? null;
+    const steps = (r.steps as { id: string }[] | null) ?? [];
+    return {
+      id: r.id as string,
+      title: r.title as string,
+      visibility: r.visibility as RecipeListItem["visibility"],
+      author_user_id: r.author_user_id as string,
+      cover_image_url: cover?.image_url ?? null,
+      step_count: steps.length,
+    };
+  });
+}
+
+/**
+ * List recipe applications for a given model, with recipe title joined in.
+ * Returns applications in creation order (oldest first).
+ */
+export async function listApplicationsForModel(
+  miniatureItemId: string,
+): Promise<ApplicationWithRecipe[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("recipe_applications")
+    .select("*, recipe:recipes!recipe_applications_recipe_id_fkey(title)")
+    .eq("miniature_item_id", miniatureItemId)
+    .order("created_at");
+  if (error) return [];
+  return (data ?? []) as unknown as ApplicationWithRecipe[];
 }
 
 /**

@@ -64,14 +64,14 @@ export function RecipeInventoryPanel({ steps, isAuthed }: Props) {
             </span>
 
             {status.kind === "owned" && (
-              <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+              <span className="flex items-center gap-1.5 text-primary">
                 <CheckCircle2 className="size-4" />
                 In your inventory
               </span>
             )}
 
             {status.kind === "substitute_owned" && (
-              <span className="flex items-start gap-1.5 text-amber-600 dark:text-amber-400">
+              <span className="flex items-start gap-1.5 text-muted-foreground">
                 <Star className="size-4 mt-0.5 shrink-0" />
                 <span>
                   You don&apos;t have <strong>{paintName}</strong>, but you have a possible

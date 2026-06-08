@@ -22,6 +22,7 @@ import {
 import { RecipeInventoryPanel } from "./RecipeInventoryPanel";
 import { BrandSubstitutePicker } from "./BrandSubstitutePicker";
 import { RecipeApplyButton } from "./RecipeApplyButton";
+import { DeleteRecipeButton } from "./DeleteRecipeButton";
 
 const STEP_ROLE_LABELS: Record<string, string> = {
   basecoat: "Basecoat",
@@ -85,13 +86,8 @@ export default async function RecipePage({ params }: Props) {
   ]);
 
   const conversionsByPaint = indexConversionsByRecipePaint(rawConversions, new Set(stepPaintIds));
-
   const statuses = resolveAllSteps(recipe.steps, ownedPaintIds, conversionsByPaint);
-
-  const stepsWithStatus = recipe.steps.map((step, i) => ({
-    ...step,
-    status: statuses[i],
-  }));
+  const stepsWithStatus = recipe.steps.map((step, i) => ({ ...step, status: statuses[i] }));
 
   // Serialize the Map for the client BrandSubstitutePicker
   const conversionEdges: [string, ConversionEdge[]][] = Array.from(conversionsByPaint.entries());
@@ -109,8 +105,8 @@ export default async function RecipePage({ params }: Props) {
         Recipes
       </Link>
 
-      {/* Cover image */}
-      {coverImage ? (
+      {/* Cover image — fixed: removed dead ternary (was: recipe.images.length === 0 ? null : null) */}
+      {coverImage && (
         <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl">
           <Image
             src={coverImage.image_url}
@@ -121,7 +117,7 @@ export default async function RecipePage({ params }: Props) {
             sizes="(min-width: 672px) 640px, 100vw"
           />
         </div>
-      ) : recipe.images.length === 0 ? null : null}
+      )}
 
       {/* Gallery thumbnails (2nd+ images) */}
       {recipe.images.length > 1 && (
@@ -246,8 +242,9 @@ export default async function RecipePage({ params }: Props) {
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
             Apply to a model
           </h2>
-          <RecipeApplyButton recipeId={id} models={models} appliedModelIds={applications} />
-          {models.length === 0 && (
+          {models.length > 0 ? (
+            <RecipeApplyButton recipeId={id} models={models} appliedModelIds={applications} />
+          ) : (
             <p className="text-sm text-muted-foreground">
               No models yet.{" "}
               <Link href="/pile" className="underline underline-offset-2 hover:text-foreground">
@@ -265,13 +262,14 @@ export default async function RecipePage({ params }: Props) {
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
             Manage
           </h2>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild>
               <Link href={`/recipes/${id}/edit`}>
                 <Pencil />
                 Edit recipe
               </Link>
             </Button>
+            <DeleteRecipeButton recipeId={id} />
           </div>
         </section>
       )}

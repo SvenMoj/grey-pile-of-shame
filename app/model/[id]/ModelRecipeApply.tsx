@@ -1,14 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FlaskConical } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { createClient } from "@/lib/supabase/client";
-import { createSupabaseRecipeApplicationsStore } from "@/lib/recipes/supabase-store";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { applyRecipeAction } from "@/lib/recipes/application-actions";
 import type { RecipeListItem } from "@/lib/recipes/types";
 
 type Props = {
@@ -19,7 +24,6 @@ type Props = {
 };
 
 export function ModelRecipeApply({ modelId, recipes, appliedRecipeIds }: Props) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [selectedRecipeId, setSelectedRecipeId] = useState("");
   const [applying, setApplying] = useState(false);
@@ -40,12 +44,15 @@ export function ModelRecipeApply({ modelId, recipes, appliedRecipeIds }: Props) 
     if (!selectedRecipeId) return;
     setApplying(true);
     try {
-      const store = createSupabaseRecipeApplicationsStore(createClient());
-      await store.apply(modelId, selectedRecipeId, "planned");
+      const fd = new FormData();
+      fd.append("miniatureItemId", modelId);
+      fd.append("recipeId", selectedRecipeId);
+      fd.append("status", "planned");
+      const result = await applyRecipeAction(fd);
+      if (result.error) throw new Error(result.error);
       toast.success("Recipe applied to this model");
       setOpen(false);
       setSelectedRecipeId("");
-      router.refresh();
     } catch {
       toast.error("Could not apply recipe");
     } finally {
@@ -66,30 +73,30 @@ export function ModelRecipeApply({ modelId, recipes, appliedRecipeIds }: Props) 
     <div className="flex flex-col gap-3 max-w-sm">
       <div className="space-y-1.5">
         <Label htmlFor="model-recipe-select">Choose a recipe</Label>
-        <select
-          id="model-recipe-select"
-          value={selectedRecipeId}
-          onChange={(e) => setSelectedRecipeId(e.target.value)}
-          className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
-        >
-          <option value="">Select…</option>
-          {recipes.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.title}
-              {appliedRecipeIds.has(r.id) ? " ✓ already applied" : ""}
-            </option>
-          ))}
-        </select>
+        <Select value={selectedRecipeId} onValueChange={setSelectedRecipeId}>
+          <SelectTrigger id="model-recipe-select" className="w-full">
+            <SelectValue placeholder="Select…" />
+          </SelectTrigger>
+          <SelectContent>
+            {recipes.map((r) => (
+              <SelectItem key={r.id} value={r.id}>
+                {r.title}
+                {appliedRecipeIds.has(r.id) ? " ✓" : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div className="flex gap-2">
         <Button
+          type="button"
           size="sm"
           disabled={!selectedRecipeId || applying}
           onClick={() => void handleApply()}
         >
           {applying ? "Applying…" : "Apply"}
         </Button>
-        <Button size="sm" variant="outline" onClick={() => setOpen(false)}>
+        <Button type="button" size="sm" variant="outline" onClick={() => setOpen(false)}>
           Cancel
         </Button>
       </div>

@@ -701,6 +701,10 @@ export type Database = {
         Args: { p_ordered_ids: string[]; p_recipe_id: string }
         Returns: undefined
       }
+      save_recipe_steps: {
+        Args: { p_recipe_id: string; p_steps: Json }
+        Returns: undefined
+      }
       search_paints: {
         Args: { result_limit?: number; search_query: string }
         Returns: {

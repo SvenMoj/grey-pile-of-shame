@@ -1,13 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { createClient } from "@/lib/supabase/client";
-import { createSupabaseRecipeApplicationsStore } from "@/lib/recipes/supabase-store";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { applyRecipeAction } from "@/lib/recipes/application-actions";
 
 type Model = { id: string; display_name: string; state: string };
 
@@ -19,7 +24,6 @@ type Props = {
 };
 
 export function RecipeApplyButton({ recipeId, models, appliedModelIds }: Props) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [selectedModelId, setSelectedModelId] = useState("");
   const [applying, setApplying] = useState(false);
@@ -30,12 +34,15 @@ export function RecipeApplyButton({ recipeId, models, appliedModelIds }: Props) 
     if (!selectedModelId) return;
     setApplying(true);
     try {
-      const store = createSupabaseRecipeApplicationsStore(createClient());
-      await store.apply(selectedModelId, recipeId, "planned");
+      const fd = new FormData();
+      fd.append("miniatureItemId", selectedModelId);
+      fd.append("recipeId", recipeId);
+      fd.append("status", "planned");
+      const result = await applyRecipeAction(fd);
+      if (result.error) throw new Error(result.error);
       toast.success("Recipe applied to model");
       setOpen(false);
       setSelectedModelId("");
-      router.refresh();
     } catch {
       toast.error("Could not apply recipe");
     } finally {
@@ -56,31 +63,31 @@ export function RecipeApplyButton({ recipeId, models, appliedModelIds }: Props) 
     <div className="flex flex-col gap-3 rounded-xl border border-border p-4 max-w-sm">
       <div className="space-y-1.5">
         <Label htmlFor="apply-model-select">Choose a model</Label>
-        <select
-          id="apply-model-select"
-          value={selectedModelId}
-          onChange={(e) => setSelectedModelId(e.target.value)}
-          className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
-        >
-          <option value="">Select…</option>
-          {models.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.display_name}
-              {appliedModelIds.has(m.id) ? " ✓ already applied" : ""}
-            </option>
-          ))}
-        </select>
+        <Select value={selectedModelId} onValueChange={setSelectedModelId}>
+          <SelectTrigger id="apply-model-select" className="w-full">
+            <SelectValue placeholder="Select…" />
+          </SelectTrigger>
+          <SelectContent>
+            {models.map((m) => (
+              <SelectItem key={m.id} value={m.id}>
+                {m.display_name}
+                {appliedModelIds.has(m.id) ? " ✓" : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex gap-2">
         <Button
+          type="button"
           size="sm"
           disabled={!selectedModelId || applying}
           onClick={() => void handleApply()}
         >
           {applying ? "Applying…" : "Apply"}
         </Button>
-        <Button size="sm" variant="outline" onClick={() => setOpen(false)}>
+        <Button type="button" size="sm" variant="outline" onClick={() => setOpen(false)}>
           Cancel
         </Button>
       </div>

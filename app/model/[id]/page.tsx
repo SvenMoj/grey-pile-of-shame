@@ -9,7 +9,8 @@ import { STATE_STYLES, STATE_LABELS } from "@/lib/pile/display";
 import { cn } from "@/lib/utils";
 import { ModelDetailEditor } from "./ModelDetailEditor";
 import { ModelRecipeApply } from "./ModelRecipeApply";
-import { listMyRecipes } from "@/lib/recipes/queries";
+import { AppliedRecipes } from "./AppliedRecipes";
+import { listMyRecipes, listApplicationsForModel } from "@/lib/recipes/queries";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -46,22 +47,19 @@ export default async function ModelPage({ params }: Props) {
     supabase.from("miniature_items").select("*").eq("id", id).single(),
   ]);
 
-  // Owner-only data — fetch after we know the user
-  const isOwnerEarly = !!user;
-  const [myRecipes, appliedRecipes] = isOwnerEarly
-    ? await Promise.all([
-        listMyRecipes(),
-        supabase
-          .from("recipe_applications")
-          .select("recipe_id")
-          .eq("miniature_item_id", id)
-          .then(({ data }) => new Set((data ?? []).map((r) => r.recipe_id as string))),
-      ])
-    : [[], new Set<string>()];
-
   // RLS hides private items from non-owners; notFound() handles both "not found"
   // and "exists but private and you're not the owner".
   if (!row) notFound();
+
+  const isOwner = !!user && user.id === row.user_id;
+
+  // Owner-only data: my recipe list, applied recipes with titles (for display + apply picker)
+  const [myRecipes, applications] = isOwner
+    ? await Promise.all([listMyRecipes(), listApplicationsForModel(id)])
+    : [[], []];
+
+  // IDs already applied — used to annotate the apply-picker dropdown
+  const appliedRecipeIds = new Set(applications.map((a) => a.recipe_id));
 
   const item = {
     id: row.id,
@@ -80,8 +78,6 @@ export default async function ModelPage({ params }: Props) {
     painted_at: row.painted_at ?? null,
     updated_at: row.updated_at,
   };
-
-  const isOwner = !!user && user.id === row.user_id;
 
   const metadata = [
     item.game,
@@ -151,11 +147,16 @@ export default async function ModelPage({ params }: Props) {
 
       {/* ── Recipes ── */}
       {isOwner && (
-        <section className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
+        <section className="space-y-4 rounded-xl border border-border bg-muted/30 p-4">
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
             Recipes
           </h2>
-          <ModelRecipeApply modelId={id} recipes={myRecipes} appliedRecipeIds={appliedRecipes} />
+
+          {/* Applied recipes list with status + unapply controls */}
+          <AppliedRecipes applications={applications} modelId={id} />
+
+          {/* Apply-a-new-recipe picker */}
+          <ModelRecipeApply modelId={id} recipes={myRecipes} appliedRecipeIds={appliedRecipeIds} />
         </section>
       )}
     </div>

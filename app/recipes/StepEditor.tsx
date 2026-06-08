@@ -5,6 +5,13 @@ import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PaintSearch } from "@/components/PaintSearch";
 import { PaintSwatch } from "@/components/PaintSwatch";
 import type { RecipeStep, RecipeStepRole } from "@/lib/recipes/types";
@@ -112,23 +119,26 @@ export function StepEditor({ steps, onChange, ownedIds }: Props) {
 
             <span className="text-sm text-muted-foreground w-5 text-center">{index + 1}.</span>
 
-            {/* Role selector */}
+            {/* Role selector — uses shadcn Select for controlled state */}
             <div className="flex-1">
               <Label htmlFor={`role-${step.id}`} className="sr-only">
                 Role
               </Label>
-              <select
-                id={`role-${step.id}`}
+              <Select
                 value={step.role}
-                onChange={(e) => update(index, { role: e.target.value as RecipeStepRole })}
-                className="h-8 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+                onValueChange={(v) => update(index, { role: v as RecipeStepRole })}
               >
-                {Object.entries(STEP_ROLE_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id={`role-${step.id}`} size="sm" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(STEP_ROLE_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {step.paint && <PaintSwatch hex={step.paint.hex} name={step.paint.name} size="sm" />}
@@ -205,13 +215,15 @@ export function StepEditor({ steps, onChange, ownedIds }: Props) {
                       onAdd={(paintId, paint) => handlePaintAdd(index, paintId, paint)}
                       ownedIds={ownedIds}
                     />
-                    <button
+                    <Button
                       type="button"
-                      className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0 text-xs text-muted-foreground"
                       onClick={() => setCustomHexMode((m) => ({ ...m, [step.id]: true }))}
                     >
                       Use a custom color instead
-                    </button>
+                    </Button>
                   </>
                 )}
               </div>
@@ -264,8 +276,6 @@ function PaintSearchWithCallback({
   return (
     <PaintSearch
       onAdd={(paintId) => {
-        // We pass null for paint here; the parent will refetch on save.
-        // For the UI we fetch it optimistically on selection.
         onAdd(paintId, null);
       }}
       ownedIds={ownedIds}

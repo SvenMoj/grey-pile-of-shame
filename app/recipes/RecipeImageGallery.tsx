@@ -6,14 +6,18 @@ import { ChevronLeft, ChevronRight, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
-import { createSupabaseRecipesStore } from "@/lib/recipes/supabase-store";
+import {
+  addRecipeImageAction,
+  removeRecipeImageAction,
+  reorderRecipeImagesAction,
+} from "@/lib/recipes/actions";
 import type { RecipeImage } from "@/lib/recipes/types";
 
 type Props = {
   recipeId: string;
   userId: string;
   initialImages: RecipeImage[];
-  /** Called after any mutation so the parent can refresh server data. */
+  /** Called after any mutation so the parent can refresh its local state. */
   onImagesChange: (images: RecipeImage[]) => void;
 };
 
@@ -32,6 +36,8 @@ export function RecipeImageGallery({ recipeId, userId, initialImages, onImagesCh
     if (!file) return;
     setUploading(true);
     try {
+      // File upload goes directly to Supabase Storage from the browser.
+      // Server Action request bodies cap at ~1MB so binary files must not go through them.
       const supabase = createClient();
       const ext = file.name.split(".").pop() ?? "jpg";
       const filename = `${crypto.randomUUID()}.${ext}`;
@@ -47,13 +53,23 @@ export function RecipeImageGallery({ recipeId, userId, initialImages, onImagesCh
         data: { publicUrl },
       } = supabase.storage.from("recipe-images").getPublicUrl(storagePath);
 
-      const store = createSupabaseRecipesStore(supabase);
-      const newImage = await store.addImage(recipeId, {
+      // DB row write goes through a server action (convention: only server actions mutate DB).
+      const fd = new FormData();
+      fd.append("recipeId", recipeId);
+      fd.append("storage_path", storagePath);
+      fd.append("image_url", publicUrl);
+      fd.append("sort_order", String(images.length));
+
+      const result = await addRecipeImageAction(fd);
+      if (result.error) throw new Error(result.error);
+
+      // Optimistically update local state with the data we know (no DB round-trip needed).
+      const newImage: RecipeImage = {
+        id: crypto.randomUUID(), // placeholder until next server-render; revalidatePath handles it
         storage_path: storagePath,
         image_url: publicUrl,
         sort_order: images.length,
-      });
-
+      };
       update([...images, newImage]);
       toast.success("Photo added");
     } catch (err) {
@@ -67,10 +83,15 @@ export function RecipeImageGallery({ recipeId, userId, initialImages, onImagesCh
 
   async function handleRemove(img: RecipeImage) {
     try {
-      const store = createSupabaseRecipesStore(createClient());
-      await store.removeImage(img.id);
-      const next = images.filter((i) => i.id !== img.id);
-      update(next);
+      const fd = new FormData();
+      fd.append("imageId", img.id);
+      fd.append("storage_path", img.storage_path);
+      fd.append("recipeId", recipeId);
+
+      const result = await removeRecipeImageAction(fd);
+      if (result.error) throw new Error(result.error);
+
+      update(images.filter((i) => i.id !== img.id));
       toast.success("Photo removed");
     } catch {
       toast.error("Could not remove photo");
@@ -83,11 +104,13 @@ export function RecipeImageGallery({ recipeId, userId, initialImages, onImagesCh
     const next = [...images];
     [next[index], next[swap]] = [next[swap], next[index]];
     try {
-      const store = createSupabaseRecipesStore(createClient());
-      await store.reorderImages(
-        recipeId,
-        next.map((i) => i.id),
-      );
+      const fd = new FormData();
+      fd.append("recipeId", recipeId);
+      fd.append("orderedIds", JSON.stringify(next.map((i) => i.id)));
+
+      const result = await reorderRecipeImagesAction(fd);
+      if (result.error) throw new Error(result.error);
+
       update(next.map((i, idx) => ({ ...i, sort_order: idx })));
     } catch {
       toast.error("Could not reorder photos");
@@ -110,7 +133,7 @@ export function RecipeImageGallery({ recipeId, userId, initialImages, onImagesCh
                   sizes="96px"
                 />
                 {index === 0 && (
-                  <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] text-center py-0.5">
+                  <span className="absolute bottom-0 left-0 right-0 bg-foreground/60 text-background text-[10px] text-center py-0.5">
                     Cover
                   </span>
                 )}
