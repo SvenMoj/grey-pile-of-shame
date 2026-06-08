@@ -16,11 +16,16 @@ export type ParsedRecipe = {
   source_url: string | null;
 };
 
+export type ParsedComponent = {
+  paint_id: string | null;
+  hex: string | null;
+  ratio: number;
+};
+
 export type ParsedStep = {
   id: string;
   role: RecipeStepRole;
-  target_paint_id: string | null;
-  target_hex: string | null;
+  paints: ParsedComponent[];
   technique_note: string | null;
   area_note: string | null;
 };
@@ -97,7 +102,10 @@ export function validateRecipeForm(
 
 /**
  * Parses and validates the JSON steps payload from a hidden form field.
- * Mirrors the DB constraints: role enum, target_paint_id | target_hex not null, hex format.
+ * Mirrors the DB constraints:
+ *   - role enum
+ *   - paints array must have at least one component
+ *   - each component: paint_id | hex required, hex format /^[0-9A-Fa-f]{6}$/, ratio >= 1 integer
  */
 export function parseStepsPayload(
   raw: string | null | undefined,
@@ -124,17 +132,51 @@ export function parseStepsPayload(
       return { errors: { _: `Step ${i + 1}: invalid role "${String(s.role)}".` } };
     }
 
-    const paintId = (s.target_paint_id as string | null) ?? null;
-    const rawHex = (s.target_hex as string | null) ?? null;
-
-    if (paintId == null && rawHex == null) {
-      return {
-        errors: { _: `Step ${i + 1}: must specify either a catalog paint or a hex color.` },
-      };
+    const rawPaints = s.paints;
+    if (!Array.isArray(rawPaints) || rawPaints.length === 0) {
+      return { errors: { _: `Step ${i + 1}: must have at least one paint component.` } };
     }
 
-    if (rawHex != null && !/^[0-9A-Fa-f]{6}$/.test(rawHex)) {
-      return { errors: { _: `Step ${i + 1}: hex must be exactly 6 hex characters without #.` } };
+    const paints: ParsedComponent[] = [];
+
+    for (let j = 0; j < rawPaints.length; j++) {
+      const c = rawPaints[j] as Record<string, unknown>;
+      const paintId = ((c.paint_id as string | null | undefined) ?? null) || null;
+      const rawHex = ((c.hex as string | null | undefined) ?? null) || null;
+
+      if (paintId == null && rawHex == null) {
+        return {
+          errors: {
+            _: `Step ${i + 1}, paint ${j + 1}: must specify either a catalog paint or a hex color.`,
+          },
+        };
+      }
+
+      if (rawHex != null && !/^[0-9A-Fa-f]{6}$/.test(rawHex)) {
+        return {
+          errors: {
+            _: `Step ${i + 1}, paint ${j + 1}: hex must be exactly 6 hex characters without #.`,
+          },
+        };
+      }
+
+      const rawRatio = c.ratio;
+      const ratio =
+        rawRatio === undefined || rawRatio === null
+          ? 1
+          : typeof rawRatio === "number"
+            ? rawRatio
+            : Number(rawRatio);
+
+      if (!Number.isInteger(ratio) || ratio < 1) {
+        return {
+          errors: {
+            _: `Step ${i + 1}, paint ${j + 1}: ratio must be a positive integer (got "${String(rawRatio)}").`,
+          },
+        };
+      }
+
+      paints.push({ paint_id: paintId, hex: rawHex, ratio });
     }
 
     const techniqueNote = ((s.technique_note as string) ?? "").trim() || null;
@@ -143,8 +185,7 @@ export function parseStepsPayload(
     steps.push({
       id: String(s.id ?? ""),
       role: s.role as RecipeStepRole,
-      target_paint_id: paintId,
-      target_hex: rawHex,
+      paints,
       technique_note: techniqueNote,
       area_note: areaNoteVal,
     });

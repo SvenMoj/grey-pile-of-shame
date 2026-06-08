@@ -22,11 +22,15 @@ function recipeStepsToLocalSteps(recipe: RecipeWithDetail): LocalStep[] {
   return recipe.steps.map((s) => ({
     id: s.id,
     role: s.role,
-    target_paint_id: s.target_paint_id,
-    target_hex: s.target_hex,
     technique_note: s.technique_note ?? "",
     area_note: s.area_note ?? "",
-    paint: s.paint,
+    paints: s.paints.map((c) => ({
+      id: crypto.randomUUID(), // temp UI key — DB ids regenerate on every save anyway
+      paint_id: c.paint_id,
+      hex: c.hex,
+      ratio: c.ratio,
+      paint: c.paint,
+    })),
   }));
 }
 

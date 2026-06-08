@@ -12,7 +12,7 @@ export type RecipeStepRole =
 export type RecipeVisibility = "private" | "public";
 export type RecipeApplicationStatus = "planned" | "in_progress" | "done";
 
-/** Joined paint summary on a step. Null when target_hex-only or the catalog paint was deleted. */
+/** Joined catalog paint summary on a step component. */
 export type StepPaint = {
   id: string;
   brand: string;
@@ -21,16 +21,26 @@ export type StepPaint = {
   range: string | null;
 };
 
+/** One component in a step's paint mix (catalog paint or custom hex + integer ratio). */
+export type RecipeStepComponent = {
+  id: string;
+  position: number;
+  paint_id: string | null;
+  hex: string | null;
+  /** Positive integer "parts" — 2 means twice as much of this paint in the mix. */
+  ratio: number;
+  /** Null for hex-only components or when the catalog paint was deleted (on delete set null). */
+  paint: StepPaint | null;
+};
+
 export type RecipeStep = {
   id: string;
   step_order: number;
   role: RecipeStepRole;
-  target_paint_id: string | null;
-  target_hex: string | null;
   technique_note: string | null;
   area_note: string | null;
-  /** Null for hex-only steps or when the catalog paint was deleted (on delete set null). */
-  paint: StepPaint | null;
+  /** Ordered list of paint mix components (by position). Always at least one. */
+  paints: RecipeStepComponent[];
 };
 
 export type RecipeImage = {
@@ -90,11 +100,16 @@ export type NewRecipeInput = {
 
 export type UpdateRecipeInput = Partial<NewRecipeInput>;
 
+export type NewStepComponentInput = {
+  paint_id: string | null;
+  hex: string | null;
+  ratio: number;
+};
+
 export type NewStepInput = {
   step_order: number;
   role: RecipeStepRole;
-  target_paint_id: string | null;
-  target_hex: string | null;
+  paints: NewStepComponentInput[];
   technique_note?: string | null;
   area_note?: string | null;
 };

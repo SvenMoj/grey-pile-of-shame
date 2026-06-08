@@ -18,8 +18,37 @@ export function BrandSubstitutePicker({ steps, brands, conversionEdges }: Props)
 
   const conversionsByPaint = new Map(conversionEdges);
 
-  const catalogSteps = steps.filter((s) => s.target_paint_id !== null);
-  const recipePaintIds = catalogSteps.map((s) => s.target_paint_id!);
+  // Collect unique catalog paint ids from all step components.
+  const seenIds = new Set<string>();
+  const recipePaintIds: string[] = [];
+  for (const step of steps) {
+    for (const comp of step.paints) {
+      if (comp.paint_id && !seenIds.has(comp.paint_id)) {
+        seenIds.add(comp.paint_id);
+        recipePaintIds.push(comp.paint_id);
+      }
+    }
+  }
+
+  // Map each paint_id to the first step that uses it (for display labels).
+  const paintIdToStep = new Map<string, RecipeStep>();
+  for (const step of steps) {
+    for (const comp of step.paints) {
+      if (comp.paint_id && !paintIdToStep.has(comp.paint_id)) {
+        paintIdToStep.set(comp.paint_id, step);
+      }
+    }
+  }
+
+  // Map each paint_id to its display name (from the first matching component).
+  const paintIdToName = new Map<string, { name: string; brand: string }>();
+  for (const step of steps) {
+    for (const comp of step.paints) {
+      if (comp.paint_id && comp.paint && !paintIdToName.has(comp.paint_id)) {
+        paintIdToName.set(comp.paint_id, { name: comp.paint.name, brand: comp.paint.brand });
+      }
+    }
+  }
 
   const results =
     targetBrand && recipePaintIds.length > 0
@@ -51,7 +80,7 @@ export function BrandSubstitutePicker({ steps, brands, conversionEdges }: Props)
         <p className="text-sm text-muted-foreground">No conversion data found for {targetBrand}.</p>
       )}
 
-      {targetBrand && catalogSteps.length === 0 && (
+      {targetBrand && recipePaintIds.length === 0 && (
         <p className="text-sm text-muted-foreground">
           This recipe uses only custom colors — no substitution data available.
         </p>
@@ -60,15 +89,18 @@ export function BrandSubstitutePicker({ steps, brands, conversionEdges }: Props)
       {results.length > 0 && hasAny && (
         <ul className="space-y-4">
           {results.map((result) => {
-            const step = catalogSteps.find((s) => s.target_paint_id === result.recipePaintId);
+            const step = paintIdToStep.get(result.recipePaintId);
+            const paintInfo = paintIdToName.get(result.recipePaintId);
             if (!step) return null;
             return (
               <li key={result.recipePaintId} className="space-y-2">
                 <p className="text-sm font-medium">
-                  Step {step.step_order + 1} — {step.paint?.name ?? result.recipePaintId}
-                  <span className="ml-1 text-xs text-muted-foreground font-normal">
-                    ({step.paint?.brand})
-                  </span>
+                  Step {step.step_order + 1} — {paintInfo?.name ?? result.recipePaintId}
+                  {paintInfo?.brand && (
+                    <span className="ml-1 text-xs text-muted-foreground font-normal">
+                      ({paintInfo.brand})
+                    </span>
+                  )}
                 </p>
                 {result.candidates.length === 0 ? (
                   <p className="text-sm text-muted-foreground pl-4">

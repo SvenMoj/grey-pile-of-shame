@@ -393,6 +393,54 @@ export type Database = {
           },
         ]
       }
+      recipe_step_paints: {
+        Row: {
+          created_at: string
+          hex: string | null
+          id: string
+          paint_id: string | null
+          position: number
+          ratio: number
+          step_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          hex?: string | null
+          id?: string
+          paint_id?: string | null
+          position: number
+          ratio?: number
+          step_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          hex?: string | null
+          id?: string
+          paint_id?: string | null
+          position?: number
+          ratio?: number
+          step_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_step_paints_paint_id_fkey"
+            columns: ["paint_id"]
+            isOneToOne: false
+            referencedRelation: "paints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipe_step_paints_step_id_fkey"
+            columns: ["step_id"]
+            isOneToOne: false
+            referencedRelation: "recipe_steps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recipe_steps: {
         Row: {
           area_note: string | null
@@ -401,8 +449,6 @@ export type Database = {
           recipe_id: string
           role: string
           step_order: number
-          target_hex: string | null
-          target_paint_id: string | null
           technique_note: string | null
           updated_at: string
         }
@@ -413,8 +459,6 @@ export type Database = {
           recipe_id: string
           role: string
           step_order: number
-          target_hex?: string | null
-          target_paint_id?: string | null
           technique_note?: string | null
           updated_at?: string
         }
@@ -425,8 +469,6 @@ export type Database = {
           recipe_id?: string
           role?: string
           step_order?: number
-          target_hex?: string | null
-          target_paint_id?: string | null
           technique_note?: string | null
           updated_at?: string
         }
@@ -436,13 +478,6 @@ export type Database = {
             columns: ["recipe_id"]
             isOneToOne: false
             referencedRelation: "recipes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "recipe_steps_target_paint_id_fkey"
-            columns: ["target_paint_id"]
-            isOneToOne: false
-            referencedRelation: "paints"
             referencedColumns: ["id"]
           },
         ]

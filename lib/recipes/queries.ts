@@ -19,6 +19,7 @@ import type {
   RecipeImage,
   RecipeListItem,
   RecipeStep,
+  RecipeStepComponent,
   RecipeWithDetail,
 } from "./types";
 
@@ -40,7 +41,7 @@ export async function getRecipeById(id: string): Promise<RecipeWithDetail | null
     supabase
       .from("recipe_steps")
       .select(
-        "id, step_order, role, target_paint_id, target_hex, technique_note, area_note, created_at, updated_at, paint:paints!recipe_steps_target_paint_id_fkey(id, brand, name, hex, range)",
+        "id, step_order, role, technique_note, area_note, paints:recipe_step_paints!recipe_step_paints_step_id_fkey(id, position, paint_id, hex, ratio, paint:paints!recipe_step_paints_paint_id_fkey(id, brand, name, hex, range))",
       )
       .eq("recipe_id", id)
       .order("step_order"),
@@ -53,9 +54,19 @@ export async function getRecipeById(id: string): Promise<RecipeWithDetail | null
 
   if (recipeResult.error || !recipeResult.data) return null;
 
+  // Sort each step's paint components by position (PostgREST nested-embed ordering
+  // is not guaranteed, so we sort in JS after fetch).
+  const rawSteps = (stepsResult.data ?? []) as unknown as (Omit<RecipeStep, "paints"> & {
+    paints: RecipeStepComponent[];
+  })[];
+  const steps: RecipeStep[] = rawSteps.map((s) => ({
+    ...s,
+    paints: [...s.paints].sort((a, b) => a.position - b.position),
+  }));
+
   return {
     ...(recipeResult.data as unknown as Recipe),
-    steps: (stepsResult.data ?? []) as unknown as RecipeStep[],
+    steps,
     images: (imagesResult.data ?? []) as unknown as RecipeImage[],
   };
 }

@@ -63,10 +63,15 @@ export default async function RecipePage({ params }: Props) {
   const isOwner = !!user && user.id === recipe.author_user_id;
   const isAuthed = !!user;
 
-  // Catalog paint ids from steps (exclude hex-only steps)
-  const stepPaintIds = recipe.steps
-    .map((s) => s.target_paint_id)
-    .filter((id): id is string => id !== null);
+  // Catalog paint ids from all step components — flatten, dedupe, exclude hex-only.
+  const stepPaintIds = [
+    ...new Set(
+      recipe.steps
+        .flatMap((s) => s.paints)
+        .map((c) => c.paint_id)
+        .filter((id): id is string => id !== null),
+    ),
+  ];
 
   // Fetch cross-ref data in parallel (safe for anon — owned set will be empty)
   const [rawConversions, ownedPaintIds, brands, models, applications] = await Promise.all([
@@ -176,26 +181,43 @@ export default async function RecipePage({ params }: Props) {
                 <span className="mt-0.5 text-muted-foreground text-sm w-5 text-center">
                   {step.step_order + 1}.
                 </span>
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-2">
+                <div className="flex-1 space-y-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="secondary" className="text-xs">
                       {STEP_ROLE_LABELS[step.role] ?? step.role}
                     </Badge>
-                    {step.paint && (
-                      <>
-                        <PaintSwatch hex={step.paint.hex} size="sm" />
-                        <span className="text-sm font-medium">{step.paint.name}</span>
-                        <span className="text-xs text-muted-foreground">{step.paint.brand}</span>
-                      </>
-                    )}
-                    {step.target_hex && !step.paint && (
-                      <>
-                        <PaintSwatch hex={step.target_hex} size="sm" />
-                        <span className="text-sm text-muted-foreground font-mono">
-                          #{step.target_hex}
-                        </span>
-                      </>
-                    )}
+                  </div>
+                  {/* Paint mix — rendered as "2× Name (Brand) + 1× Name (Brand)" */}
+                  <div className="flex flex-wrap items-center gap-1.5 text-sm">
+                    {step.paints.map((comp, ci) => (
+                      <span key={comp.id} className="flex items-center gap-1.5">
+                        {ci > 0 && <span className="text-muted-foreground text-xs">+</span>}
+                        {comp.paint ? (
+                          <>
+                            <PaintSwatch hex={comp.paint.hex} size="sm" />
+                            {step.paints.length > 1 || comp.ratio !== 1 ? (
+                              <span className="font-mono text-xs text-muted-foreground">
+                                {comp.ratio}×
+                              </span>
+                            ) : null}
+                            <span className="font-medium">{comp.paint.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {comp.paint.brand}
+                            </span>
+                          </>
+                        ) : comp.hex ? (
+                          <>
+                            <PaintSwatch hex={comp.hex} size="sm" />
+                            {step.paints.length > 1 || comp.ratio !== 1 ? (
+                              <span className="font-mono text-xs text-muted-foreground">
+                                {comp.ratio}×
+                              </span>
+                            ) : null}
+                            <span className="text-muted-foreground font-mono">#{comp.hex}</span>
+                          </>
+                        ) : null}
+                      </span>
+                    ))}
                   </div>
                   {step.technique_note && (
                     <p className="text-xs text-muted-foreground">

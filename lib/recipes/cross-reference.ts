@@ -10,7 +10,7 @@
  * on Supabase or Next.js.
  */
 
-import type { RecipeStep } from "./types";
+import type { RecipeStep, RecipeStepComponent, StepPaint } from "./types";
 
 // ─── Shared types ─────────────────────────────────────────────────────────────
 
@@ -36,13 +36,34 @@ export type ConversionEdge = {
   confidence: number;
 };
 
-// ─── Per-step status ──────────────────────────────────────────────────────────
+// ─── Per-component status ─────────────────────────────────────────────────────
 
+/** Inventory status for a single catalog paint (or hex-only component). */
 export type StepInventoryStatus =
   | { kind: "owned" }
   | { kind: "substitute_owned"; substitute: ConversionPaint; confidence: number }
   | { kind: "missing" }
-  | { kind: "no_catalog_paint" }; // hex-only step or catalog paint was deleted
+  | { kind: "no_catalog_paint" }; // hex-only or catalog paint was deleted
+
+/** Status of one component in a mix, bundled with its display info. */
+export type StepComponentStatus = {
+  component: RecipeStepComponent;
+  paint: StepPaint | null;
+  status: StepInventoryStatus;
+};
+
+/**
+ * Rolled-up inventory status for a step with potentially many mix components.
+ *
+ * - no_catalog_paint: every component is hex-only (no catalog paint_ids)
+ * - owned:   all catalog components are owned or have an owned substitute
+ * - partial: some catalog components are covered, some are missing
+ * - missing: no catalog components are covered
+ */
+export type StepMixStatus = {
+  kind: "no_catalog_paint" | "owned" | "partial" | "missing";
+  components: StepComponentStatus[];
+};
 
 // ─── indexConversionsByRecipePaint ────────────────────────────────────────────
 
@@ -131,20 +152,57 @@ export function resolveStepStatus(
   return { kind: "substitute_owned", substitute: best.toPaint, confidence: best.confidence };
 }
 
+// ─── resolveStepMix ──────────────────────────────────────────────────────────
+
+/**
+ * Compute the rolled-up inventory status for a single step with multiple
+ * mix components. Calls resolveStepStatus for each catalog component.
+ */
+export function resolveStepMix(
+  step: RecipeStep,
+  ownedPaintIds: ReadonlySet<string>,
+  conversionsByPaint: ReadonlyMap<string, ConversionEdge[]>,
+): StepMixStatus {
+  const components: StepComponentStatus[] = step.paints.map((c) => ({
+    component: c,
+    paint: c.paint,
+    status: resolveStepStatus(c.paint_id, ownedPaintIds, conversionsByPaint),
+  }));
+
+  const catalogComponents = components.filter((c) => c.component.paint_id !== null);
+
+  if (catalogComponents.length === 0) {
+    return { kind: "no_catalog_paint", components };
+  }
+
+  const coveredCount = catalogComponents.filter(
+    (c) => c.status.kind === "owned" || c.status.kind === "substitute_owned",
+  ).length;
+
+  let kind: StepMixStatus["kind"];
+  if (coveredCount === 0) {
+    kind = "missing";
+  } else if (coveredCount === catalogComponents.length) {
+    kind = "owned";
+  } else {
+    kind = "partial";
+  }
+
+  return { kind, components };
+}
+
 // ─── resolveAllSteps ─────────────────────────────────────────────────────────
 
 /**
- * Map every recipe step to its inventory status.
+ * Map every recipe step to its rolled-up mix status.
  * Returns statuses in the same order as the input steps array.
  */
 export function resolveAllSteps(
   steps: RecipeStep[],
   ownedPaintIds: ReadonlySet<string>,
   conversionsByPaint: ReadonlyMap<string, ConversionEdge[]>,
-): StepInventoryStatus[] {
-  return steps.map((step) =>
-    resolveStepStatus(step.target_paint_id, ownedPaintIds, conversionsByPaint),
-  );
+): StepMixStatus[] {
+  return steps.map((step) => resolveStepMix(step, ownedPaintIds, conversionsByPaint));
 }
 
 // ─── selectBrandSubstitutes ───────────────────────────────────────────────────

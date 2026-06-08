@@ -2,11 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   indexConversionsByRecipePaint,
   resolveStepStatus,
+  resolveStepMix,
   resolveAllSteps,
   selectBrandSubstitutes,
 } from "./cross-reference";
 import type { RawConversionRow } from "./cross-reference";
-import type { RecipeStep } from "./types";
+import type { RecipeStep, RecipeStepComponent } from "./types";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -28,21 +29,35 @@ function makeConversion(
   };
 }
 
-function makeStep(
-  id: string,
-  targetPaintId: string | null,
-  targetHex: string | null = null,
-): RecipeStep {
+function makeComponent(
+  paintId: string | null,
+  hex: string | null = null,
+  ratio = 1,
+): RecipeStepComponent {
+  return {
+    id: crypto.randomUUID(),
+    position: 0,
+    paint_id: paintId,
+    hex,
+    ratio,
+    paint: paintId ? makePaint(paintId) : null,
+  };
+}
+
+function makeStep(id: string, components: RecipeStepComponent[]): RecipeStep {
   return {
     id,
     step_order: 0,
     role: "basecoat",
-    target_paint_id: targetPaintId,
-    target_hex: targetHex,
     technique_note: null,
     area_note: null,
-    paint: targetPaintId ? makePaint(targetPaintId) : null,
+    paints: components.map((c, i) => ({ ...c, position: i })),
   };
+}
+
+/** Convenience: single-paint step */
+function makeSinglePaintStep(id: string, paintId: string | null, hex: string | null = null) {
+  return makeStep(id, [makeComponent(paintId, hex)]);
 }
 
 // ─── indexConversionsByRecipePaint ───────────────────────────────────────────
@@ -184,14 +199,83 @@ describe("resolveStepStatus", () => {
   });
 });
 
+// ─── resolveStepMix ──────────────────────────────────────────────────────────
+
+describe("resolveStepMix", () => {
+  it("returns no_catalog_paint when all components are hex-only", () => {
+    const step = makeStep("s1", [makeComponent(null, "FF0000"), makeComponent(null, "0000FF")]);
+    const result = resolveStepMix(step, new Set(), new Map());
+    expect(result.kind).toBe("no_catalog_paint");
+    expect(result.components).toHaveLength(2);
+  });
+
+  it("returns owned when single component is owned", () => {
+    const step = makeSinglePaintStep("s1", "red");
+    const result = resolveStepMix(step, new Set(["red"]), new Map());
+    expect(result.kind).toBe("owned");
+    expect(result.components[0].status.kind).toBe("owned");
+  });
+
+  it("returns owned when all catalog components are owned", () => {
+    const step = makeStep("s1", [makeComponent("red"), makeComponent("blue")]);
+    const result = resolveStepMix(step, new Set(["red", "blue"]), new Map());
+    expect(result.kind).toBe("owned");
+  });
+
+  it("returns owned when all catalog components are owned via substitute", () => {
+    const edges = [{ fromPaintId: "red", toPaint: makePaint("alt-red"), confidence: 0.9 }];
+    const map = new Map([["red", edges]]);
+    const step = makeSinglePaintStep("s1", "red");
+    const result = resolveStepMix(step, new Set(["alt-red"]), map);
+    expect(result.kind).toBe("owned");
+    expect(result.components[0].status.kind).toBe("substitute_owned");
+  });
+
+  it("returns missing when single catalog component is not owned", () => {
+    const step = makeSinglePaintStep("s1", "red");
+    const result = resolveStepMix(step, new Set(), new Map());
+    expect(result.kind).toBe("missing");
+  });
+
+  it("returns missing when no catalog components are covered in a multi-paint step", () => {
+    const step = makeStep("s1", [makeComponent("red"), makeComponent("blue")]);
+    const result = resolveStepMix(step, new Set(), new Map());
+    expect(result.kind).toBe("missing");
+  });
+
+  it("returns partial when only some components are owned in a multi-paint step", () => {
+    const step = makeStep("s1", [makeComponent("red"), makeComponent("blue")]);
+    const result = resolveStepMix(step, new Set(["red"]), new Map());
+    expect(result.kind).toBe("partial");
+    expect(result.components[0].status.kind).toBe("owned");
+    expect(result.components[1].status.kind).toBe("missing");
+  });
+
+  it("treats hex components as no_catalog_paint in a mixed catalog+hex step (still owned if catalog covered)", () => {
+    // Step has a catalog paint (owned) + a hex component — should be 'owned' since
+    // only catalog components are checked in the rollup.
+    const step = makeStep("s1", [makeComponent("red"), makeComponent(null, "FF0000")]);
+    const result = resolveStepMix(step, new Set(["red"]), new Map());
+    expect(result.kind).toBe("owned");
+    expect(result.components[1].status.kind).toBe("no_catalog_paint");
+  });
+
+  it("returns component statuses in input order", () => {
+    const step = makeStep("s1", [makeComponent("red"), makeComponent("blue")]);
+    const result = resolveStepMix(step, new Set(["blue"]), new Map());
+    expect(result.components[0].status.kind).toBe("missing");
+    expect(result.components[1].status.kind).toBe("owned");
+  });
+});
+
 // ─── resolveAllSteps ─────────────────────────────────────────────────────────
 
 describe("resolveAllSteps", () => {
-  it("maps each step to a status", () => {
+  it("maps each step to a mix status", () => {
     const steps: RecipeStep[] = [
-      makeStep("s1", "red"),
-      makeStep("s2", null, "FF0000"),
-      makeStep("s3", "blue"),
+      makeSinglePaintStep("s1", "red"),
+      makeSinglePaintStep("s2", null, "FF0000"),
+      makeSinglePaintStep("s3", "blue"),
     ];
     const edges = [{ fromPaintId: "red", toPaint: makePaint("alt-red"), confidence: 0.9 }];
     const map = new Map([["red", edges]]);
@@ -201,6 +285,12 @@ describe("resolveAllSteps", () => {
     expect(results[0].kind).toBe("owned");
     expect(results[1].kind).toBe("no_catalog_paint");
     expect(results[2].kind).toBe("missing");
+  });
+
+  it("returns partial for a multi-paint step where only one is owned", () => {
+    const steps: RecipeStep[] = [makeStep("s1", [makeComponent("red"), makeComponent("blue")])];
+    const results = resolveAllSteps(steps, new Set(["red"]), new Map());
+    expect(results[0].kind).toBe("partial");
   });
 });
 

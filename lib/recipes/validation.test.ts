@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { validateRecipeForm, parseStepsPayload, planStepSync } from "./validation";
-import type { ParsedStep } from "./validation";
+import type { ParsedStep, ParsedComponent } from "./validation";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -10,12 +10,20 @@ function makeFormData(fields: Record<string, string>): FormData {
   return fd;
 }
 
+function makeComponent(overrides: Partial<ParsedComponent> = {}): ParsedComponent {
+  return {
+    paint_id: "some-paint-id",
+    hex: null,
+    ratio: 1,
+    ...overrides,
+  };
+}
+
 function makeStep(id: string, overrides: Partial<ParsedStep> = {}): ParsedStep {
   return {
     id,
     role: "basecoat",
-    target_paint_id: "some-paint-id",
-    target_hex: null,
+    paints: [makeComponent()],
     technique_note: null,
     area_note: null,
     ...overrides,
@@ -104,22 +112,115 @@ describe("parseStepsPayload", () => {
     expect("errors" in result).toBe(true);
   });
 
-  it("returns error when both target_paint_id and target_hex are null", () => {
-    const step = makeStep("s1", { target_paint_id: null, target_hex: null });
+  it("returns error when paints array is empty", () => {
+    const step = makeStep("s1", { paints: [] });
     const result = parseStepsPayload(JSON.stringify([step]));
+    expect("errors" in result).toBe(true);
+    if ("errors" in result) expect(result.errors._).toMatch(/at least one paint/i);
+  });
+
+  it("returns error when paints field is missing", () => {
+    const raw = JSON.stringify([{ id: "s1", role: "basecoat" }]);
+    const result = parseStepsPayload(raw);
     expect("errors" in result).toBe(true);
   });
 
-  it("accepts a hex-only step", () => {
-    const step = makeStep("s1", { target_paint_id: null, target_hex: "FF4500" });
+  it("returns error when component has no paint_id and no hex", () => {
+    const step = makeStep("s1", {
+      paints: [makeComponent({ paint_id: null, hex: null })],
+    });
+    const result = parseStepsPayload(JSON.stringify([step]));
+    expect("errors" in result).toBe(true);
+    if ("errors" in result) expect(result.errors._).toMatch(/catalog paint or a hex/i);
+  });
+
+  it("accepts a hex-only component", () => {
+    const step = makeStep("s1", {
+      paints: [makeComponent({ paint_id: null, hex: "FF4500" })],
+    });
     const result = parseStepsPayload(JSON.stringify([step]));
     expect("data" in result).toBe(true);
   });
 
-  it("returns error when hex has wrong format", () => {
-    const step = makeStep("s1", { target_paint_id: null, target_hex: "#FF4500" });
+  it("returns error when hex has wrong format (with #)", () => {
+    const step = makeStep("s1", {
+      paints: [makeComponent({ paint_id: null, hex: "#FF4500" })],
+    });
     const result = parseStepsPayload(JSON.stringify([step]));
     expect("errors" in result).toBe(true);
+  });
+
+  it("returns error when hex is too short", () => {
+    const step = makeStep("s1", {
+      paints: [makeComponent({ paint_id: null, hex: "FF450" })],
+    });
+    const result = parseStepsPayload(JSON.stringify([step]));
+    expect("errors" in result).toBe(true);
+  });
+
+  it("returns error when ratio is 0", () => {
+    const step = makeStep("s1", { paints: [makeComponent({ ratio: 0 })] });
+    const result = parseStepsPayload(JSON.stringify([step]));
+    expect("errors" in result).toBe(true);
+    if ("errors" in result) expect(result.errors._).toMatch(/positive integer/i);
+  });
+
+  it("returns error when ratio is negative", () => {
+    const step = makeStep("s1", { paints: [makeComponent({ ratio: -1 })] });
+    const result = parseStepsPayload(JSON.stringify([step]));
+    expect("errors" in result).toBe(true);
+  });
+
+  it("returns error when ratio is non-integer (float)", () => {
+    const step = makeStep("s1", { paints: [makeComponent({ ratio: 2.5 as never })] });
+    const result = parseStepsPayload(JSON.stringify([step]));
+    expect("errors" in result).toBe(true);
+  });
+
+  it("returns error when ratio is a non-numeric string", () => {
+    const step = makeStep("s1", { paints: [makeComponent({ ratio: "abc" as never })] });
+    const result = parseStepsPayload(JSON.stringify([step]));
+    expect("errors" in result).toBe(true);
+  });
+
+  it("defaults ratio to 1 when omitted", () => {
+    const raw = JSON.stringify([
+      { id: "s1", role: "basecoat", paints: [{ paint_id: "some-paint" }] },
+    ]);
+    const result = parseStepsPayload(raw);
+    expect("data" in result).toBe(true);
+    if ("data" in result) expect(result.data[0].paints[0].ratio).toBe(1);
+  });
+
+  it("accepts a multi-component mix", () => {
+    const step = makeStep("s1", {
+      paints: [makeComponent({ ratio: 2 }), makeComponent({ paint_id: "other-id", ratio: 1 })],
+    });
+    const result = parseStepsPayload(JSON.stringify([step]));
+    expect("data" in result).toBe(true);
+    if ("data" in result) {
+      expect(result.data[0].paints).toHaveLength(2);
+      expect(result.data[0].paints[0].ratio).toBe(2);
+      expect(result.data[0].paints[1].ratio).toBe(1);
+    }
+  });
+
+  it("preserves component order", () => {
+    const step = makeStep("s1", {
+      paints: [
+        makeComponent({ paint_id: "first", ratio: 3 }),
+        makeComponent({ paint_id: "second", ratio: 1 }),
+        makeComponent({ paint_id: null, hex: "AABBCC", ratio: 2 }),
+      ],
+    });
+    const result = parseStepsPayload(JSON.stringify([step]));
+    expect("data" in result).toBe(true);
+    if ("data" in result) {
+      const ps = result.data[0].paints;
+      expect(ps[0].paint_id).toBe("first");
+      expect(ps[1].paint_id).toBe("second");
+      expect(ps[2].hex).toBe("AABBCC");
+    }
   });
 
   it("normalises empty technique_note to null", () => {
@@ -129,7 +230,7 @@ describe("parseStepsPayload", () => {
     if ("data" in result) expect(result.data[0].technique_note).toBeNull();
   });
 
-  it("normalises empty area_note to null", () => {
+  it("normalises whitespace-only area_note to null", () => {
     const step = makeStep("s1", { area_note: "  " });
     const result = parseStepsPayload(JSON.stringify([step]));
     expect("data" in result).toBe(true);
