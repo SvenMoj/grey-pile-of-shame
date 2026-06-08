@@ -17,7 +17,7 @@ export function RecipeSearchBox({ defaultValue }: { defaultValue?: string }) {
       params.delete("q");
     }
     startTransition(() => {
-      router.push(`/recipes?${params.toString()}`);
+      router.replace(`/recipes?${params.toString()}`, { scroll: false });
     });
   }
 
