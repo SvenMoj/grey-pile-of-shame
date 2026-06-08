@@ -109,15 +109,17 @@ export default function InventoryPage() {
         <ul className="space-y-2">
           {filtered.map((item) => (
             <li key={item.id} className={rowCardClass()}>
-              <div className="flex items-center gap-3">
-                <PaintSwatch hex={item.hex} />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{item.name ?? "Unknown paint"}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {item.brand ?? ""}
-                    {item.range ? ` · ${item.range}` : ""}
-                    {item.type ? ` · ${item.type}` : ""}
-                  </p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <div className="flex items-center gap-3 min-w-0 basis-full sm:basis-auto sm:flex-1">
+                  <PaintSwatch hex={item.hex} />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm truncate">{item.name ?? "Unknown paint"}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {item.brand ?? ""}
+                      {item.range ? ` · ${item.range}` : ""}
+                      {item.type ? ` · ${item.type}` : ""}
+                    </p>
+                  </div>
                 </div>
 
                 {/* State badge + select */}
