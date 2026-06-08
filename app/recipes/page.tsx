@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/server";
 import { listPublicRecipes, listMyRecipes } from "@/lib/recipes/queries";
+import { cn } from "@/lib/utils";
 import { RecipeSearchBox } from "./RecipeSearchBox";
 
 export const metadata: Metadata = {
@@ -57,7 +58,12 @@ export default async function RecipesPage({ searchParams }: Props) {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {myRecipes.map((recipe) => (
               <Link key={recipe.id} href={`/recipes/${recipe.id}`} className="block group">
-                <Card className="h-full transition-colors hover:border-primary">
+                <Card
+                  className={cn(
+                    "h-full transition-colors hover:border-primary",
+                    recipe.cover_image_url && "pt-0",
+                  )}
+                >
                   {recipe.cover_image_url && (
                     <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-xl">
                       <Image
@@ -127,7 +133,12 @@ export default async function RecipesPage({ searchParams }: Props) {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {recipes.map((recipe) => (
               <Link key={recipe.id} href={`/recipes/${recipe.id}`} className="block group">
-                <Card className="h-full transition-colors hover:border-primary">
+                <Card
+                  className={cn(
+                    "h-full transition-colors hover:border-primary",
+                    recipe.cover_image_url && "pt-0",
+                  )}
+                >
                   {recipe.cover_image_url && (
                     <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-xl">
                       <Image
