@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PaintSwatch } from "@/components/PaintSwatch";
 
@@ -15,9 +14,11 @@ type CatalogPaint = {
   range: string | null;
 };
 
+export type { CatalogPaint };
+
 type Props = {
-  /** Called when the user clicks "Add" on a search result. */
-  onAdd: (paintId: string) => void;
+  /** Called when the user clicks a search result. Receives the paint id and full paint object. */
+  onAdd: (paintId: string, paint: CatalogPaint) => void;
   /** Optional set of already-owned catalog_paint_ids to mark as "In inventory". */
   ownedIds?: Set<string>;
 };
@@ -85,27 +86,30 @@ export function PaintSearch({ onAdd, ownedIds }: Props) {
           {results.map((paint) => {
             const alreadyOwned = ownedIds?.has(paint.id) ?? false;
             return (
-              <li
-                key={paint.id}
-                className="flex items-center gap-3 px-3 py-2 text-sm hover:bg-muted/60"
-              >
-                <PaintSwatch hex={paint.hex} size="sm" />
-                <span className="flex-1 min-w-0">
-                  <span className="font-medium truncate block">{paint.name}</span>
-                  <span className="text-muted-foreground text-xs">
-                    {paint.brand}
-                    {paint.range ? ` · ${paint.range}` : ""}
-                  </span>
-                </span>
-                <Button
-                  size="sm"
-                  variant={alreadyOwned ? "secondary" : "default"}
-                  onClick={() => onAdd(paint.id)}
-                  aria-label={`Add ${paint.name} to inventory`}
+              <li key={paint.id}>
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-3 px-3 py-2 text-sm text-left hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                  onClick={() => onAdd(paint.id, paint)}
+                  aria-label={`Add ${paint.name}`}
                 >
-                  <Plus className="h-3 w-3" />
-                  {alreadyOwned ? "Add another" : "Add"}
-                </Button>
+                  <PaintSwatch hex={paint.hex} size="sm" />
+                  <span className="flex-1 min-w-0">
+                    <span className="font-medium truncate block">{paint.name}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {paint.brand}
+                      {paint.range ? ` · ${paint.range}` : ""}
+                    </span>
+                  </span>
+                  {alreadyOwned ? (
+                    <Check
+                      className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                      aria-label="In inventory"
+                    />
+                  ) : (
+                    <Plus className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  )}
+                </button>
               </li>
             );
           })}

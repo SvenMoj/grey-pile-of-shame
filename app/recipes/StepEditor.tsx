@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PaintSearch } from "@/components/PaintSearch";
+import { PaintSearch, type CatalogPaint } from "@/components/PaintSearch";
 import { PaintSwatch } from "@/components/PaintSwatch";
 import type { RecipeStep, RecipeStepRole } from "@/lib/recipes/types";
 
@@ -265,7 +265,6 @@ export function StepEditor({ steps, onChange, ownedIds }: Props) {
   );
 }
 
-// Thin wrapper that also fetches the paint metadata for the parent to store
 function PaintSearchWithCallback({
   onAdd,
   ownedIds,
@@ -275,8 +274,8 @@ function PaintSearchWithCallback({
 }) {
   return (
     <PaintSearch
-      onAdd={(paintId) => {
-        onAdd(paintId, null);
+      onAdd={(paintId, catalogPaint: CatalogPaint) => {
+        onAdd(paintId, catalogPaint);
       }}
       ownedIds={ownedIds}
     />
