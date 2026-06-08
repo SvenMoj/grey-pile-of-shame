@@ -95,7 +95,7 @@ export default async function RecipePage({ params }: Props) {
   const coverImage = recipe.images[0] ?? null;
 
   return (
-    <div className="space-y-6">
+    <main className="container mx-auto max-w-2xl px-4 py-12 space-y-6">
       {/* Breadcrumb */}
       <Link
         href="/recipes"
@@ -273,6 +273,6 @@ export default async function RecipePage({ params }: Props) {
           </div>
         </section>
       )}
-    </div>
+    </main>
   );
 }
