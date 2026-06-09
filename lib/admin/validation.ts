@@ -35,7 +35,9 @@ export function parsePaintForm(
   formData: FormData,
 ): { data: ParsedPaint } | { errors: PaintErrors } {
   const str = (key: string) => ((formData.get(key) as string) ?? "").trim() || null;
-  const id = (((formData.get("id") as string) || (formData.get("_id") as string)) ?? "").trim().toLowerCase();
+  const id = (((formData.get("id") as string) || (formData.get("_id") as string)) ?? "")
+    .trim()
+    .toLowerCase();
   const brand = ((formData.get("brand") as string) ?? "").trim();
   const name = ((formData.get("name") as string) ?? "").trim();
   const hex = ((formData.get("hex") as string) ?? "").trim().toUpperCase().replace(/^#/, "");

@@ -560,7 +560,7 @@ export default function CanvasEditor({ data, format }: Props) {
 
   // ── Interaction ────────────────────────────────────────────────────────────
 
-  function toLogical(e: React.MouseEvent<HTMLCanvasElement>) {
+  function toLogical(e: React.PointerEvent<HTMLCanvasElement>) {
     const r = e.currentTarget.getBoundingClientRect();
     return {
       x: ((e.clientX - r.left) / r.width) * W,
@@ -580,8 +580,11 @@ export default function CanvasEditor({ data, format }: Props) {
     return null;
   }
 
-  function onMouseDown(e: React.MouseEvent<HTMLCanvasElement>) {
+  function onPointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
     const { x, y } = toLogical(e);
+    // Capture the pointer so move/up events keep firing on this element
+    // even when the finger strays outside the canvas bounds.
+    e.currentTarget.setPointerCapture(e.pointerId);
     const id = hitTest(x, y);
     mousedownRef.current = { x, y, id };
     if (id) {
@@ -599,7 +602,7 @@ export default function CanvasEditor({ data, format }: Props) {
     }
   }
 
-  function onMouseMove(e: React.MouseEvent<HTMLCanvasElement>) {
+  function onPointerMove(e: React.PointerEvent<HTMLCanvasElement>) {
     const { x, y } = toLogical(e);
     if (dragRef.current) {
       const { id, ox, oy } = dragRef.current;
@@ -617,7 +620,7 @@ export default function CanvasEditor({ data, format }: Props) {
     }
   }
 
-  function onMouseUp(e: React.MouseEvent<HTMLCanvasElement>) {
+  function onPointerUp(e: React.PointerEvent<HTMLCanvasElement>) {
     const { x, y } = toLogical(e);
     const md = mousedownRef.current;
     if (md && Math.hypot(x - md.x, y - md.y) < 5) {
@@ -627,6 +630,9 @@ export default function CanvasEditor({ data, format }: Props) {
     photoDragRef.current = null;
     mousedownRef.current = null;
     e.currentTarget.style.cursor = "default";
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
   }
 
   // ── Layer controls ─────────────────────────────────────────────────────────
@@ -831,11 +837,13 @@ export default function CanvasEditor({ data, format }: Props) {
           display: "block",
           borderRadius: 8,
           border: "1px solid hsl(var(--border))",
+          // Prevent iOS Safari from claiming the touch gesture as a page scroll
+          touchAction: "none",
         }}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
       />
 
       {/* Controls panel */}
