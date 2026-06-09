@@ -310,6 +310,137 @@ export type Database = {
         }
         Relationships: []
       }
+      project_images: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          project_id: string
+          sort_order: number
+          storage_path: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          project_id: string
+          sort_order: number
+          storage_path: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          project_id?: string
+          sort_order?: number
+          storage_path?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_images_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_recipes: {
+        Row: {
+          area: string
+          created_at: string
+          id: string
+          note: string | null
+          project_id: string
+          recipe_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          area: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          project_id: string
+          recipe_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          area?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          project_id?: string
+          recipe_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_recipes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_recipes_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          author_user_id: string
+          body: string | null
+          created_at: string
+          faction: string | null
+          game: string | null
+          id: string
+          published_at: string | null
+          slug: string
+          status: string
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_user_id: string
+          body?: string | null
+          created_at?: string
+          faction?: string | null
+          game?: string | null
+          id?: string
+          published_at?: string | null
+          slug: string
+          status?: string
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_user_id?: string
+          body?: string | null
+          created_at?: string
+          faction?: string | null
+          game?: string | null
+          id?: string
+          published_at?: string | null
+          slug?: string
+          status?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       recipe_applications: {
         Row: {
           applied_at: string | null
