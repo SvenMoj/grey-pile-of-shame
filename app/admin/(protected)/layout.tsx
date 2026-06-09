@@ -28,7 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </Link>
         </Button>
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/admin/recipes/new">
+          <Link href="/admin/recipes">
             <FlaskConical />
             Recipes
           </Link>

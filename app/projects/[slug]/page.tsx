@@ -145,7 +145,7 @@ export default async function ProjectPage({ params }: Props) {
                         className="inline-flex items-center gap-2 text-sm text-primary hover:underline underline-offset-2"
                       >
                         <FlaskConical className="size-3.5 shrink-0" />
-                        {link.recipe.title}
+                        {link.recipe?.title}
                       </Link>
                       {link.note && (
                         <p className="text-xs text-muted-foreground ml-5.5">{link.note}</p>

@@ -60,7 +60,11 @@ export async function getProjectBySlug(slug: string): Promise<ProjectWithDetail 
   return {
     ...project,
     images: (imagesResult.data ?? []) as unknown as ProjectImage[],
-    recipes: (recipesResult.data ?? []) as unknown as ProjectRecipeLinkWithTitle[],
+    // Filter out links whose joined recipe is null — this happens when RLS blocks
+    // an anon user from reading a private recipe that's been linked to the project.
+    recipes: ((recipesResult.data ?? []) as any[]).filter(
+      (r) => r.recipe !== null,
+    ) as unknown as ProjectRecipeLinkWithTitle[],
   };
 }
 

@@ -18,7 +18,7 @@ import type { ProjectImage, ProjectWithDetail } from "@/lib/projects/types";
 import type { RecipeListItem } from "@/lib/recipes/types";
 import { ProjectImageGallery } from "./ProjectImageGallery";
 import { StagedProjectImageGallery, type StagedProjectImage } from "./StagedProjectImageGallery";
-import { RecipeLinksEditor, type LocalRecipeLink } from "./RecipeLinksEditor";
+import { RecipeLinksEditor, savedToLocal, type LocalRecipeLink } from "./RecipeLinksEditor";
 
 type Props = {
   userId: string;
@@ -34,7 +34,9 @@ export function ProjectEditor({ userId, availableRecipes, project }: Props) {
 
   const [images, setImages] = useState<ProjectImage[]>(project?.images ?? []);
   const [staged, setStaged] = useState<StagedProjectImage[]>([]);
-  const [recipeLinks, setRecipeLinks] = useState<LocalRecipeLink[]>([]);
+  const [recipeLinks, setRecipeLinks] = useState<LocalRecipeLink[]>(
+    savedToLocal(project?.recipes ?? []),
+  );
 
   // Slug auto-generation from title (only in create mode or when slug hasn't been touched).
   const [slugTouched, setSlugTouched] = useState(isEdit);

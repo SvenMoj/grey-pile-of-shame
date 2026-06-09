@@ -36,7 +36,7 @@ type Props = {
   onChange: (links: LocalRecipeLink[]) => void;
 };
 
-function savedToLocal(links: ProjectRecipeLinkWithTitle[]): LocalRecipeLink[] {
+export function savedToLocal(links: ProjectRecipeLinkWithTitle[]): LocalRecipeLink[] {
   return links.map((l) => ({
     id: l.id,
     recipe_id: l.recipe_id,
