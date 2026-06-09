@@ -1,28 +1,30 @@
 /**
  * GET /studio/share/model/[id]?format=square|portrait&theme=light|dark
  *
- * Returns a branded PNG model showcase image for Instagram.
- * Requires an authenticated session (reads the caller's private models via RLS).
+ * Returns a branded PNG project showcase image for Instagram.
+ * Requires an authenticated admin session.
  *
  * Layout:
- *   – Model photo fills the top ~60% (hero image) if available, otherwise a
- *     solid-colour placeholder matching the painting state
- *   – Name, state badge, applied recipe, and @handle in the lower section
+ *   – Project cover photo fills the top ~60% (hero image) if available,
+ *     otherwise a neutral-colour gradient placeholder
+ *   – Title, game/faction label, first linked recipe name, and @handle
+ *     in the lower section
  */
 
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getModelForStudio, getInstagramHandle } from "@/lib/studio/queries";
-import { STATE_HEX } from "@/lib/pile/display";
-import { STATE_LABELS } from "@/lib/pile/display";
+import { getProjectForStudio, getInstagramHandle } from "@/lib/studio/queries";
 import { parseFormat, parseTheme, FORMAT_SIZES, THEME_PALETTE } from "@/lib/studio/format";
 import { getLogoDataUrl, LOGO_HEIGHT, LOGO_WIDTH } from "@/lib/studio/logo";
 
 export const dynamic = "force-dynamic";
 
+/** Neutral accent colour for the project placeholder (no painting-state dependency). */
+const PROJECT_ACCENT = "#7B6A54";
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  // Auth guard
+  // Auth guard — studio is admin-only
   const supabase = await createClient();
   const {
     data: { user },
@@ -36,11 +38,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const size = FORMAT_SIZES[format];
   const pal = THEME_PALETTE[theme];
 
-  const [model, handle] = await Promise.all([getModelForStudio(id), getInstagramHandle()]);
-  if (!model) return new Response("Not found", { status: 404 });
+  const [project, handle] = await Promise.all([getProjectForStudio(id), getInstagramHandle()]);
+  if (!project) return new Response("Not found", { status: 404 });
 
-  const stateColor = STATE_HEX[model.state];
-  const stateLabel = STATE_LABELS[model.state];
+  const accentColor = PROJECT_ACCENT;
   const isPortrait = format === "portrait";
 
   // Photo section takes ~60% of height when present
@@ -49,6 +50,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const titleSize = isPortrait ? 60 : 52;
   const bodySize = isPortrait ? 26 : 22;
   const footerSize = isPortrait ? 22 : 18;
+
+  const subtitle = [project.game, project.faction].filter(Boolean).join(" · ");
 
   return new ImageResponse(
     <div
@@ -62,12 +65,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         overflow: "hidden",
       }}
     >
-      {/* Hero image or coloured placeholder */}
-      {model.image_url ? (
+      {/* Hero image or gradient placeholder */}
+      {project.cover_image_url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={model.image_url}
-          alt={model.display_name}
+          src={project.cover_image_url}
+          alt={project.title}
           width={size.width}
           height={photoHeight}
           style={{
@@ -82,26 +85,25 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           style={{
             width: "100%",
             height: photoHeight,
-            background: `linear-gradient(160deg, ${stateColor}33 0%, ${stateColor}11 100%)`,
+            background: `linear-gradient(160deg, ${accentColor}33 0%, ${accentColor}11 100%)`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
           }}
         >
-          {/* Initials placeholder */}
           <div
             style={{
               fontSize: 120,
               fontWeight: 700,
-              color: stateColor,
+              color: accentColor,
               opacity: 0.25,
             }}
           >
-            {model.display_name
+            {project.title
               .split(" ")
               .slice(0, 2)
-              .map((w) => w[0]?.toUpperCase() ?? "")
+              .map((w: string) => w[0]?.toUpperCase() ?? "")
               .join("")}
           </div>
         </div>
@@ -117,26 +119,28 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           background: pal.bg,
         }}
       >
-        {/* State badge */}
-        <div
-          style={{
-            display: "flex",
-            alignSelf: "flex-start",
-            background: `${stateColor}22`,
-            border: `1px solid ${stateColor}55`,
-            borderRadius: "6px",
-            padding: "4px 14px",
-            fontSize: bodySize * 0.75,
-            color: stateColor,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-            marginBottom: "12px",
-          }}
-        >
-          {stateLabel}
-        </div>
+        {/* Game/faction badge (optional) */}
+        {subtitle && (
+          <div
+            style={{
+              display: "flex",
+              alignSelf: "flex-start",
+              background: `${accentColor}22`,
+              border: `1px solid ${accentColor}55`,
+              borderRadius: "6px",
+              padding: "4px 14px",
+              fontSize: bodySize * 0.75,
+              color: accentColor,
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              marginBottom: "12px",
+            }}
+          >
+            {subtitle}
+          </div>
+        )}
 
-        {/* Name */}
+        {/* Title */}
         <div
           style={{
             fontSize: titleSize,
@@ -146,7 +150,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
             flex: 1,
           }}
         >
-          {model.display_name}
+          {project.title}
         </div>
 
         {/* Recipe + footer */}
@@ -162,9 +166,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           }}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-            {model.applied_recipe_title && (
+            {project.first_recipe_title && (
               <div style={{ fontSize: bodySize * 0.85, color: pal.textMuted }}>
-                {`Recipe: ${model.applied_recipe_title}`}
+                {`Recipe: ${project.first_recipe_title}`}
               </div>
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}

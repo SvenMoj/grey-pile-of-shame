@@ -8,14 +8,7 @@ import { Button } from "@/components/ui/button";
 import { PaintSwatch } from "@/components/PaintSwatch";
 import { createClient } from "@/lib/supabase/server";
 import { getBrands } from "@/lib/brands";
-import {
-  getRecipeById,
-  getConversionsForPaints,
-  getOwnedPaintIds,
-  listMyModels,
-  listModelsForRecipe,
-  type ApplicationWithModel,
-} from "@/lib/recipes/queries";
+import { getRecipeById, getConversionsForPaints, getOwnedPaintIds } from "@/lib/recipes/queries";
 import {
   indexConversionsByRecipePaint,
   resolveAllSteps,
@@ -23,7 +16,6 @@ import {
 } from "@/lib/recipes/cross-reference";
 import { RecipeInventoryPanel } from "./RecipeInventoryPanel";
 import { BrandSubstitutePicker } from "./BrandSubstitutePicker";
-import { RecipeApplyButton } from "./RecipeApplyButton";
 import { DeleteRecipeButton } from "./DeleteRecipeButton";
 
 const STEP_ROLE_LABELS: Record<string, string> = {
@@ -75,22 +67,18 @@ export default async function RecipePage({ params }: Props) {
     ),
   ];
 
-  // Fetch cross-ref data in parallel (safe for anon — owned set will be empty)
-  const [rawConversions, ownedPaintIds, brands, models, appliedModels] = await Promise.all([
+  // Fetch cross-ref data in parallel (safe for anon — owned set will be empty).
+  const [rawConversions, ownedPaintIds, brands] = await Promise.all([
     getConversionsForPaints(stepPaintIds),
     getOwnedPaintIds(),
     getBrands(),
-    isAuthed ? listMyModels() : Promise.resolve([]),
-    isAuthed ? listModelsForRecipe(id) : Promise.resolve([] as ApplicationWithModel[]),
   ]);
-
-  const appliedModelIds = new Set(appliedModels.map((a) => a.miniature_item_id));
 
   const conversionsByPaint = indexConversionsByRecipePaint(rawConversions, new Set(stepPaintIds));
   const statuses = resolveAllSteps(recipe.steps, ownedPaintIds, conversionsByPaint);
   const stepsWithStatus = recipe.steps.map((step, i) => ({ ...step, status: statuses[i] }));
 
-  // Serialize the Map for the client BrandSubstitutePicker
+  // Serialize the Map for the client BrandSubstitutePicker.
   const conversionEdges: [string, ConversionEdge[]][] = Array.from(conversionsByPaint.entries());
 
   const coverImage = recipe.images[0] ?? null;
@@ -106,7 +94,7 @@ export default async function RecipePage({ params }: Props) {
         Recipes
       </Link>
 
-      {/* Cover image — fixed: removed dead ternary (was: recipe.images.length === 0 ? null : null) */}
+      {/* Cover image */}
       {coverImage && (
         <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl">
           <Image
@@ -230,7 +218,7 @@ export default async function RecipePage({ params }: Props) {
         </section>
       )}
 
-      {/* Inventory cross-reference */}
+      {/* Inventory cross-reference (admin sees owned/missing; anon sees nothing) */}
       {recipe.steps.length > 0 && (
         <section className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
@@ -254,47 +242,7 @@ export default async function RecipePage({ params }: Props) {
         </section>
       )}
 
-      {/* Apply to model */}
-      {isAuthed && (
-        <section className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            Apply to a model
-          </h2>
-
-          {/* Applied models list */}
-          {appliedModels.length > 0 && (
-            <ul className="space-y-1.5">
-              {appliedModels.map((app) => (
-                <li key={app.id} className="flex items-center gap-2 text-sm">
-                  <Link
-                    href={`/model/${app.miniature_item_id}`}
-                    className="font-medium hover:underline underline-offset-2 flex-1 min-w-0 truncate"
-                  >
-                    {app.model.display_name}
-                  </Link>
-                  <Badge variant="secondary" className="shrink-0 capitalize">
-                    {app.status === "in_progress" ? "In progress" : app.status}
-                  </Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {models.length > 0 ? (
-            <RecipeApplyButton recipeId={id} models={models} appliedModelIds={appliedModelIds} />
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              No models yet.{" "}
-              <Link href="/pile" className="underline underline-offset-2 hover:text-foreground">
-                Add one to your pile
-              </Link>
-              .
-            </p>
-          )}
-        </section>
-      )}
-
-      {/* Owner controls */}
+      {/* Owner controls — admin only; edit route is under /admin/recipes */}
       {isOwner && (
         <section className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
@@ -302,7 +250,7 @@ export default async function RecipePage({ params }: Props) {
           </h2>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/recipes/${id}/edit`}>
+              <Link href={`/admin/recipes/${id}/edit`}>
                 <Pencil />
                 Edit recipe
               </Link>

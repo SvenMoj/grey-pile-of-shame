@@ -1,9 +1,9 @@
 "use server";
 
-import { getUserOrRedirect } from "@/lib/user/auth";
+import { getAdminUserOrRedirect } from "@/lib/admin/auth";
 import { getRecipeById } from "@/lib/recipes/queries";
 import { getInstagramHandle } from "@/lib/studio/queries";
-import { createClient } from "@/lib/supabase/server";
+import { getProjectForStudio } from "@/lib/studio/queries";
 
 export interface RecipeStepRow {
   role: string;
@@ -16,11 +16,11 @@ export interface RecipeStepRow {
 export interface CanvasData {
   coverImageUrl: string;
   title: string;
-  /** Shown below the title in smaller text — state label for models, null for recipes. */
+  /** Shown below the title in smaller text — game/faction for projects, null for recipes. */
   subtitle: string | null;
-  /** Up to 8 hex strings (with #) derived from recipe step paints. Empty for models. */
+  /** Up to 8 hex strings (with #) derived from recipe step paints. Empty for projects. */
   swatchHexes: string[];
-  /** Ordered recipe steps for the "full steps" overlay. Empty for models. */
+  /** Ordered recipe steps for the "full steps" overlay. Empty for projects. */
   steps: RecipeStepRow[];
   handle: string | null;
 }
@@ -30,7 +30,7 @@ export interface CanvasData {
  * Returns null if the recipe has no cover image (fall back to server-route card).
  */
 export async function getRecipeCanvasData(id: string): Promise<CanvasData | null> {
-  await getUserOrRedirect();
+  await getAdminUserOrRedirect();
   const [recipe, handle] = await Promise.all([getRecipeById(id), getInstagramHandle()]);
   if (!recipe) return null;
 
@@ -74,28 +74,20 @@ export async function getRecipeCanvasData(id: string): Promise<CanvasData | null
 }
 
 /**
- * Fetch model data for the canvas editor.
- * Returns null if the model has no photo (fall back to server-route card).
+ * Fetch project data for the canvas editor.
+ * Returns null if the project has no cover image (fall back to server-route card).
  */
 export async function getModelCanvasData(id: string): Promise<CanvasData | null> {
-  await getUserOrRedirect();
+  await getAdminUserOrRedirect();
+  const [project, handle] = await Promise.all([getProjectForStudio(id), getInstagramHandle()]);
+  if (!project || !project.cover_image_url) return null;
 
-  const supabase = await createClient();
-  const [{ data: row }, handle] = await Promise.all([
-    supabase
-      .from("miniature_items")
-      .select("display_name, state, image_url")
-      .eq("id", id)
-      .maybeSingle(),
-    getInstagramHandle(),
-  ]);
-
-  if (!row || !row.image_url) return null;
+  const subtitle = [project.game, project.faction].filter(Boolean).join(" · ") || null;
 
   return {
-    coverImageUrl: row.image_url as string,
-    title: row.display_name as string,
-    subtitle: (row.state as string).replace(/_/g, " "),
+    coverImageUrl: project.cover_image_url,
+    title: project.title,
+    subtitle,
     swatchHexes: [],
     steps: [],
     handle,

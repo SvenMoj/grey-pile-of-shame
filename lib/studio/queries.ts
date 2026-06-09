@@ -4,8 +4,9 @@
  * so they respect RLS and can read private entities owned by the caller.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { createClient } from "@/lib/supabase/server";
-import type { PileItem } from "@/lib/pile/types";
 
 /** Fetch the caller's Instagram handle from their profile. Returns null if unset. */
 export async function getInstagramHandle(): Promise<string | null> {
@@ -24,52 +25,63 @@ export async function getInstagramHandle(): Promise<string | null> {
   return data?.instagram_handle ?? null;
 }
 
-/** Fetch a single miniature item by id. Returns null if not found or unauthorized. */
-export async function getModelForStudio(id: string): Promise<
-  | (Pick<PileItem, "id" | "display_name" | "state" | "image_url" | "game" | "faction"> & {
-      applied_recipe_title: string | null;
-    })
-  | null
-> {
+/** Project shape used by the studio share-image route. */
+export type ProjectForStudio = {
+  id: string;
+  title: string;
+  cover_image_url: string | null;
+  game: string | null;
+  faction: string | null;
+  /** Title of the first linked recipe (sort_order=0), or null if no recipes. */
+  first_recipe_title: string | null;
+};
+
+/**
+ * Fetch a single project by id for the Studio showcase card.
+ * Returns null if not found or the caller doesn't have read access.
+ */
+export async function getProjectForStudio(id: string): Promise<ProjectForStudio | null> {
   const supabase = await createClient();
 
-  const [itemResult, appResult] = await Promise.all([
-    supabase
-      .from("miniature_items")
-      .select("id, display_name, state, image_url, game, faction")
+  const [projectResult, imageResult, recipeResult] = await Promise.all([
+    (supabase as any)
+      .from("projects")
+      .select("id, title, game, faction")
       .eq("id", id)
       .maybeSingle(),
-    supabase
-      .from("recipe_applications")
-      .select("recipe:recipes!recipe_applications_recipe_id_fkey(title)")
-      .eq("miniature_item_id", id)
-      .order("created_at", { ascending: false })
+    (supabase as any)
+      .from("project_images")
+      .select("image_url, sort_order")
+      .eq("project_id", id)
+      .order("sort_order")
+      .limit(1)
+      .maybeSingle(),
+    (supabase as any)
+      .from("project_recipes")
+      .select("recipe:recipes!project_recipes_recipe_id_fkey(title)")
+      .eq("project_id", id)
+      .order("sort_order")
       .limit(1)
       .maybeSingle(),
   ]);
 
-  if (!itemResult.data) return null;
+  if (!projectResult.data) return null;
 
-  const raw = itemResult.data as {
+  const project = projectResult.data as {
     id: string;
-    display_name: string;
-    state: string;
-    image_url: string | null;
+    title: string;
     game: string | null;
     faction: string | null;
   };
 
-  const recipeTitle =
-    (appResult.data as { recipe: { title: string } | null } | null)?.recipe?.title ?? null;
-
   return {
-    id: raw.id,
-    display_name: raw.display_name,
-    state: raw.state as PileItem["state"],
-    image_url: raw.image_url,
-    game: raw.game,
-    faction: raw.faction,
-    applied_recipe_title: recipeTitle,
+    id: project.id,
+    title: project.title,
+    cover_image_url: (imageResult.data as { image_url: string } | null)?.image_url ?? null,
+    game: project.game,
+    faction: project.faction,
+    first_recipe_title:
+      (recipeResult.data as { recipe: { title: string } | null } | null)?.recipe?.title ?? null,
   };
 }
 

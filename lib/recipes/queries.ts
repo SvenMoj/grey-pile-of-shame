@@ -15,21 +15,12 @@ import { createClient } from "@/lib/supabase/server";
 import type { RawConversionRow } from "./cross-reference";
 import type {
   Recipe,
-  RecipeApplication,
   RecipeImage,
   RecipeListItem,
   RecipeStep,
   RecipeStepComponent,
   RecipeWithDetail,
 } from "./types";
-
-export type ApplicationWithRecipe = RecipeApplication & {
-  recipe: { title: string };
-};
-
-export type ApplicationWithModel = RecipeApplication & {
-  model: { display_name: string; state: string };
-};
 
 // ─── Recipe detail ────────────────────────────────────────────────────────────
 
@@ -169,54 +160,4 @@ export async function listMyRecipes(): Promise<RecipeListItem[]> {
       step_count: steps.length,
     };
   });
-}
-
-/**
- * List recipe applications for a given model, with recipe title joined in.
- * Returns applications in creation order (oldest first).
- */
-export async function listApplicationsForModel(
-  miniatureItemId: string,
-): Promise<ApplicationWithRecipe[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("recipe_applications")
-    .select("*, recipe:recipes!recipe_applications_recipe_id_fkey(title)")
-    .eq("miniature_item_id", miniatureItemId)
-    .order("created_at");
-  if (error) return [];
-  return (data ?? []) as unknown as ApplicationWithRecipe[];
-}
-
-/**
- * List recipe applications for a given recipe, with the applied model's name/state
- * joined in. Returns applications in creation order (oldest first).
- * RLS scopes results to the current user's own applications.
- */
-export async function listModelsForRecipe(recipeId: string): Promise<ApplicationWithModel[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("recipe_applications")
-    .select(
-      "*, model:miniature_items!recipe_applications_miniature_item_id_fkey(display_name, state)",
-    )
-    .eq("recipe_id", recipeId)
-    .order("created_at");
-  if (error) return [];
-  return (data ?? []) as unknown as ApplicationWithModel[];
-}
-
-/**
- * List a user's miniature items (models) for the recipe-detail apply picker.
- */
-export async function listMyModels(): Promise<
-  { id: string; display_name: string; state: string }[]
-> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("miniature_items")
-    .select("id, display_name, state")
-    .order("display_name");
-  if (error) return [];
-  return (data ?? []) as { id: string; display_name: string; state: string }[];
 }

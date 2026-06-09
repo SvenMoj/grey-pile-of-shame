@@ -1,10 +1,10 @@
 export const dynamic = "force-dynamic";
 
-import { getUserOrRedirect } from "@/lib/user/auth";
+import { getAdminUserOrRedirect } from "@/lib/admin/auth";
 import { SiteHeader } from "@/components/SiteHeader";
 
 export default async function StudioLayout({ children }: { children: React.ReactNode }) {
-  await getUserOrRedirect();
+  await getAdminUserOrRedirect();
 
   return (
     <>

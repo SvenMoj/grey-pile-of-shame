@@ -10,7 +10,6 @@ export type RecipeStepRole =
   | "other";
 
 export type RecipeVisibility = "private" | "public";
-export type RecipeApplicationStatus = "planned" | "in_progress" | "done";
 
 /** Joined catalog paint summary on a step component. */
 export type StepPaint = {
@@ -75,17 +74,6 @@ export type RecipeListItem = {
   author_user_id: string;
   cover_image_url: string | null;
   step_count: number;
-};
-
-export type RecipeApplication = {
-  id: string;
-  user_id: string;
-  miniature_item_id: string;
-  recipe_id: string;
-  status: RecipeApplicationStatus;
-  applied_at: string | null;
-  created_at: string;
-  updated_at: string;
 };
 
 // ─── Input shapes ────────────────────────────────────────────────────────────
