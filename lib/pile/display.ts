@@ -9,6 +9,19 @@ export const STATE_LABELS: Record<PileState, string> = {
   painted: "Painted",
 };
 
+/**
+ * Literal hex colours for each stage — used in Satori/next-og image generation
+ * where Tailwind classes cannot be processed. Values mirror the `.bar` colours in
+ * STATE_STYLES (red → orange → yellow → green).
+ */
+export const STATE_HEX: Record<PileState, string> = {
+  unbuilt: "#7f1d1d", // red-900
+  built: "#dc2626", // red-600
+  primed: "#f97316", // orange-500
+  in_progress: "#eab308", // yellow-500
+  painted: "#16a34a", // green-600
+};
+
 /** Tailwind colour classes for each stage — red → orange → yellow → green progression. */
 export const STATE_STYLES: Record<PileState, { pill: string; bar: string }> = {
   unbuilt: {

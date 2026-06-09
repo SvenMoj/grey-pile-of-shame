@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   Brush,
+  Camera,
   FlaskConical,
   Layers,
   Library,
@@ -93,6 +94,14 @@ export function SiteHeader() {
             Recipes
           </Link>
         </Button>
+        {isAuthed && (
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/studio">
+              <Camera />
+              Studio
+            </Link>
+          </Button>
+        )}
         {isAuthed ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -192,6 +201,14 @@ export function SiteHeader() {
                   Recipes
                 </Link>
               </Button>
+              {isAuthed && (
+                <Button variant="ghost" className="justify-start" asChild>
+                  <Link href="/studio" onClick={close}>
+                    <Camera />
+                    Studio
+                  </Link>
+                </Button>
+              )}
               {isAuthed ? (
                 <>
                   {email && (

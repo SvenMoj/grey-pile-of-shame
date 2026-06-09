@@ -3,12 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { signOutAction, requestAccountDeletionAction } from "./actions";
 import PasswordForm from "./PasswordForm";
+import InstagramHandleForm from "./InstagramHandleForm";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("instagram_handle").eq("id", user.id).maybeSingle()
+    : { data: null };
 
   return (
     <div className="space-y-8">
@@ -30,6 +35,8 @@ export default async function SettingsPage() {
       </section>
 
       <PasswordForm hasPassword={!!user?.user_metadata?.has_password} />
+
+      <InstagramHandleForm currentHandle={profile?.instagram_handle ?? null} />
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium tracking-wide text-muted-foreground uppercase">

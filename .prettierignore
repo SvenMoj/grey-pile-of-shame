@@ -6,3 +6,5 @@ data/paints/
 data/backups/
 # Auto-generated — formatted by the generator, not by us
 lib/supabase/database.types.ts
+# Playwright MCP output
+.playwright-mcp/

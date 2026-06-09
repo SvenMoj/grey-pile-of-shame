@@ -34,6 +34,30 @@ export async function requestAccountDeletionAction() {
   redirect("/login?message=deletion_requested");
 }
 
+/** Save (or clear) the user's Instagram handle stored on their profile. */
+export async function updateInstagramHandleAction(
+  _prev: { message: string; success: boolean },
+  formData: FormData,
+): Promise<{ message: string; success: boolean }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { message: "Not authenticated.", success: false };
+
+  // Strip leading @ if present and trim whitespace; empty → null
+  const raw = (formData.get("instagram_handle") as string) ?? "";
+  const handle = raw.trim().replace(/^@/, "") || null;
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ instagram_handle: handle })
+    .eq("id", user.id);
+
+  if (error) return { message: error.message, success: false };
+  return { message: handle ? `Handle saved as @${handle}.` : "Handle cleared.", success: true };
+}
+
 export async function updatePasswordAction(
   _prev: LoginState,
   formData: FormData,

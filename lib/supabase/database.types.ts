@@ -289,6 +289,7 @@ export type Database = {
           deletion_requested_at: string | null
           display_name: string | null
           id: string
+          instagram_handle: string | null
           updated_at: string
         }
         Insert: {
@@ -296,6 +297,7 @@ export type Database = {
           deletion_requested_at?: string | null
           display_name?: string | null
           id: string
+          instagram_handle?: string | null
           updated_at?: string
         }
         Update: {
@@ -303,6 +305,7 @@ export type Database = {
           deletion_requested_at?: string | null
           display_name?: string | null
           id?: string
+          instagram_handle?: string | null
           updated_at?: string
         }
         Relationships: []

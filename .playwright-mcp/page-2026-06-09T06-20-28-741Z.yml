@@ -1,0 +1,51 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - link "Grey Pile of Shame" [ref=e3] [cursor=pointer]:
+      - /url: /pile
+      - img "Grey Pile of Shame" [ref=e4]
+    - navigation [ref=e5]:
+      - link "Pile" [ref=e6] [cursor=pointer]:
+        - /url: /pile
+        - img
+        - text: Pile
+      - link "Collection" [ref=e7] [cursor=pointer]:
+        - /url: /collection
+        - img
+        - text: Collection
+      - link "Brands" [ref=e8] [cursor=pointer]:
+        - /url: /brands
+        - img
+        - text: Brands
+      - link "Convert" [ref=e9] [cursor=pointer]:
+        - /url: /convert
+        - img
+        - text: Convert
+      - link "Recipes" [ref=e10] [cursor=pointer]:
+        - /url: /recipes
+        - img
+        - text: Recipes
+      - link "Sign in" [ref=e11] [cursor=pointer]:
+        - /url: /login
+        - img
+        - text: Sign in
+      - button "Toggle theme" [ref=e12]:
+        - img
+        - generic [ref=e13]: Toggle theme
+  - main [ref=e14]:
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]: Sign in
+        - generic [ref=e18]: Enter your email and password to continue.
+      - generic [ref=e19]:
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - generic [ref=e22]: Email
+            - textbox "Email" [ref=e23]
+          - generic [ref=e24]:
+            - generic [ref=e25]: Password
+            - textbox "Password" [ref=e26]
+          - button "Sign in" [ref=e27]
+        - button "Email me a magic link instead" [ref=e29]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e35] [cursor=pointer]:
+    - img [ref=e36]
