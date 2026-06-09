@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
       if (!data.user.user_metadata?.has_password) {
         return NextResponse.redirect(new URL("/set-password", origin));
       }
-      // General user — go to the pile
-      return NextResponse.redirect(new URL("/pile", origin));
+      // General user — go to the home page
+      return NextResponse.redirect(new URL("/", origin));
     }
   }
 

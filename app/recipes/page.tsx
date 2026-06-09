@@ -1,174 +1,80 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
-import { PlusCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { createClient } from "@/lib/supabase/server";
-import { listPublicRecipes, listMyRecipes } from "@/lib/recipes/queries";
+import { listPublicRecipes } from "@/lib/recipes/queries";
 import { cn } from "@/lib/utils";
 import { RecipeSearchBox } from "./RecipeSearchBox";
 
 export const metadata: Metadata = {
   title: "Recipes",
-  description: "Browse and search shared paint recipes.",
+  description: "Paint recipe library — browse by paint name and brand.",
 };
 
 type Props = { searchParams: Promise<{ q?: string }> };
 
 export default async function RecipesPage({ searchParams }: Props) {
   const { q } = await searchParams;
-
-  const [
-    recipes,
-    {
-      data: { user },
-    },
-  ] = await Promise.all([listPublicRecipes(q), createClient().then((s) => s.auth.getUser())]);
-
-  // Fetch the current user's own recipes (both private + public) when logged in.
-  const myRecipes = user ? await listMyRecipes() : [];
+  const recipes = await listPublicRecipes(q);
 
   return (
     <main className="container mx-auto max-w-4xl px-4 py-12 space-y-10">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Recipes</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Community paint recipes — browse or search by paint name and brand.
-          </p>
-        </div>
-        {user && (
-          <Button asChild size="sm">
-            <Link href="/recipes/new">
-              <PlusCircle />
-              New recipe
-            </Link>
-          </Button>
-        )}
+      <div>
+        <h1 className="text-2xl font-bold">Recipes</h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Paint recipe library — search by paint name or brand.
+        </p>
       </div>
 
-      {/* ── Your recipes (private + public, owner only) ── */}
-      {user && myRecipes.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            Your recipes
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {myRecipes.map((recipe) => (
-              <Link key={recipe.id} href={`/recipes/${recipe.id}`} className="block group">
-                <Card
-                  className={cn(
-                    "h-full transition-colors hover:border-primary",
-                    recipe.cover_image_url && "pt-0",
-                  )}
-                >
-                  {recipe.cover_image_url && (
-                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-xl">
-                      <Image
-                        src={recipe.cover_image_url}
-                        alt={recipe.title}
-                        fill
-                        className="object-cover transition-transform group-hover:scale-105"
-                        sizes="(min-width: 768px) 33vw, (min-width: 640px) 50vw, 100vw"
-                      />
-                    </div>
-                  )}
-                  <CardHeader className="pb-1 pt-4 px-4">
-                    <CardTitle className="text-sm font-semibold leading-tight">
-                      {recipe.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="px-4 pb-4 space-y-1">
-                    <p className="text-xs text-muted-foreground">
-                      {recipe.step_count} step{recipe.step_count !== 1 ? "s" : ""}
-                    </p>
-                    <Badge
-                      variant={recipe.visibility === "public" ? "default" : "secondary"}
-                      className="text-xs"
-                    >
-                      {recipe.visibility === "public" ? "Public" : "Private"}
-                    </Badge>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+      <RecipeSearchBox defaultValue={q} />
 
-      {/* ── Search (community recipes) ── */}
-      <section className="space-y-4">
-        {user && myRecipes.length > 0 && (
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            Community recipes
-          </h2>
-        )}
-        <RecipeSearchBox defaultValue={q} />
-
-        {/* Results */}
-        {recipes.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground space-y-2">
-            {q ? (
-              <>
-                <p className="text-lg">No recipes found for &ldquo;{q}&rdquo;</p>
-                <p className="text-sm">Try a different paint name or brand.</p>
-              </>
-            ) : (
-              <>
-                <p className="text-lg">No public recipes yet.</p>
-                {user && (
-                  <p className="text-sm">
-                    <Link href="/recipes/new" className="underline underline-offset-2">
-                      Create the first one
-                    </Link>
-                    !
-                  </p>
+      {recipes.length === 0 ? (
+        <div className="text-center py-16 text-muted-foreground space-y-2">
+          {q ? (
+            <>
+              <p className="text-lg">No recipes found for &ldquo;{q}&rdquo;</p>
+              <p className="text-sm">Try a different paint name or brand.</p>
+            </>
+          ) : (
+            <p className="text-lg">No public recipes yet.</p>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {recipes.map((recipe) => (
+            <Link key={recipe.id} href={`/recipes/${recipe.id}`} className="block group">
+              <Card
+                className={cn(
+                  "h-full transition-colors hover:border-primary",
+                  recipe.cover_image_url && "pt-0",
                 )}
-              </>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {recipes.map((recipe) => (
-              <Link key={recipe.id} href={`/recipes/${recipe.id}`} className="block group">
-                <Card
-                  className={cn(
-                    "h-full transition-colors hover:border-primary",
-                    recipe.cover_image_url && "pt-0",
-                  )}
-                >
-                  {recipe.cover_image_url && (
-                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-xl">
-                      <Image
-                        src={recipe.cover_image_url}
-                        alt={recipe.title}
-                        fill
-                        className="object-cover transition-transform group-hover:scale-105"
-                        sizes="(min-width: 768px) 33vw, (min-width: 640px) 50vw, 100vw"
-                      />
-                    </div>
-                  )}
-                  <CardHeader className="pb-1 pt-4 px-4">
-                    <CardTitle className="text-sm font-semibold leading-tight">
-                      {recipe.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="px-4 pb-4 space-y-1">
-                    <p className="text-xs text-muted-foreground">
-                      {recipe.step_count} step{recipe.step_count !== 1 ? "s" : ""}
-                    </p>
-                    <Badge variant="secondary" className="text-xs">
-                      Public
-                    </Badge>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
+              >
+                {recipe.cover_image_url && (
+                  <div className="relative aspect-[4/3] w-full overflow-hidden rounded-t-xl">
+                    <Image
+                      src={recipe.cover_image_url}
+                      alt={recipe.title}
+                      fill
+                      className="object-cover transition-transform group-hover:scale-105"
+                      sizes="(min-width: 768px) 33vw, (min-width: 640px) 50vw, 100vw"
+                    />
+                  </div>
+                )}
+                <CardHeader className="pb-1 pt-4 px-4">
+                  <CardTitle className="text-sm font-semibold leading-tight">
+                    {recipe.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4">
+                  <p className="text-xs text-muted-foreground">
+                    {recipe.step_count} step{recipe.step_count !== 1 ? "s" : ""}
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
     </main>
   );
 }

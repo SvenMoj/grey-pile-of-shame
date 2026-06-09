@@ -6,15 +6,14 @@ import Link from "next/link";
 import {
   Brush,
   Camera,
+  FolderOpen,
   FlaskConical,
-  Layers,
-  Library,
   LogIn,
   LogOut,
   Menu,
-  PaintBucket,
   Palette,
   Settings,
+  ShieldCheck,
   User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,9 +30,12 @@ import { ModeToggle } from "@/components/ModeToggle";
 import { useAuth } from "@/components/auth-provider";
 import { signOutAction } from "@/app/settings/actions";
 
+const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+
 export function SiteHeader() {
   const { user } = useAuth();
   const isAuthed = !!user;
+  const isAdmin = !!user && !!ADMIN_EMAIL && user.email === ADMIN_EMAIL;
   const email = user?.email ?? null;
   const [open, setOpen] = useState(false);
 
@@ -41,7 +43,7 @@ export function SiteHeader() {
 
   return (
     <header className="flex items-center justify-between gap-4 border-b px-3 py-4 sm:px-6">
-      <Link href="/pile">
+      <Link href="/">
         <Image
           src="/grey-pile-of-shame.png"
           alt="Grey Pile of Shame"
@@ -54,32 +56,16 @@ export function SiteHeader() {
 
       {/* Desktop nav */}
       <nav className="hidden sm:flex items-center gap-1 text-sm">
-        {!isAuthed && (
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/pile">
-              <Layers />
-              Pile
-            </Link>
-          </Button>
-        )}
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/collection">
-            <Library />
-            Collection
+          <Link href="/">
+            <FolderOpen />
+            Projects
           </Link>
         </Button>
-        {isAuthed && (
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/inventory">
-              <PaintBucket />
-              Inventory
-            </Link>
-          </Button>
-        )}
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/brands">
-            <Brush />
-            Brands
+          <Link href="/recipes">
+            <FlaskConical />
+            Recipes
           </Link>
         </Button>
         <Button variant="ghost" size="sm" asChild>
@@ -89,12 +75,13 @@ export function SiteHeader() {
           </Link>
         </Button>
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/recipes">
-            <FlaskConical />
-            Recipes
+          <Link href="/brands">
+            <Brush />
+            Brands
           </Link>
         </Button>
-        {isAuthed && (
+
+        {isAdmin && (
           <Button variant="ghost" size="sm" asChild>
             <Link href="/studio">
               <Camera />
@@ -102,6 +89,7 @@ export function SiteHeader() {
             </Link>
           </Button>
         )}
+
         {isAuthed ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -116,6 +104,17 @@ export function SiteHeader() {
                   <DropdownMenuLabel className="font-normal text-muted-foreground truncate max-w-48">
                     {email}
                   </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              {isAdmin && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin/projects">
+                      <ShieldCheck />
+                      Admin
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               )}
@@ -161,32 +160,16 @@ export function SiteHeader() {
               <SheetTitle className="sr-only">Navigation</SheetTitle>
             </SheetHeader>
             <nav className="flex flex-col gap-1 pt-4 text-sm">
-              {!isAuthed && (
-                <Button variant="ghost" className="justify-start" asChild>
-                  <Link href="/pile" onClick={close}>
-                    <Layers />
-                    Pile
-                  </Link>
-                </Button>
-              )}
               <Button variant="ghost" className="justify-start" asChild>
-                <Link href="/collection" onClick={close}>
-                  <Library />
-                  Collection
+                <Link href="/" onClick={close}>
+                  <FolderOpen />
+                  Projects
                 </Link>
               </Button>
-              {isAuthed && (
-                <Button variant="ghost" className="justify-start" asChild>
-                  <Link href="/inventory" onClick={close}>
-                    <PaintBucket />
-                    Inventory
-                  </Link>
-                </Button>
-              )}
               <Button variant="ghost" className="justify-start" asChild>
-                <Link href="/brands" onClick={close}>
-                  <Brush />
-                  Brands
+                <Link href="/recipes" onClick={close}>
+                  <FlaskConical />
+                  Recipes
                 </Link>
               </Button>
               <Button variant="ghost" className="justify-start" asChild>
@@ -196,12 +179,13 @@ export function SiteHeader() {
                 </Link>
               </Button>
               <Button variant="ghost" className="justify-start" asChild>
-                <Link href="/recipes" onClick={close}>
-                  <FlaskConical />
-                  Recipes
+                <Link href="/brands" onClick={close}>
+                  <Brush />
+                  Brands
                 </Link>
               </Button>
-              {isAuthed && (
+
+              {isAdmin && (
                 <Button variant="ghost" className="justify-start" asChild>
                   <Link href="/studio" onClick={close}>
                     <Camera />
@@ -209,10 +193,19 @@ export function SiteHeader() {
                   </Link>
                 </Button>
               )}
+
               {isAuthed ? (
                 <>
                   {email && (
                     <p className="px-3 py-2 text-xs text-muted-foreground truncate">{email}</p>
+                  )}
+                  {isAdmin && (
+                    <Button variant="ghost" className="justify-start" asChild>
+                      <Link href="/admin/projects" onClick={close}>
+                        <ShieldCheck />
+                        Admin
+                      </Link>
+                    </Button>
                   )}
                   <Button variant="ghost" className="justify-start" asChild>
                     <Link href="/settings" onClick={close}>
