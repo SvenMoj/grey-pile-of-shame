@@ -1,10 +1,11 @@
 "use client";
 
+import { useTransition } from "react";
 import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -16,6 +17,22 @@ import {
 import { deleteRecipeAction } from "@/lib/recipes/actions";
 
 export function DeleteRecipeButton({ recipeId }: { recipeId: string }) {
+  const [isPending, startTransition] = useTransition();
+
+  function handleDelete() {
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set("id", recipeId);
+      const result = await deleteRecipeAction(fd);
+      if (result?.error) {
+        toast.error(result.error);
+        // Dialog stays open so the user can see the error.
+      }
+      // On success deleteRecipeAction calls redirect("/recipes"), which unmounts
+      // the page and the dialog naturally.
+    });
+  }
+
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
@@ -33,15 +50,12 @@ export function DeleteRecipeButton({ recipeId }: { recipeId: string }) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction asChild>
-            <form action={deleteRecipeAction}>
-              <input type="hidden" name="id" value={recipeId} />
-              <Button type="submit" variant="destructive">
-                Delete
-              </Button>
-            </form>
-          </AlertDialogAction>
+          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          {/* Plain Button — NOT AlertDialogAction, which would close/unmount the dialog
+              synchronously with the click and cancel the in-flight server action. */}
+          <Button variant="destructive" disabled={isPending} onClick={handleDelete}>
+            {isPending ? "Deleting…" : "Delete"}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

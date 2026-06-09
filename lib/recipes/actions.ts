@@ -106,10 +106,10 @@ export async function saveRecipeAction(formData: FormData): Promise<SaveRecipeRe
  *
  * Form fields: id (uuid)
  */
-export async function deleteRecipeAction(formData: FormData): Promise<void> {
+export async function deleteRecipeAction(formData: FormData): Promise<{ error?: string }> {
   const user = await getUserOrRedirect();
   const id = ((formData.get("id") as string) ?? "").trim();
-  if (!id) return;
+  if (!id) return { error: "Missing recipe id." };
 
   const supabase = await createClient();
 
@@ -123,7 +123,16 @@ export async function deleteRecipeAction(formData: FormData): Promise<void> {
   }
 
   // RLS enforces author_user_id = auth.uid(); cascade removes steps/images/applications.
-  await supabase.from("recipes").delete().eq("id", id).eq("author_user_id", user.id);
+  const { data: deleted, error } = await supabase
+    .from("recipes")
+    .delete()
+    .eq("id", id)
+    .eq("author_user_id", user.id)
+    .select("id");
+
+  if (error) return { error: error.message };
+  if (!deleted || deleted.length === 0)
+    return { error: "Recipe not found or you don't have permission to delete it." };
 
   revalidatePath("/recipes");
   redirect("/recipes");
