@@ -800,16 +800,23 @@ export default function CanvasEditor({ data, format }: Props) {
               {slide.label}
             </span>
             {slides.length > 1 && (
-              <button
-                type="button"
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={(e) => {
                   e.stopPropagation();
                   deleteSlide(i);
                 }}
-                className="absolute top-0.5 right-0.5 size-4 flex items-center justify-center rounded-full bg-black/60 text-white text-[9px] hover:bg-black"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.stopPropagation();
+                    deleteSlide(i);
+                  }
+                }}
+                className="absolute top-0.5 right-0.5 size-4 flex items-center justify-center rounded-full bg-black/60 text-white text-[9px] hover:bg-black cursor-pointer"
               >
                 ✕
-              </button>
+              </div>
             )}
           </button>
         ))}
