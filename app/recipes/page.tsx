@@ -19,12 +19,16 @@ type Props = { searchParams: Promise<{ q?: string }> };
 export default async function RecipesPage({ searchParams }: Props) {
   const { q } = await searchParams;
   const supabase = await createClient();
-  const [recipes, { data: { user } }] = await Promise.all([
-    listPublicRecipes(q),
-    supabase.auth.getUser(),
-  ]);
+  const [
+    recipes,
+    {
+      data: { user },
+    },
+  ] = await Promise.all([listPublicRecipes(q), supabase.auth.getUser()]);
   const isAdmin =
-    !!user && !!process.env.NEXT_PUBLIC_ADMIN_EMAIL && user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+    !!user &&
+    !!process.env.NEXT_PUBLIC_ADMIN_EMAIL &&
+    user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
   return (
     <main className="container mx-auto max-w-4xl px-4 py-12 space-y-10">
