@@ -14,7 +14,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { createClient } from "@/lib/supabase/server";
-import { publicClient } from "@/lib/supabase/public";
+import { isPublicSupabaseConfigured, publicClient } from "@/lib/supabase/public";
 import type {
   Project,
   ProjectImage,
@@ -75,6 +75,7 @@ export async function getProjectBySlug(slug: string): Promise<ProjectWithDetail 
  * Uses the public (anon-key) client so this can run in anonymous SSR contexts.
  */
 export async function listPublishedProjects(): Promise<ProjectListItem[]> {
+  if (!isPublicSupabaseConfigured()) return [];
   const { data, error } = await (publicClient as any)
     .from("projects")
     .select(
