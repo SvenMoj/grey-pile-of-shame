@@ -7,10 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PaintSwatch } from "@/components/PaintSwatch";
 import { createClient } from "@/lib/supabase/server";
-import { getBrands } from "@/lib/brands";
-import { getRecipeById, getConversionsForPaints } from "@/lib/recipes/queries";
-import { indexConversionsByRecipePaint, type ConversionEdge } from "@/lib/recipes/cross-reference";
-import { BrandSubstitutePicker } from "./BrandSubstitutePicker";
+import { getRecipeById } from "@/lib/recipes/queries";
 import { DeleteRecipeButton } from "./DeleteRecipeButton";
 
 const STEP_ROLE_LABELS: Record<string, string> = {
@@ -51,34 +48,6 @@ export default async function RecipePage({ params }: Props) {
   if (!recipe) notFound();
 
   const isOwner = !!user && user.id === recipe.author_user_id;
-
-  // Catalog paint ids from all step components — flatten, dedupe, exclude hex-only.
-  const stepPaintIds = [
-    ...new Set(
-      recipe.steps
-        .flatMap((s) => s.paints)
-        .map((c) => c.paint_id)
-        .filter((id): id is string => id !== null),
-    ),
-  ];
-
-  // Fetch cross-ref data and user preferences in parallel.
-  const [rawConversions, allBrands, profileResult] = await Promise.all([
-    getConversionsForPaints(stepPaintIds),
-    getBrands(),
-    user
-      ? supabase.from("profiles").select("hidden_brands").eq("id", user.id).maybeSingle()
-      : Promise.resolve({ data: null }),
-  ]);
-
-  const hiddenBrands = new Set<string>(profileResult.data?.hidden_brands ?? []);
-  // Filter the brand-substitute dropdown to exclude the user's hidden brands.
-  const brands = allBrands.filter((b) => !hiddenBrands.has(b));
-
-  const conversionsByPaint = indexConversionsByRecipePaint(rawConversions, new Set(stepPaintIds));
-
-  // Serialize the Map for the client BrandSubstitutePicker.
-  const conversionEdges: [string, ConversionEdge[]][] = Array.from(conversionsByPaint.entries());
 
   const coverImage = recipe.images[0] ?? null;
 
@@ -214,20 +183,6 @@ export default async function RecipePage({ params }: Props) {
               </li>
             ))}
           </ol>
-        </section>
-      )}
-
-      {/* Brand substitution selector */}
-      {brands.length > 0 && recipe.steps.length > 0 && (
-        <section className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            Substitute with another brand
-          </h2>
-          <BrandSubstitutePicker
-            steps={recipe.steps}
-            brands={brands}
-            conversionEdges={conversionEdges}
-          />
         </section>
       )}
 
