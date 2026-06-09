@@ -1,9 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { getBrands } from "@/lib/brands";
 import { signOutAction, requestAccountDeletionAction } from "./actions";
 import PasswordForm from "./PasswordForm";
 import InstagramHandleForm from "./InstagramHandleForm";
+import HiddenBrandsForm from "./HiddenBrandsForm";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -11,9 +13,16 @@ export default async function SettingsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = user
-    ? await supabase.from("profiles").select("instagram_handle").eq("id", user.id).maybeSingle()
-    : { data: null };
+  const [{ data: profile }, allBrands] = await Promise.all([
+    user
+      ? supabase
+          .from("profiles")
+          .select("instagram_handle, hidden_brands")
+          .eq("id", user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    getBrands(),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -37,6 +46,8 @@ export default async function SettingsPage() {
       <PasswordForm hasPassword={!!user?.user_metadata?.has_password} />
 
       <InstagramHandleForm currentHandle={profile?.instagram_handle ?? null} />
+
+      <HiddenBrandsForm allBrands={allBrands} hidden={profile?.hidden_brands ?? []} />
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium tracking-wide text-muted-foreground uppercase">

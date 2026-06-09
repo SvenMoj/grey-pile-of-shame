@@ -4,14 +4,12 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  Brush,
   Camera,
   FolderOpen,
   FlaskConical,
   LogIn,
   LogOut,
   Menu,
-  Palette,
   Settings,
   ShieldCheck,
   User,
@@ -66,18 +64,6 @@ export function SiteHeader() {
           <Link href="/recipes">
             <FlaskConical />
             Recipes
-          </Link>
-        </Button>
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/convert">
-            <Palette />
-            Convert
-          </Link>
-        </Button>
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/brands">
-            <Brush />
-            Brands
           </Link>
         </Button>
 
@@ -170,18 +156,6 @@ export function SiteHeader() {
                 <Link href="/recipes" onClick={close}>
                   <FlaskConical />
                   Recipes
-                </Link>
-              </Button>
-              <Button variant="ghost" className="justify-start" asChild>
-                <Link href="/convert" onClick={close}>
-                  <Palette />
-                  Convert
-                </Link>
-              </Button>
-              <Button variant="ghost" className="justify-start" asChild>
-                <Link href="/brands" onClick={close}>
-                  <Brush />
-                  Brands
                 </Link>
               </Button>
 

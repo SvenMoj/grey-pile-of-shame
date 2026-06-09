@@ -48,14 +48,13 @@ type LocalStep = {
 type Props = {
   steps: LocalStep[];
   onChange: (steps: LocalStep[]) => void;
-  ownedIds?: Set<string>;
 };
 
 export type { LocalStep };
 
 // ─── StepEditor ──────────────────────────────────────────────────────────────
 
-export function StepEditor({ steps, onChange, ownedIds }: Props) {
+export function StepEditor({ steps, onChange }: Props) {
   // Keyed by component id → whether the user is in custom hex entry mode.
   const [customHexMode, setCustomHexMode] = useState<Record<string, boolean>>({});
 
@@ -231,7 +230,6 @@ export function StepEditor({ steps, onChange, ownedIds }: Props) {
                   onPaintAdd={(paintId, paint) =>
                     handlePaintAdd(stepIndex, compIndex, paintId, paint)
                   }
-                  ownedIds={ownedIds}
                 />
               ))}
             </div>
@@ -296,7 +294,6 @@ type ComponentRowProps = {
   onRemove: () => void;
   onMove: (direction: -1 | 1) => void;
   onPaintAdd: (paintId: string, paint: CatalogPaint) => void;
-  ownedIds?: Set<string>;
 };
 
 function ComponentRow({
@@ -310,7 +307,6 @@ function ComponentRow({
   onRemove,
   onMove,
   onPaintAdd,
-  ownedIds,
 }: ComponentRowProps) {
   const showMixControls = totalComponents > 1;
 
@@ -439,10 +435,7 @@ function ComponentRow({
             </div>
           ) : (
             <>
-              <PaintSearch
-                onAdd={(paintId, catalogPaint) => onPaintAdd(paintId, catalogPaint)}
-                ownedIds={ownedIds}
-              />
+              <PaintSearch onAdd={(paintId, catalogPaint) => onPaintAdd(paintId, catalogPaint)} />
               <Button
                 type="button"
                 variant="link"

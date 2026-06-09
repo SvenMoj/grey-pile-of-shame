@@ -288,6 +288,7 @@ export type Database = {
           created_at: string
           deletion_requested_at: string | null
           display_name: string | null
+          hidden_brands: string[]
           id: string
           instagram_handle: string | null
           updated_at: string
@@ -296,6 +297,7 @@ export type Database = {
           created_at?: string
           deletion_requested_at?: string | null
           display_name?: string | null
+          hidden_brands?: string[]
           id: string
           instagram_handle?: string | null
           updated_at?: string
@@ -304,6 +306,7 @@ export type Database = {
           created_at?: string
           deletion_requested_at?: string | null
           display_name?: string | null
+          hidden_brands?: string[]
           id?: string
           instagram_handle?: string | null
           updated_at?: string

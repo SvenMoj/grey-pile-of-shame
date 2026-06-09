@@ -1,7 +1,15 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { ArrowLeftRight, FlaskConical, FolderOpen, LogOut, Palette, Upload } from "lucide-react";
+import {
+  ArrowLeftRight,
+  ExternalLink,
+  FlaskConical,
+  FolderOpen,
+  LogOut,
+  Palette,
+  Upload,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getAdminUserOrRedirect } from "@/lib/admin/auth";
 import { signOutAction } from "./actions";
@@ -43,7 +51,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             Import CSV
           </Link>
         </Button>
-        <form action={signOutAction} className="ml-auto">
+        <Button variant="ghost" size="sm" asChild className="ml-auto">
+          <Link href="/">
+            <ExternalLink />
+            Public view
+          </Link>
+        </Button>
+        <form action={signOutAction}>
           <Button variant="ghost" size="sm" type="submit">
             <LogOut />
             Log out

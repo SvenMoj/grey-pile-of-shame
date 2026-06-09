@@ -8,13 +8,8 @@ import { Button } from "@/components/ui/button";
 import { PaintSwatch } from "@/components/PaintSwatch";
 import { createClient } from "@/lib/supabase/server";
 import { getBrands } from "@/lib/brands";
-import { getRecipeById, getConversionsForPaints, getOwnedPaintIds } from "@/lib/recipes/queries";
-import {
-  indexConversionsByRecipePaint,
-  resolveAllSteps,
-  type ConversionEdge,
-} from "@/lib/recipes/cross-reference";
-import { RecipeInventoryPanel } from "./RecipeInventoryPanel";
+import { getRecipeById, getConversionsForPaints } from "@/lib/recipes/queries";
+import { indexConversionsByRecipePaint, type ConversionEdge } from "@/lib/recipes/cross-reference";
 import { BrandSubstitutePicker } from "./BrandSubstitutePicker";
 import { DeleteRecipeButton } from "./DeleteRecipeButton";
 
@@ -45,17 +40,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function RecipePage({ params }: Props) {
   const { id } = await params;
 
+  const supabase = await createClient();
   const [
     recipe,
     {
       data: { user },
     },
-  ] = await Promise.all([getRecipeById(id), createClient().then((s) => s.auth.getUser())]);
+  ] = await Promise.all([getRecipeById(id), supabase.auth.getUser()]);
 
   if (!recipe) notFound();
 
   const isOwner = !!user && user.id === recipe.author_user_id;
-  const isAuthed = !!user;
 
   // Catalog paint ids from all step components — flatten, dedupe, exclude hex-only.
   const stepPaintIds = [
@@ -67,16 +62,20 @@ export default async function RecipePage({ params }: Props) {
     ),
   ];
 
-  // Fetch cross-ref data in parallel (safe for anon — owned set will be empty).
-  const [rawConversions, ownedPaintIds, brands] = await Promise.all([
+  // Fetch cross-ref data and user preferences in parallel.
+  const [rawConversions, allBrands, profileResult] = await Promise.all([
     getConversionsForPaints(stepPaintIds),
-    getOwnedPaintIds(),
     getBrands(),
+    user
+      ? supabase.from("profiles").select("hidden_brands").eq("id", user.id).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
+  const hiddenBrands = new Set<string>(profileResult.data?.hidden_brands ?? []);
+  // Filter the brand-substitute dropdown to exclude the user's hidden brands.
+  const brands = allBrands.filter((b) => !hiddenBrands.has(b));
+
   const conversionsByPaint = indexConversionsByRecipePaint(rawConversions, new Set(stepPaintIds));
-  const statuses = resolveAllSteps(recipe.steps, ownedPaintIds, conversionsByPaint);
-  const stepsWithStatus = recipe.steps.map((step, i) => ({ ...step, status: statuses[i] }));
 
   // Serialize the Map for the client BrandSubstitutePicker.
   const conversionEdges: [string, ConversionEdge[]][] = Array.from(conversionsByPaint.entries());
@@ -215,16 +214,6 @@ export default async function RecipePage({ params }: Props) {
               </li>
             ))}
           </ol>
-        </section>
-      )}
-
-      {/* Inventory cross-reference (admin sees owned/missing; anon sees nothing) */}
-      {recipe.steps.length > 0 && (
-        <section className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
-          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            Your inventory
-          </h2>
-          <RecipeInventoryPanel steps={stepsWithStatus} isAuthed={isAuthed} />
         </section>
       )}
 

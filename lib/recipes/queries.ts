@@ -4,7 +4,6 @@
  * IMPORTANT: uses createClient() from lib/supabase/server.ts (the request-scoped
  * cookie-bound client), NOT publicClient. This is required because:
  *   - Recipes can be private; owners must see their own private rows.
- *   - Inventory cross-ref (getOwnedPaintIds) needs the authenticated user's session.
  *
  * Each exported function creates its own client instance when called from a server
  * component; they are not wrapped in React cache() because the server client is
@@ -103,24 +102,6 @@ export async function getConversionsForPaints(paintIds: string[]): Promise<RawCo
 
   if (error) throw new Error(`getConversionsForPaints: ${error.message}`);
   return (data ?? []) as unknown as RawConversionRow[];
-}
-
-/**
- * Return the set of catalog_paint_ids that the current user owns or has marked
- * as running_low. Returns an empty set for unauthenticated viewers (RLS returns nothing).
- */
-export async function getOwnedPaintIds(): Promise<Set<string>> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("user_paints")
-    .select("catalog_paint_id")
-    .in("state", ["owned", "running_low"]);
-
-  if (error) return new Set();
-  const ids = (data ?? [])
-    .map((row) => row.catalog_paint_id as string | null)
-    .filter((id): id is string => id !== null);
-  return new Set(ids);
 }
 
 /**

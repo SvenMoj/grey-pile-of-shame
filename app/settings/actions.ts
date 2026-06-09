@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { adminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import { validatePassword } from "@/lib/auth/password";
+import { getBrands } from "@/lib/brands";
+import { normalizeHiddenBrands } from "@/lib/brands/hidden-brands";
 import type { LoginState } from "@/app/login/actions";
 
 export async function signOutAction() {
@@ -32,6 +34,33 @@ export async function requestAccountDeletionAction() {
 
   await supabase.auth.signOut();
   redirect("/login?message=deletion_requested");
+}
+
+/** Save the user's hidden-brands preference. */
+export async function updateHiddenBrandsAction(
+  _prev: { message: string; success: boolean },
+  formData: FormData,
+): Promise<{ message: string; success: boolean }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { message: "Not authenticated.", success: false };
+
+  const submitted = formData.getAll("hidden_brands") as string[];
+  const knownBrands = await getBrands();
+  const hidden_brands = normalizeHiddenBrands(submitted, knownBrands);
+
+  const { error } = await supabase.from("profiles").update({ hidden_brands }).eq("id", user.id);
+
+  if (error) return { message: error.message, success: false };
+  return {
+    message:
+      hidden_brands.length > 0
+        ? `Preferences saved — ${hidden_brands.length} brand${hidden_brands.length === 1 ? "" : "s"} hidden.`
+        : "All brands visible.",
+    success: true,
+  };
 }
 
 /** Save (or clear) the user's Instagram handle stored on their profile. */
