@@ -1,7 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/server";
 import { listPublicRecipes } from "@/lib/recipes/queries";
 import { cn } from "@/lib/utils";
 import { RecipeSearchBox } from "./RecipeSearchBox";
@@ -15,15 +18,31 @@ type Props = { searchParams: Promise<{ q?: string }> };
 
 export default async function RecipesPage({ searchParams }: Props) {
   const { q } = await searchParams;
-  const recipes = await listPublicRecipes(q);
+  const supabase = await createClient();
+  const [recipes, { data: { user } }] = await Promise.all([
+    listPublicRecipes(q),
+    supabase.auth.getUser(),
+  ]);
+  const isAdmin =
+    !!user && !!process.env.NEXT_PUBLIC_ADMIN_EMAIL && user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
   return (
     <main className="container mx-auto max-w-4xl px-4 py-12 space-y-10">
-      <div>
-        <h1 className="text-2xl font-bold">Recipes</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Paint recipe library — search by paint name or brand.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Recipes</h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Paint recipe library — search by paint name or brand.
+          </p>
+        </div>
+        {isAdmin && (
+          <Button size="sm" asChild>
+            <Link href="/admin/recipes/new">
+              <Plus />
+              New recipe
+            </Link>
+          </Button>
+        )}
       </div>
 
       <RecipeSearchBox defaultValue={q} />
