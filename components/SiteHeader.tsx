@@ -67,7 +67,7 @@ export function SiteHeader() {
           </Link>
         </Button>
 
-        {isAdmin && (
+        {isAuthed && (
           <Button variant="ghost" size="sm" asChild>
             <Link href="/studio">
               <Camera />
@@ -159,7 +159,7 @@ export function SiteHeader() {
                 </Link>
               </Button>
 
-              {isAdmin && (
+              {isAuthed && (
                 <Button variant="ghost" className="justify-start" asChild>
                   <Link href="/studio" onClick={close}>
                     <Camera />
