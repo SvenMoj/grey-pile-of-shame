@@ -130,6 +130,28 @@ function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxW: number): s
   return lines;
 }
 
+function fitFontSize(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxW: number,
+  maxLines: number,
+  maxSize: number,
+  fontStyle = "bold",
+  minSize = 18,
+): number {
+  ctx.font = `${fontStyle} ${Math.round(maxSize)}px sans-serif`;
+  if (wrapLines(ctx, text, maxW).length <= maxLines) return Math.round(maxSize);
+  let lo = minSize;
+  let hi = maxSize;
+  while (hi - lo > 1) {
+    const mid = Math.floor((lo + hi) / 2);
+    ctx.font = `${fontStyle} ${mid}px sans-serif`;
+    if (wrapLines(ctx, text, maxW).length <= maxLines) lo = mid;
+    else hi = mid;
+  }
+  return lo;
+}
+
 function roundRectPath(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -163,9 +185,9 @@ function getElBounds(
   const s = el.scale;
 
   if (el.id === "title") {
-    const fs = Math.round(TITLE_BASE * s);
-    ctx.font = `bold ${fs}px sans-serif`;
     const maxW = W - el.x - PAD;
+    const fs = fitFontSize(ctx, data.title, maxW, 2, TITLE_BASE * s);
+    ctx.font = `bold ${fs}px sans-serif`;
     const lines = wrapLines(ctx, data.title, maxW);
     const w = Math.min(maxW, Math.max(...lines.map((l) => ctx.measureText(l).width)));
     return { x: el.x, y: el.y, w, h: lines.length * fs * 1.2 };
@@ -282,13 +304,14 @@ function renderSlide(
     const { x, y } = el;
 
     if (el.id === "title") {
-      const fs = Math.round(TITLE_BASE * s);
+      const maxW = W - x - PAD;
+      const fs = fitFontSize(ctx, data.title, maxW, 2, TITLE_BASE * s);
       const lh = fs * 1.2;
       ctx.font = `bold ${fs}px sans-serif`;
       ctx.fillStyle = "#fff";
       ctx.shadowColor = "rgba(0,0,0,0.7)";
       ctx.shadowBlur = Math.round(20 * s);
-      wrapLines(ctx, data.title, W - x - PAD).forEach((line, i) => {
+      wrapLines(ctx, data.title, maxW).forEach((line, i) => {
         ctx.fillText(line, x, y + i * lh);
       });
       ctx.shadowBlur = 0;
@@ -620,6 +643,13 @@ export default function CanvasEditor({ data, format }: Props) {
   }
 
   function onPointerMove(e: React.PointerEvent<HTMLCanvasElement>) {
+    if (e.buttons === 0) {
+      dragRef.current = null;
+      photoDragRef.current = null;
+      mousedownRef.current = null;
+      e.currentTarget.style.cursor = "default";
+      return;
+    }
     const { x, y } = toLogical(e);
     if (dragRef.current) {
       const { id, ox, oy } = dragRef.current;

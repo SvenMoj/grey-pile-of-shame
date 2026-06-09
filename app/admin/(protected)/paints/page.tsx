@@ -15,17 +15,21 @@ import { softDeletePaintAction } from "./actions";
 
 const PAGE_SIZE = 50;
 
-function pageHref(page: number, brand?: string) {
-  const params = new URLSearchParams({ ...(brand ? { brand } : {}), page: String(page) });
+function pageHref(page: number, brand?: string, search?: string) {
+  const params = new URLSearchParams({
+    ...(brand ? { brand } : {}),
+    ...(search ? { search } : {}),
+    page: String(page),
+  });
   return `/admin/paints?${params}`;
 }
 
 export default async function AdminPaintsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ brand?: string; page?: string }>;
+  searchParams: Promise<{ brand?: string; search?: string; page?: string }>;
 }) {
-  const { brand, page: pageParam } = await searchParams;
+  const { brand, search, page: pageParam } = await searchParams;
   const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
@@ -37,6 +41,7 @@ export default async function AdminPaintsPage({
     .order("name")
     .range(from, to);
   if (brand) query = query.eq("brand", brand) as typeof query;
+  if (search) query = query.ilike("name", `%${search}%`) as typeof query;
 
   const { data, error, count } = await query;
   const paints = (data ?? []) as Paint[];
@@ -62,7 +67,14 @@ export default async function AdminPaintsPage({
         </Alert>
       )}
 
-      <form method="get" className="flex items-center gap-2">
+      <form method="get" className="flex items-center gap-2 flex-wrap">
+        <input
+          name="search"
+          type="search"
+          placeholder="Search by name…"
+          defaultValue={search ?? ""}
+          className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm w-48"
+        />
         <select
           name="brand"
           defaultValue={brand ?? ""}
@@ -78,7 +90,7 @@ export default async function AdminPaintsPage({
         <Button type="submit" variant="outline" size="sm">
           Filter
         </Button>
-        {brand && (
+        {(brand || search) && (
           <Button variant="link" size="sm" asChild className="h-auto p-0">
             <Link href="/admin/paints">Clear</Link>
           </Button>
@@ -152,7 +164,7 @@ export default async function AdminPaintsPage({
         <div className="flex items-center gap-3 text-sm">
           {page > 1 ? (
             <Button variant="outline" size="sm" asChild>
-              <Link href={pageHref(page - 1, brand)}>← Prev</Link>
+              <Link href={pageHref(page - 1, brand, search)}>← Prev</Link>
             </Button>
           ) : (
             <Button variant="outline" size="sm" disabled>
@@ -164,7 +176,7 @@ export default async function AdminPaintsPage({
           </span>
           {hasNextPage ? (
             <Button variant="outline" size="sm" asChild>
-              <Link href={pageHref(page + 1, brand)}>Next →</Link>
+              <Link href={pageHref(page + 1, brand, search)}>Next →</Link>
             </Button>
           ) : (
             <Button variant="outline" size="sm" disabled>
