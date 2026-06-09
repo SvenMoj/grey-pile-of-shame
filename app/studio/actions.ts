@@ -15,6 +15,8 @@ export interface RecipeStepRow {
 
 export interface CanvasData {
   coverImageUrl: string;
+  /** All image URLs sorted by sort_order; coverImageUrl === images[0]. */
+  images: string[];
   title: string;
   /** Shown below the title in smaller text — game/faction for projects, null for recipes. */
   subtitle: string | null;
@@ -34,7 +36,8 @@ export async function getRecipeCanvasData(id: string): Promise<CanvasData | null
   const [recipe, handle] = await Promise.all([getRecipeById(id), getInstagramHandle()]);
   if (!recipe) return null;
 
-  const coverImage = [...recipe.images].sort((a, b) => a.sort_order - b.sort_order)[0] ?? null;
+  const sortedImages = [...recipe.images].sort((a, b) => a.sort_order - b.sort_order);
+  const coverImage = sortedImages[0] ?? null;
   if (!coverImage) return null;
 
   const swatchHexes: string[] = [];
@@ -52,7 +55,6 @@ export async function getRecipeCanvasData(id: string): Promise<CanvasData | null
     for (const c of step.paints) {
       const h = c.hex ?? c.paint?.hex ?? null;
       if (h && !hexes.includes(`#${h}`)) hexes.push(`#${h}`);
-      if (hexes.length >= 3) break;
     }
     return {
       role: step.role,
@@ -65,6 +67,7 @@ export async function getRecipeCanvasData(id: string): Promise<CanvasData | null
 
   return {
     coverImageUrl: coverImage.image_url,
+    images: sortedImages.map((img) => img.image_url),
     title: recipe.title,
     subtitle: null,
     swatchHexes,
@@ -86,6 +89,7 @@ export async function getModelCanvasData(id: string): Promise<CanvasData | null>
 
   return {
     coverImageUrl: project.cover_image_url,
+    images: [project.cover_image_url],
     title: project.title,
     subtitle,
     swatchHexes: [],

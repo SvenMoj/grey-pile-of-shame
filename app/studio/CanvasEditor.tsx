@@ -19,7 +19,17 @@ const SUBTITLE_BASE = 36;
 const HANDLE_BASE = 32;
 const SWATCH_R_BASE = 24;
 const SWATCH_GAP_BASE = 10;
-const STEP_FONT_BASE = 26;
+const STEP_FONT_BASE = 28;
+const STEP_ROLE_SCALE = 0.55; // role tag font as fraction of STEP_FONT_BASE
+const STEP_CHIP_SIZE = 68; // color chip height/width
+const STEP_CHIP_RADIUS = 14; // chip corner radius
+const STEP_CHIP_GAP = 14; // gap between chip and text block
+const STEP_ROLE_NAME_GAP = 6; // gap between role tag and paint name
+const STEP_CARD_PAD_H = 16; // card horizontal padding
+const STEP_CARD_PAD_V = 14; // card vertical padding
+const STEP_CARD_GAP = 10; // gap between stacked cards
+const STEP_CARD_RADIUS = 20; // card corner radius
+const STEP_TEXT_W_FRAC = 0.52; // paint name max width as fraction of canvas W
 const PAD = 72;
 const THUMB_W = 90;
 
@@ -60,9 +70,11 @@ interface Slide {
   label: string;
   els: El[];
   photoTransform: PhotoTransform;
+  /** Index into data.images for this slide's background photo. */
+  imageIndex: number;
 }
 
-type RenderData = Omit<CanvasData, "coverImageUrl">;
+type RenderData = Omit<CanvasData, "coverImageUrl" | "images">;
 
 const EL_LABELS: Record<ElId, string> = {
   title: "Title",
@@ -79,10 +91,10 @@ function defaultEls(w: number, h: number): El[] {
   return [
     { id: "title", x: PAD, y: h * 0.58, visible: true, scale: 1 },
     { id: "subtitle", x: PAD, y: h * 0.76, visible: true, scale: 1 },
-    { id: "swatches", x: PAD, y: h * 0.76, visible: true, scale: 1 },
-    { id: "steps", x: PAD, y: h * 0.42, visible: false, scale: 1 },
-    { id: "logo", x: PAD, y: h * 0.87, visible: true, scale: 1 },
-    { id: "handle", x: w * 0.58, y: h * 0.87, visible: true, scale: 1 },
+    { id: "swatches", x: PAD, y: h * 0.76, visible: false, scale: 1 },
+    { id: "steps", x: PAD, y: h * 0.52, visible: true, scale: 1 },
+    { id: "logo", x: PAD, y: h * 0.87, visible: false, scale: 1 },
+    { id: "handle", x: w * 0.58, y: h * 0.87, visible: false, scale: 1 },
   ];
 }
 
@@ -91,13 +103,14 @@ function makeSlide(
   h: number,
   label: string,
   overrides?: Array<{ id: ElId } & Partial<Omit<El, "id">>>,
+  imageIndex = 0,
 ): Slide {
   const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const els = defaultEls(w, h).map((el) => {
     const ov = overrides?.find((o) => o.id === el.id);
     return ov ? { ...el, ...ov } : el;
   });
-  return { id, label, els, photoTransform: { zoom: 1, panX: 0, panY: 0 } };
+  return { id, label, els, photoTransform: { zoom: 1, panX: 0, panY: 0 }, imageIndex };
 }
 
 function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxW: number): string[] {
@@ -117,7 +130,7 @@ function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxW: number): s
   return lines;
 }
 
-function fillRoundRect(
+function roundRectPath(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
@@ -136,7 +149,6 @@ function fillRoundRect(
   ctx.lineTo(x, y + r);
   ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
-  ctx.fill();
 }
 
 // ─── Bounds (module-level — no closure needed) ────────────────────────────────
@@ -173,36 +185,28 @@ function getElBounds(
     const range = el.stepRange ?? [0, Math.max(0, data.steps.length - 1)];
     if (data.steps.length === 0 || range[1] < range[0]) return null;
     const sf = Math.round(STEP_FONT_BASE * s);
-    const bf = Math.round(sf * 0.65);
-    const bLineH = Math.round(bf * 1.3);
+    const rf = Math.round(sf * STEP_ROLE_SCALE);
+    const chipSz = Math.round(STEP_CHIP_SIZE * s);
+    const chipGap = Math.round(STEP_CHIP_GAP * s);
+    const cardPH = Math.round(STEP_CARD_PAD_H * s);
+    const cardPV = Math.round(STEP_CARD_PAD_V * s);
+    const cardGap = Math.round(STEP_CARD_GAP * s);
+    const roleNameGap = Math.round(STEP_ROLE_NAME_GAP * s);
+    const textW = Math.min(W * STEP_TEXT_W_FRAC, Math.round(460 * s));
     const pLineH = Math.round(sf * 1.25);
-    const rowPad = Math.round(pLineH * 0.4);
-    const pV = Math.round(14 * s);
-    const pH = Math.round(16 * s);
-    const badgeW = Math.round(120 * s);
-    const dotR = Math.round(sf * 0.7);
-    const dotGap = Math.round(4 * s);
-    const dotAreaW = 3 * (dotR * 2 + dotGap);
-    const maxNW = Math.min(W * 0.65, Math.round(560 * s));
-    const textNW = maxNW - dotAreaW - dotGap;
-    let totalInner = 0;
-    for (const step of data.steps.slice(range[0], range[1] + 1)) {
-      ctx.font = `${bf}px sans-serif`;
-      const bLines = wrapLines(
-        ctx,
-        ROLE_LABELS[step.role] ?? step.role,
-        badgeW - Math.round(8 * s),
-      );
-      ctx.font = `${sf}px sans-serif`;
-      const pLines = wrapLines(ctx, step.paintLabel, textNW).slice(0, 2);
-      totalInner += Math.max(bLines.length * bLineH, pLines.length * pLineH) + rowPad;
+    const cardW = cardPH + chipSz + chipGap + textW + cardPH;
+    const stepsSlice = data.steps.slice(range[0], range[1] + 1);
+    let totalH = 0;
+    for (const step of stepsSlice) {
+      ctx.font = `bold ${sf}px sans-serif`;
+      const pLines = wrapLines(ctx, step.paintLabel, textW).slice(0, 2);
+      const pBlockH = pLines.length * pLineH;
+      const textBlockH = rf + roleNameGap + pBlockH;
+      const cardH = Math.max(chipSz, textBlockH) + cardPV * 2;
+      totalH += cardH + cardGap;
     }
-    return {
-      x: el.x,
-      y: el.y,
-      w: pH + badgeW + Math.round(12 * s) + maxNW + pH,
-      h: totalInner + pV * 2,
-    };
+    if (totalH > 0) totalH -= cardGap;
+    return { x: el.x, y: el.y, w: cardW, h: totalH };
   }
   if (el.id === "logo") {
     return { x: el.x, y: el.y, w: Math.round(LOGO_W_BASE * s), h: Math.round(LOGO_H_BASE * s) };
@@ -321,93 +325,87 @@ function renderSlide(
       const stepsToShow = data.steps.slice(range[0], range[1] + 1);
       if (stepsToShow.length > 0) {
         const sf = Math.round(STEP_FONT_BASE * s);
-        const bf = Math.round(sf * 0.65);
-        const bLineH = Math.round(bf * 1.3);
+        const rf = Math.round(sf * STEP_ROLE_SCALE);
+        const chipSz = Math.round(STEP_CHIP_SIZE * s);
+        const chipR = Math.round(STEP_CHIP_RADIUS * s);
+        const chipGap = Math.round(STEP_CHIP_GAP * s);
+        const cardPH = Math.round(STEP_CARD_PAD_H * s);
+        const cardPV = Math.round(STEP_CARD_PAD_V * s);
+        const cardGap = Math.round(STEP_CARD_GAP * s);
+        const cardR = Math.round(STEP_CARD_RADIUS * s);
+        const roleNameGap = Math.round(STEP_ROLE_NAME_GAP * s);
+        const textW = Math.min(W * STEP_TEXT_W_FRAC, Math.round(460 * s));
         const pLineH = Math.round(sf * 1.25);
-        const rowPad = Math.round(pLineH * 0.4);
-        const badgeW = Math.round(120 * s);
-        const pH = Math.round(16 * s);
-        const pV = Math.round(14 * s);
-        const dotR = Math.round(sf * 0.7);
-        const dotGap = Math.round(4 * s);
-        const dotAreaW = 3 * (dotR * 2 + dotGap);
-        const maxNW = Math.min(W * 0.65, Math.round(560 * s));
-        const textNW = maxNW - dotAreaW - dotGap;
-        const nameX = x + pH + badgeW + Math.round(12 * s);
-        const dotsX = nameX + textNW + dotGap;
+        const cardW = cardPH + chipSz + chipGap + textW + cardPH;
 
-        // Pre-pass: compute lines and row heights from actual content
-        const rowData = stepsToShow.map((step) => {
-          ctx.font = `${bf}px sans-serif`;
-          const bLines = wrapLines(
-            ctx,
-            ROLE_LABELS[step.role] ?? step.role,
-            badgeW - Math.round(8 * s),
-          );
-          ctx.font = `${sf}px sans-serif`;
-          const pLines = wrapLines(ctx, step.paintLabel, textNW).slice(0, 2);
-          const bBlockH = bLines.length * bLineH;
+        // Pre-pass: measure text to determine per-card heights
+        const cardData = stepsToShow.map((step) => {
+          ctx.font = `bold ${sf}px sans-serif`;
+          const pLines = wrapLines(ctx, step.paintLabel, textW).slice(0, 2);
           const pBlockH = pLines.length * pLineH;
-          const rowH = Math.max(bBlockH, pBlockH) + rowPad;
-          return { bLines, pLines, bBlockH, pBlockH, rowH };
+          const textBlockH = rf + roleNameGap + pBlockH;
+          const cardH = Math.max(chipSz, textBlockH) + cardPV * 2;
+          return { pLines, pBlockH, textBlockH, cardH };
         });
 
-        const blockW = pH + badgeW + Math.round(12 * s) + maxNW + pH;
-        const blockH = rowData.reduce((sum, r) => sum + r.rowH, 0) + pV * 2;
-
-        ctx.fillStyle = "rgba(0,0,0,0.6)";
-        fillRoundRect(ctx, x, y, blockW, blockH, Math.round(12 * s));
-
-        let rowOffsetY = y + pV;
+        let cardY = y;
         stepsToShow.forEach((step, i) => {
-          const { bLines, pLines, bBlockH, pBlockH, rowH } = rowData[i];
-          const innerH = rowH - rowPad;
+          const { pLines, textBlockH, cardH } = cardData[i];
 
-          // ── Badge (wrapped, vertically centred) ───────────────────────────
-          const bTopY = rowOffsetY + (innerH - bBlockH) / 2;
-          ctx.fillStyle = "rgba(255,255,255,0.12)";
-          fillRoundRect(
-            ctx,
-            x + pH,
-            bTopY - Math.round(4 * s),
-            badgeW,
-            bBlockH + Math.round(8 * s),
-            Math.round(4 * s),
-          );
-          ctx.font = `${bf}px sans-serif`;
-          ctx.fillStyle = "rgba(255,255,255,0.65)";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "top";
-          bLines.forEach((bl, li) => {
-            ctx.fillText(bl, x + pH + badgeW / 2, bTopY + li * bLineH);
+          // ── Card background + border ──────────────────────────────────────
+          ctx.fillStyle = "rgba(0,0,0,0.58)";
+          roundRectPath(ctx, x, cardY, cardW, cardH, cardR);
+          ctx.fill();
+          ctx.strokeStyle = "rgba(255,255,255,0.14)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          // ── Color chip (left) ─────────────────────────────────────────────
+          const chipX = x + cardPH;
+          const chipY = cardY + (cardH - chipSz) / 2;
+          const hexes = step.hexes.length > 0 ? step.hexes : ["#555555"];
+
+          // Clip to chip shape, fill stripes, restore
+          ctx.save();
+          roundRectPath(ctx, chipX, chipY, chipSz, chipSz, chipR);
+          ctx.clip();
+          const stripeH = chipSz / hexes.length;
+          hexes.forEach((hex, j) => {
+            ctx.fillStyle = hex;
+            ctx.fillRect(chipX, chipY + j * stripeH, chipSz, Math.ceil(stripeH));
           });
+          ctx.restore();
 
-          // ── Paint label (wrapped, vertically centred) ─────────────────────
-          const pTopY = rowOffsetY + (innerH - pBlockH) / 2;
-          ctx.font = `${sf}px sans-serif`;
-          ctx.fillStyle = "#fff";
+          // Chip inner border (drawn outside clip so corners show correctly)
+          ctx.strokeStyle = "rgba(255,255,255,0.22)";
+          ctx.lineWidth = 1;
+          roundRectPath(ctx, chipX, chipY, chipSz, chipSz, chipR);
+          ctx.stroke();
+
+          // ── Text block (right of chip) ────────────────────────────────────
+          const textX = chipX + chipSz + chipGap;
+          const textTopY = cardY + (cardH - textBlockH) / 2;
+
+          // Role tag (small, muted, uppercase)
+          ctx.font = `${rf}px sans-serif`;
+          ctx.fillStyle = "rgba(255,255,255,0.55)";
           ctx.textAlign = "left";
-          ctx.shadowColor = "rgba(0,0,0,0.4)";
-          ctx.shadowBlur = Math.round(6 * s);
-          pLines.forEach((pl, li) => {
-            ctx.fillText(pl, nameX, pTopY + li * pLineH);
+          ctx.textBaseline = "top";
+          ctx.shadowBlur = 0;
+          ctx.fillText((ROLE_LABELS[step.role] ?? step.role).toUpperCase(), textX, textTopY);
+
+          // Paint name (bold, white)
+          const paintY = textTopY + rf + roleNameGap;
+          ctx.font = `bold ${sf}px sans-serif`;
+          ctx.fillStyle = "#fff";
+          ctx.shadowColor = "rgba(0,0,0,0.55)";
+          ctx.shadowBlur = Math.round(8 * s);
+          pLines.forEach((line, li) => {
+            ctx.fillText(line, textX, paintY + li * pLineH);
           });
           ctx.shadowBlur = 0;
 
-          // ── Color dots (centred on paint text block) ──────────────────────
-          const dotCY = pTopY + pBlockH / 2;
-          step.hexes.forEach((hex, j) => {
-            const cx = dotsX + j * (dotR * 2 + dotGap) + dotR;
-            ctx.beginPath();
-            ctx.arc(cx, dotCY, dotR, 0, Math.PI * 2);
-            ctx.fillStyle = hex;
-            ctx.fill();
-            ctx.lineWidth = 1.5;
-            ctx.strokeStyle = "rgba(255,255,255,0.35)";
-            ctx.stroke();
-          });
-
-          rowOffsetY += rowH;
+          cardY += cardH + cardGap;
         });
 
         ctx.textAlign = "left";
@@ -441,7 +439,7 @@ interface Props {
 }
 
 export default function CanvasEditor({ data, format }: Props) {
-  const { coverImageUrl, title, subtitle, swatchHexes, steps, handle } = data;
+  const { images, title, subtitle, swatchHexes, steps, handle } = data;
   const { width: W, height: H } = FORMAT_SIZES[format];
   const THUMB_H = Math.round(THUMB_W * (H / W));
   const DISP_W = 480;
@@ -453,7 +451,9 @@ export default function CanvasEditor({ data, format }: Props) {
   const [slides, setSlides] = useState<Slide[]>(() => [makeSlide(W, H, "Cover")]);
   const [activeIdx, setActiveIdx] = useState(0);
   const [selectedId, setSelectedId] = useState<ElId | null>(null);
-  const [coverImg, setCoverImg] = useState<HTMLImageElement | null>(null);
+  const [coverImgs, setCoverImgs] = useState<(HTMLImageElement | null)[]>(() =>
+    images.map(() => null),
+  );
   const [logoImg, setLogoImg] = useState<HTMLImageElement | null>(null);
   const [zipBusy, setZipBusy] = useState(false);
 
@@ -483,11 +483,25 @@ export default function CanvasEditor({ data, format }: Props) {
   // ── Load images ────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => setCoverImg(img);
-    img.src = coverImageUrl;
-  }, [coverImageUrl]);
+    // Component remounts when coverImageUrl/format changes (via key in StudioClient),
+    // so [] deps is safe — we only need to load once per mount.
+    const loaded = images.map(() => null as HTMLImageElement | null);
+    let cancelled = false;
+    images.forEach((url, i) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        if (cancelled) return;
+        loaded[i] = img;
+        setCoverImgs([...loaded]);
+      };
+      img.src = url;
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const img = new Image();
@@ -499,11 +513,12 @@ export default function CanvasEditor({ data, format }: Props) {
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !coverImg) return;
+    const slideImg = coverImgs[activeSlide.imageIndex] ?? coverImgs[0] ?? null;
+    if (!canvas || !slideImg) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    renderSlide(ctx, W, H, activeSlide, renderData, coverImg, logoImg);
+    renderSlide(ctx, W, H, activeSlide, renderData, slideImg, logoImg);
 
     // Selection / drag outline (drawn in actual canvas coords, after restore)
     const outlineId = dragRef.current?.id ?? selectedId;
@@ -524,7 +539,7 @@ export default function CanvasEditor({ data, format }: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    coverImg,
+    coverImgs,
     logoImg,
     activeSlide,
     title,
@@ -544,19 +559,21 @@ export default function CanvasEditor({ data, format }: Props) {
   // ── Thumbnails (debounced — only redraws after interaction settles) ─────────
 
   useEffect(() => {
-    if (!coverImg) return;
+    const primaryImg = coverImgs[0];
+    if (!primaryImg) return;
     const timer = setTimeout(() => {
       slides.forEach((slide, i) => {
         const thumb = thumbRefs.current[i];
         if (!thumb) return;
         const ctx = thumb.getContext("2d");
         if (!ctx) return;
-        renderSlide(ctx, W, H, slide, renderData, coverImg, logoImg);
+        const img = coverImgs[slide.imageIndex] ?? primaryImg;
+        renderSlide(ctx, W, H, slide, renderData, img, logoImg);
       });
     }, 200);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slides, coverImg, logoImg, W, H, title, subtitle, swatchHexes, steps, handle]);
+  }, [slides, coverImgs, logoImg, W, H, title, subtitle, swatchHexes, steps, handle]);
 
   // ── Interaction ────────────────────────────────────────────────────────────
 
@@ -680,8 +697,8 @@ export default function CanvasEditor({ data, format }: Props) {
         { id: "subtitle", visible: false },
         { id: "swatches", visible: false },
         { id: "steps", visible: true, stepRange: [i, i] as [number, number] },
-        { id: "logo", visible: true },
-        { id: "handle", visible: true },
+        { id: "logo", visible: false },
+        { id: "handle", visible: false },
       ]),
     );
     setSlides([cover, ...stepSlides]);
@@ -725,7 +742,8 @@ export default function CanvasEditor({ data, format }: Props) {
   }
 
   async function downloadAll() {
-    if (!coverImg) return;
+    const primaryImg = coverImgs[0];
+    if (!primaryImg) return;
     setZipBusy(true);
     try {
       const { default: JSZip } = await import("jszip");
@@ -736,7 +754,8 @@ export default function CanvasEditor({ data, format }: Props) {
         off.height = H;
         const ctx = off.getContext("2d");
         if (!ctx) continue;
-        renderSlide(ctx, W, H, slides[i], renderData, coverImg, logoImg);
+        const slideImg = coverImgs[slides[i].imageIndex] ?? primaryImg;
+        renderSlide(ctx, W, H, slides[i], renderData, slideImg, logoImg);
         const blob = await new Promise<Blob>((res) => off.toBlob((b) => res(b!), "image/png"));
         zip.file(
           `${slides[i].label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${format}.png`,
@@ -883,6 +902,27 @@ export default function CanvasEditor({ data, format }: Props) {
               className="flex-1 h-1.5 accent-primary cursor-pointer"
             />
           </div>
+          {/* Per-slide image picker (shown only when recipe has multiple images) */}
+          {images.length > 1 && (
+            <div className="flex gap-2 flex-wrap">
+              {images.map((url, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => updateActiveSlide((s) => ({ ...s, imageIndex: i }))}
+                  className={`relative rounded overflow-hidden flex-shrink-0 transition-all ${
+                    activeSlide.imageIndex === i
+                      ? "ring-2 ring-primary ring-offset-1"
+                      : "opacity-50 hover:opacity-90"
+                  }`}
+                  style={{ width: 48, height: 48 }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt={`Image ${i + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Layers */}
@@ -979,7 +1019,7 @@ export default function CanvasEditor({ data, format }: Props) {
           {slides.length > 1 ? "Download slide" : "Download PNG"}
         </Button>
         {slides.length > 1 && (
-          <Button variant="secondary" onClick={downloadAll} disabled={zipBusy || !coverImg}>
+          <Button variant="secondary" onClick={downloadAll} disabled={zipBusy || !coverImgs[0]}>
             {zipBusy ? <Loader2 className="animate-spin size-4" /> : <Download />}
             {zipBusy ? "Zipping…" : `Download all (${slides.length}) as ZIP`}
           </Button>
